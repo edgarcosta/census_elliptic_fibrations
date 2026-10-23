@@ -1,6 +1,6 @@
 # Census of elliptic K3 surfaces over F2
 
-This Magma code computes the 1,397,598 isomorphism classes of elliptic K3 surfaces with a section over $\mathbf F_2$ (zero section fixed, automorphisms of the base allowed) in under two minutes. The code for $\mathbf F_3$, described under [Over F3](#over-f3), finds 1,307,723,786 such classes there.
+This Magma code computes the 1,397,598 isomorphism classes of elliptic K3 surfaces with a section over $\mathbf F_2$ (zero section fixed, automorphisms of the base allowed) in under two minutes. The code for $\mathbf F_3$, described under [Over F3](#over-f3), finds 1,307,723,786 such classes there in about two seconds.
 
 ## What is counted
 
@@ -51,6 +51,8 @@ The first stage lists the 1,860 orbits of pairs $(C,A)$. There are 933 with $C \
 
 A model is non-minimal at a place $\pi$ exactly when $\pi^2 \mid C$ and some $r$ modulo $\pi^2$ gives $\pi^4 \mid A - Cr$ and $\pi^6 \mid B + Ar + Cr^2 + r^3$. As over $\mathbf F_2$, only places of degree at most 2 can fail, and over $\mathbf F_3$ there are 7 of them. For 1,758 of the pairs no place satisfies the first two conditions, so every model over them with $\Delta \ne 0$ is minimal.
 
+`ef_orbits.m` and `ef3_gmodule.m` compute the census with Magma's matrix groups and G-modules. They find the pairs with `Orbits` and `Stabiliser`. For $C \ne 0$ they take $A$ in the quotient module $V_8/(C \cdot V_4)$ of the stabilizer of $C$; for $C = 0$ the fibre is the quotient module of $V_{12}$ by the image of $q \mapsto q^3 + Aq$. On each fibre they count orbits by Burnside's lemma, over the at most 24 elements that act. The non-minimal $B$ over a pair form a union of cosets of $\pi^6 V_{12 - 6\deg \pi}$, at most about 80,000 points, and for $C \ne 0$ at most one $B$ has $\Delta = 0$. The stabilizer permutes these points, so the K3 orbits over a pair are the orbits on the fibre minus the orbits on these points. Representatives are enumerated only when written: every point when the stabilizer acts trivially, `Orbits` of the linear action obtained by moving a fixed point to 0 otherwise, and `Orbits` of the affine action, lifted to one more dimension, when there is no fixed point.
+
 ### Files
 
 - `ef_common.m`: binary forms and base-$p$ keys.
@@ -59,12 +61,15 @@ A model is non-minimal at a place $\pi$ exactly when $\pi^2 \mid C$ and some $r$
 - `k3_minimality_f3.m`: `IsEverywhereMinimalF3`, and `K3F3_PrefixAutomaticallyMinimal` for the pairs over which every smooth model is minimal.
 - `ef3_stream.m`: `CensusF3` runs the chosen pairs, writes one CSV row of counts per pair, and writes representatives as 8-byte little-endian keys.
 - `ef3_burnside.m`: a Burnside count over all 5832 group elements, independent of the other files.
+- `ef_orbits.m`: the part that does not depend on $p$. It has the action of $\mathrm{GL}(2,\mathbf F_p)$ on binary forms, orbit representatives, and quotients of affine groups by invariant subspaces. For a fibre given as an `EF_Fibre` record (its dimension, affine group, singular and non-minimal loci, and keys), `EF_FibreCounts` counts the orbits, `EF_FibreRepresentatives` returns one key per K3 orbit, and `EF_WriteRepresentatives` appends those keys to a file in the format of `ef3_stream.m`.
+- `ef3_gmodule.m`: the part specific to $\mathbf F_3$. `FibrationOrbitPrefixesF3G` lists the 1,860 pairs and `FibrationFibreF3G` builds the `EF_Fibre` of a pair.
+- `census_driver_f3.m`: runs `ef3_gmodule.m` over all 1,860 pairs and prints the counts per pair and the totals.
 - `bench_f3.m`: times one complete pair of each kind.
 - `checks/`: the check scripts.
 
 ### Usage
 
-Load `ef_common.m`, `ef3_models.m`, `ef3_orbits.m`, `k3_minimality_f3.m` and `ef3_stream.m` in that order, then call for example `CensusF3(R, [], "runs/full")` with `R<s,t> := PolynomialRing(GF(3),2)`; an empty list of indices means every pair. Run the checks from the repository root, as in `magma -b checks/check_orbits.m`. A failed assertion prints `Runtime error in assert`, but `magma -b` still exits with status 0, so read the output. `checks/check_stream.m` writes `stream_check_*` files in the current directory and refuses to overwrite them, so delete them before running it again.
+Run `magma -b census_driver_f3.m` from the repository root for the census counts, in about 2 s of CPU. For the scan-based code, load `ef_common.m`, `ef3_models.m`, `ef3_orbits.m`, `k3_minimality_f3.m` and `ef3_stream.m` in that order, then call for example `CensusF3(R, [], "runs/full")` with `R<s,t> := PolynomialRing(GF(3),2)`; an empty list of indices means every pair. Run the checks from the repository root, as in `magma -b checks/check_orbits.m`. A failed assertion prints `Runtime error in assert`, but `magma -b` still exits with status 0, so read the output. `checks/check_stream.m` writes `stream_check_*` files in the current directory and refuses to overwrite them, so delete them before running it again.
 
 ### Results
 
@@ -88,5 +93,7 @@ These all pass with Magma V2.30-1.
 - Explicit enumeration agrees with Burnside on 35 complete fibres, one of each kind (C zero or not, fibre dimension, number of distinct maps, and whether every smooth model is minimal).
 - The minimality test agrees with Magma's Tate algorithm (`LocalInformation`) on 994 local checks over 142 models.
 - The census without representatives, `CensusF3(R, [], stem : WriteRepresentatives := false)`, took 6,567 s of CPU in total, run as 12 processes on disjoint sets of pairs. Writing the 1.3 billion representatives (10.5 GB) adds an estimated 50 minutes.
+- `census_driver_f3.m` agrees with that run on every one of the 1,860 pairs: the same pairs with the same stabilizer orders, and the same numbers of orbits, of orbits with $\Delta \ne 0$ and of K3 orbits.
+- `checks/check_gmodule.m` repeats the comparison on all pairs for the fibre counts and on 930 pairs for the K3 counts. On one pair of each kind it checks that the representatives pass the local test and lie in distinct orbits, and that the excluded points are exactly those failing the local test.
 
 Author: Edgar Costa
