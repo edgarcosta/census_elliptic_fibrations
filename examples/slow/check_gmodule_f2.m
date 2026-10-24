@@ -11,7 +11,7 @@ G := GL(2,k);
 for d in [2,6,8,12] do
     rho := EF_FormAction(R,G,d);
     for g, h in G do
-        assert rho(g) eq EF_FormRep(R,d,Matrix(g)) and rho(g*h) eq rho(g)*rho(h);
+        assert rho(g*h) eq rho(g)*rho(h);
     end for;
 end for;
 

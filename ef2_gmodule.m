@@ -18,18 +18,21 @@ function FibrationOrbitPrefixesF2G(R)
     for c in EF_OrbitRepresentatives(G2) do
         a1 := EF_FormFromVector(R,2,c);
         H1 := Stabiliser(G2,c) @@ rho2;
-        // a3 -> a3(M*z) + a1*(p^2+a1*p), where p -> a1*(p^2+a1*p) is
-        // GF(2)-linear.
+        // The normalized y -> y+p*x shifts of a3 are GF(2)-linear.
+        shifts := [ EF_WeierstrassChange([ R | a1,0,0,0,0 ],
+                        k!1,m^2+a1*m,m,R!0)[3] : m in B2 ];
         P := sub< GL(8,k) |
             [ EF_AffineMatrix(rho6(H1.i), [ k | 0 : j in [1..7] ])
               : i in [1..Ngens(H1)] ] cat
             [ EF_AffineMatrix(IdentityMatrix(k,7),
-                  EF_Coefficients(a1*(m^2+a1*m),6)) : m in B2 ] >;
+                  EF_Coefficients(b,6)) : b in shifts ] >;
         for v in EF_OrbitRepresentatives(P) do
             if v[8] eq 0 then continue; end if;
             a3 := EF_FormFromVector(R,6,[ v[j] : j in [1..7] ]);
             H := [ <Matrix(g),p> : g in H1, p in [ EF_FormFromVector(R,2,u) : u in V2 ]
-                   | EF_BaseChange(a3,Matrix(g)) + a1*(p^2+a1*p) eq a3 ];
+                   | EF_WeierstrassChange([ R | a1,0,
+                         EF_FormFromVector(R,6,Vector(k,EF_Coefficients(a3,6))*rho6(g)),0,0 ],
+                         k!1,p^2+a1*p,p,R!0)[3] eq a3 ];
             Append(~prefixes, <a1,a3,H>);
         end for;
     end for;
@@ -87,22 +90,32 @@ function FibrationFibreF2G(prefix)
     R := Parent(a1);
     k := BaseRing(R);
     V22 := VectorSpace(k,22);
+    G := GL(2,k);
+    rho6 := EF_FormAction(R,G,6);
+    rho8 := EF_FormAction(R,G,8);
+    rho12 := EF_FormAction(R,G,12);
     gens := [];
     for h in H do
         M, p := Explode(h);
+        g := G!M;
         q := p^2+a1*p;
+        a3M := EF_FormFromVector(R,6,Vector(k,EF_Coefficients(a3,6))*rho6(g));
+        B0 := EF_WeierstrassChange([ R | a1,0,a3M,0,0 ],k!1,q,p,R!0);
         rows := [];
         for z in Basis(V22) do
-            c := EF_BaseChange(EF_FormFromVector(R,8,[ z[i] : i in [1..9] ]), M);
-            e := EF_BaseChange(EF_FormFromVector(R,12,[ z[i] : i in [10..22] ]), M);
-            Append(~rows, EF_Coefficients(c,8) cat EF_Coefficients(e+q*c,12));
+            c := EF_FormFromVector(R,8,Vector(k,[ z[i] : i in [1..9] ])*rho8(g));
+            e := EF_FormFromVector(R,12,Vector(k,[ z[i] : i in [10..22] ])*rho12(g));
+            B := EF_WeierstrassChange([ R | a1,0,a3M,c,e ],k!1,q,p,R!0);
+            Append(~rows, EF_Coefficients(B[4]-B0[4],8) cat EF_Coefficients(B[5]-B0[5],12));
         end for;
         Append(~gens, EF_AffineMatrix(Matrix(k,22,22,&cat rows),
-            EF_Coefficients(q^2+p*a3,8) cat EF_Coefficients(q^3,12)));
+            EF_Coefficients(B0[4],8) cat EF_Coefficients(B0[5],12)));
     end for;
-    // The y-shifts y -> y+r add (a1*r, r^2+a3*r), a GF(2)-linear image.
-    S := sub< V22 | [ V22!(EF_Coefficients(a1*r,8) cat EF_Coefficients(r^2+a3*r,12))
-                      : r in EF_BinaryBasis(R,6) ] >;
+    // The y-shifts y -> y+r form a GF(2)-linear image.
+    shifts := [ EF_WeierstrassChange([ R | a1,0,a3,0,0 ],k!1,R!0,R!0,r)
+                : r in EF_BinaryBasis(R,6) ];
+    S := sub< V22 | [ V22!(EF_Coefficients(B[4],8) cat EF_Coefficients(B[5],12))
+                      : B in shifts ] >;
     E, d, toQ, fromQ := EF_AffineQuotient(sub< GL(23,k) | gens >, S);
     W := VectorSpace(k,d);
     // Delta = a3^4 + a1^3*a3^3 + a1^4*a4^2 + a1^5*a3*a4 + a1^6*a6 is affine

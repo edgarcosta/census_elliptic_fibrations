@@ -34,6 +34,19 @@ function EF_BaseChange(f, M)
                        M[2,1]*R.1+M[2,2]*R.2]);
 end function;
 
+function EF_WeierstrassChange(A, u, r, s, t)
+    // Substitute x_old = u^2*x+r, y_old = u^3*y+s*u^2*x+t.
+    // These formulas also apply when the discriminant is zero.
+    a1, a2, a3, a4, a6 := Explode(A);
+    v := u^-1;
+    return [ Universe(A) |
+        v*(a1+2*s),
+        v^2*(a2-s*a1+3*r-s^2),
+        v^3*(a3+r*a1+2*t),
+        v^4*(a4-s*a3+2*r*a2-(t+r*s)*a1+3*r^2-2*s*t),
+        v^6*(a6+r*a4+r^2*a2+r^3-t*a3-r*t*a1-t^2) ];
+end function;
+
 function EF_PrimeFieldKey(v, p)
     assert IsPrime(p);
     n := 0;

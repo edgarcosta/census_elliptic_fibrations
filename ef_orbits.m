@@ -14,17 +14,11 @@
 
 EF_Fibre := recformat< Dimension, Group, Singular, NonMinimal, Key, FromKey >;
 
-function EF_FormRep(R, d, M)
-    // Row i holds the coefficients of the i-th monomial at M*z, so that
-    // v -> v*EF_FormRep(R,d,M) is f -> f(M*z), a right action.
-    return Matrix(BaseRing(R), d+1, d+1,
-        &cat[ EF_Coefficients(EF_BaseChange(m,M),d)
-              : m in EF_BinaryBasis(R,d) ]);
-end function;
-
 function EF_FormAction(R, G, d)
+    assert BaseRing(G) eq BaseRing(R);
+    V := SymmetricPower(GModule(G),d);
     return hom< G -> GL(d+1,BaseRing(R)) |
-        [ EF_FormRep(R,d,Matrix(G.i)) : i in [1..Ngens(G)] ] >;
+        ActionGenerators(V) >;
 end function;
 
 function EF_OrbitRepresentatives(G)

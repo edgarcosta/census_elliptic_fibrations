@@ -24,7 +24,9 @@ function FibrationOrbitPrefixesF3G(R)
         end if;
         HC := Stabiliser(G4,c) @@ rho4;
         M8 := GModule(HC, [ rho8(HC.i) : i in [1..Ngens(HC)] ]);
-        S := sub< M8 | [ M8!EF_Coefficients(C*m,8) : m in B4 ] >;
+        shifts := [ EF_WeierstrassChange([ R | 0,C,0,0,0 ],k!1,m,R!0,R!0)[4]
+                    : m in B4 ];
+        S := sub< M8 | [ M8!EF_Coefficients(b,8) : b in shifts ] >;
         assert Dimension(S) eq 5;
         Q, proj := quo< M8 | S >;
         phi := hom< HC -> GL(4,k) |
@@ -77,17 +79,18 @@ function FibrationFibreF3G(prefix)
     R := Parent(C);
     k := BaseRing(R);
     V12 := VectorSpace(k,13);
+    rho8 := EF_FormAction(R,H,8);
     rho12 := EF_FormAction(R,H,12);
     if C ne 0 then
         gens := [];
         for i in [1..Ngens(H)] do
-            M := Matrix(H.i);
-            AM := EF_BaseChange(A,M);
+            AM := EF_FormFromVector(R,8,Vector(k,EF_Coefficients(A,8))*rho8(H.i));
             // The x-translation that restores A after M.
             ok, q := IsDivisibleBy(AM-A, C);
             assert ok;
+            B := EF_WeierstrassChange([ R | 0,C,0,AM,0 ],k!1,q,R!0,R!0);
             Append(~gens, EF_AffineMatrix(rho12(H.i),
-                EF_Coefficients(AM*q + C*q^2 + q^3, 12)));
+                EF_Coefficients(B[5],12)));
         end for;
         E := sub< GL(14,k) | gens >;
         // Only -I acts trivially, since q is determined by M.
@@ -102,7 +105,9 @@ function FibrationFibreF3G(prefix)
     else
         E12 := sub< GL(14,k) | [ EF_AffineMatrix(rho12(H.i), [ k | 0 : j in [1..13] ])
                                  : i in [1..Ngens(H)] ] >;
-        images := [ EF_Coefficients(m^3+A*m,12) : m in EF_BinaryBasis(R,4) ];
+        images := [ EF_Coefficients(EF_WeierstrassChange(
+                        [ R | 0,0,0,A,0 ],k!1,m,R!0,R!0)[5],12)
+                    : m in EF_BinaryBasis(R,4) ];
         S := sub< V12 | [ V12!w : w in images ] >;
         E, d, toQ, fromQ := EF_AffineQuotient(E12, S);
         W := VectorSpace(k,d);
