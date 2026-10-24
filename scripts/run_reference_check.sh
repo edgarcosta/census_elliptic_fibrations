@@ -10,6 +10,7 @@ resultpath=$2
 logpath=$3
 cd "$root"
 # The launcher enables error exits before the standalone check loads its inputs.
+mkdir -p "$root/artifacts"
 launcher=$(mktemp "$root/artifacts/reference-launch-XXXXXXXX.m")
 trap 'rm -f "$launcher"' EXIT HUP INT TERM
 python3 - "$launcher" "$check" <<'PYTHON'
