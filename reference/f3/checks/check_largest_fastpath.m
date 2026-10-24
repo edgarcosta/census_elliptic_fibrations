@@ -1,9 +1,9 @@
 // Test and timing for one complete dimension-13 fiber, without disk output.
-load "ef_common.m";
-load "ef3_models.m";
-load "ef3_orbits.m";
-load "k3_minimality_f3.m";
-load "ef3_stream.m";
+load "reference/f3/ef_common.m";
+load "reference/f3/ef3_models.m";
+load "reference/f3/ef3_orbits.m";
+load "reference/f3/k3_minimality_f3.m";
+load "reference/f3/ef3_stream.m";
 
 procedure EF3_CheckLargestFastpath()
     R<s,t> := PolynomialRing(GF(3),2);
@@ -18,4 +18,5 @@ procedure EF3_CheckLargestFastpath()
 end procedure;
 
 EF3_CheckLargestFastpath();
-quit;
+Write(resultpath,"REFERENCE_CHECK_OK");
+quit 0;

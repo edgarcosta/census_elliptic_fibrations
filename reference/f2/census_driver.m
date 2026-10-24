@@ -1,9 +1,9 @@
 // Prints, for each of the 88 prefixes <a1,a3>, the orbit counts and the number
 // of everywhere-minimal (K3) models, then the census totals and CPU times.
-// Run magma -b census_driver.m from the directory holding the three files.
+// Run magma -b reference/f2/census_driver.m from the repository root.
 
-load "elliptic_fibration_orbits_f2.m";
-load "k3_minimality_f2.m";
+load "reference/f2/elliptic_fibration_orbits_f2.m";
+load "reference/f2/k3_minimality_f2.m";
 
 R<s,t> := PolynomialRing(GF(2),2);
 start := Cputime();

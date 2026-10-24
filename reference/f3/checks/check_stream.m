@@ -1,12 +1,12 @@
 // Complete small-fiber comparisons, binary/text round trips, and bounded
 // C!=0 smoke tests. This is not a census benchmark.
-load "ef_common.m";
-load "ef3_models.m";
-load "ef3_orbits.m";
-load "k3_minimality_f3.m";
-load "ef3_stream.m";
+load "reference/f3/ef_common.m";
+load "reference/f3/ef3_models.m";
+load "reference/f3/ef3_orbits.m";
+load "reference/f3/k3_minimality_f3.m";
+load "reference/f3/ef3_stream.m";
 
-procedure EF3_RunStreamChecks()
+procedure EF3_RunStreamChecks(directory)
 R<s,t> := PolynomialRing(GF(3),2);
 P := FibrationOrbitPrefixesF3(R);
 tested := {Integers()|};
@@ -21,7 +21,7 @@ for prefix in P do
         ok,bad := IsEverywhereMinimalF3(FibrationFromKeyF3(R,key));
         if ok then Append(~expected,key); end if;
     end for;
-    filename := Sprintf("stream_check_%o.bin",d);
+    filename := Sprintf(directory cat "/stream_check_%o.bin",d);
     stats := FibrationStreamPrefixF3(prefix,filename);
     assert stats`Complete and stats`K3Orbits eq #expected;
     F := Open(filename,"rb");
@@ -33,7 +33,7 @@ for prefix in P do
     end while;
     delete F;
     assert actual eq expected;
-    filename := Sprintf("stream_check_%o.keys",d);
+    filename := Sprintf(directory cat "/stream_check_%o.keys",d);
     stats := FibrationStreamPrefixF3(prefix,filename : BinaryOutput:=false);
     F := Open(filename,"r");
     actual := [Integers()|];
@@ -57,7 +57,7 @@ for prefix in P do
     automatic := K3F3_PrefixAutomaticallyMinimal(prefix[1],prefix[2]);
     kind := <#maps eq 1,automatic>;
     if kind in testedKinds then continue; end if;
-    filename := Sprintf("stream_check_C_%o.bin",#testedKinds);
+    filename := Sprintf(directory cat "/stream_check_C_%o.bin",#testedKinds);
     stats := FibrationStreamPrefixF3(prefix,filename : PointLimit:=2000);
     assert not stats`Complete and stats`PointsVisited eq 2000;
     F := Open(filename,"rb");
@@ -82,14 +82,23 @@ assert #testedKinds eq 4;
 
 // Test summary and completion-sidecar writes on a small j=0 prefix.
 i := Min([j:j in [1..#P] | P[j][1] eq 0 and P[j][2] ne 0]);
-result := CensusF3(R,[i],"stream_check_driver");
+result := CensusF3(R,[i],directory cat "/stream_check_driver");
 assert #result eq 1 and result[1][2]`Complete;
 assert i eq 2;
-present,F := OpenTest("stream_check_driver_0002.stats","r");
+present,F := OpenTest(directory cat "/stream_check_driver_0002.stats","r");
 assert present;
 delete F;
 print "Streaming checks passed.";
 end procedure;
 
-EF3_RunStreamChecks();
-quit;
+directory := TemporaryDirectory("reference-stream-");
+quoted_directory := "'" cat Join(Split(directory,"'"),"'\"'\"'") cat "'";
+try
+    EF3_RunStreamChecks(directory);
+catch e
+    assert System("rm -rf -- " cat quoted_directory) eq 0;
+    error e;
+end try;
+assert System("rm -rf -- " cat quoted_directory) eq 0;
+Write(resultpath,"REFERENCE_CHECK_OK");
+quit 0;

@@ -1,11 +1,11 @@
 // Times one complete prefix of each kind, then one of the commonest kind with
 // representatives written. Run from the repository root; it writes
 // bench_f3_nowrite* and bench_f3_write* files in the current directory.
-load "ef_common.m";
-load "ef3_models.m";
-load "ef3_orbits.m";
-load "k3_minimality_f3.m";
-load "ef3_stream.m";
+load "reference/f3/ef_common.m";
+load "reference/f3/ef3_models.m";
+load "reference/f3/ef3_orbits.m";
+load "reference/f3/k3_minimality_f3.m";
+load "reference/f3/ef3_stream.m";
 
 R<s,t> := PolynomialRing(GF(3),2);
 P := FibrationOrbitPrefixesF3(R);
