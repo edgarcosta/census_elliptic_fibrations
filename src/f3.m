@@ -1,5 +1,5 @@
 import "forms.m": binary_basis, coefficients, form_from_vector, form_action;
-import "models.m": weierstrass_change, prefix_key_map;
+import "models.m": weierstrass_change, prefix_key_map, ambient_space, ambient_vector;
 import "engine.m": orbit_representatives, affine_matrix, orbit_fibre;
 import "minimality.m": nonminimal_locus;
 import "classification.m": generic_loci;
@@ -45,7 +45,8 @@ function f3_fibre(prefix)
     C, A, H := Explode(prefix);
     R := Parent(C);
     k := BaseRing(R);
-    V12 := VectorSpace(k,13);
+    V12 := ambient_space(R);
+    d := Dimension(V12);
     rho8 := form_action(R,H,8);
     rho12 := form_action(R,H,12);
     if C ne 0 then
@@ -56,13 +57,13 @@ function f3_fibre(prefix)
             assert ok;
             B := weierstrass_change([ R | 0,C,0,AM,0 ],k!1,q,R!0,R!0);
             Append(~gens, affine_matrix(rho12(H.i),
-                coefficients(B[5],12)));
+                ambient_vector([ R | B[5] ])));
         end for;
-        E := sub< GL(14,k) | gens >;
+        E := sub< GL(d+1,k) | gens >;
         assert 2*#E eq #H;
         S := sub< V12 | >;
     else
-        E12 := sub< GL(14,k) | [ affine_matrix(rho12(H.i), [ k | 0 : j in [1..13] ])
+        E12 := sub< GL(d+1,k) | [ affine_matrix(rho12(H.i), [ k | 0 : j in [1..d] ])
                                  : i in [1..Ngens(H)] ] >;
         images := [ coefficients(weierstrass_change(
                         [ R | 0,0,0,A,0 ],k!1,m,R!0,R!0)[5],12)

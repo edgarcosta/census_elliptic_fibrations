@@ -99,10 +99,37 @@ function model_from_key(R, key)
     return W;
 end function;
 
+function ambient_degrees(R)
+    return Characteristic(R) eq 2 select [8,12] else [12];
+end function;
+
+function ambient_space(R)
+    return VectorSpace(BaseRing(R),&+[ d+1 : d in ambient_degrees(R) ]);
+end function;
+
+function ambient_vector(forms)
+    degrees := ambient_degrees(Universe(forms));
+    return &cat[ coefficients(forms[i],degrees[i]) : i in [1..#degrees] ];
+end function;
+
+function ambient_forms(R, v)
+    forms := [ R | ];
+    offset := 0;
+    for d in ambient_degrees(R) do
+        Append(~forms,form_from_vector(R,d,[ v[offset+i] : i in [1..d+1] ]));
+        offset +:= d+1;
+    end for;
+    return forms;
+end function;
+
+function prefix_degrees(R)
+    return Characteristic(R) eq 2 select [2,6] else [4,8];
+end function;
+
 function prefix_key_map(R, forms)
     p := Characteristic(R);
-    degrees := p eq 2 select [2,6] else [4,8];
-    width := p eq 2 select 22 else 13;
+    degrees := prefix_degrees(R);
+    width := Dimension(ambient_space(R));
     digits := &cat[ coefficients(forms[i],degrees[i]) : i in [1,2] ];
     prefix := prime_field_key(digits,p)*p^width;
     return func< P | [ Integers() | prefix+b : b in prime_field_keys(P,p) ] >;

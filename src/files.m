@@ -1,4 +1,4 @@
-import "models.m": valid_ring, prime_field_key;
+import "models.m": valid_ring, prime_field_key, prefix_degrees;
 import "forms.m": coefficients;
 import "census.m": prefixes, selection_error, selections, selected_representative_keys;
 
@@ -28,7 +28,7 @@ See also FibrationRepresentativeKeys, aInvariantsFromKey}
     Flush(summary);
     total := 0;
     p := Characteristic(R);
-    degrees := p eq 2 select [2,6] else [4,8];
+    degrees := prefix_degrees(R);
     for i in indices do
         keys,cells := selected_representative_keys(R,P[i],kinds,minimalities);
         binary := Open(Sprintf("%o_%o.bin",stem,IntegerToString(10000+i)[2..5]),"wb");

@@ -1,5 +1,5 @@
 import "forms.m": binary_basis, coefficients, form_from_vector, is_form_power;
-import "models.m": valid_model, normalize_model, prime_field_key;
+import "models.m": valid_model, normalize_model, prime_field_key, ambient_space, ambient_vector;
 
 function places(R, cusp)
     s := R.1;
@@ -58,7 +58,7 @@ end function;
 
 function nonminimal_locus(R, forms)
     p := Characteristic(R);
-    V := VectorSpace(BaseRing(R),p eq 2 select 22 else 13);
+    V := ambient_space(R);
     result := [* *];
     cusp := IsZero(forms[1]) and IsZero(forms[2]);
     for pi in places(R,cusp) do
@@ -70,12 +70,12 @@ function nonminimal_locus(R, forms)
             r,c4,c6 := Explode(condition);
             if p eq 2 then
                 U4 := [ R | pi^4*m : m in binary_basis(R,8-4*e) ];
-                U := sub< V | [ V!(coefficients(u,8) cat coefficients(r*u,12)) : u in U4 ]
-                    cat [ V!(coefficients(R!0,8) cat coefficients(u,12)) : u in U6 ] >;
-                x := V!(coefficients(c4,8) cat coefficients(r*c4+c6,12));
+                U := sub< V | [ V!(ambient_vector([ R | u,r*u ])) : u in U4 ]
+                    cat [ V!(ambient_vector([ R | 0,u ])) : u in U6 ] >;
+                x := V!(ambient_vector([ R | c4,r*c4+c6 ]));
             else
-                U := sub< V | [ V!coefficients(u,12) : u in U6 ] >;
-                x := V!coefficients(-c6,12);
+                U := sub< V | [ V!ambient_vector([ R | u ]) : u in U6 ] >;
+                x := V!ambient_vector([ R | -c6 ]);
             end if;
             Append(~result,<x,U>);
         end for;

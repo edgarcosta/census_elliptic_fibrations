@@ -1,5 +1,5 @@
-import "forms.m": coefficients, form_from_vector, is_form_power;
-import "models.m": valid_model, normalize_model, model_discriminant;
+import "forms.m": coefficients, binary_basis, is_form_power;
+import "models.m": valid_model, normalize_model, model_discriminant, ambient_space, ambient_vector, ambient_forms;
 import "minimality.m": bad_place_certificate;
 
 function generic_fibre_kind(W)
@@ -19,30 +19,29 @@ function generic_loci(R, forms)
     k := BaseRing(R);
     first,second := Explode(forms);
     p := Characteristic(R);
-    V := VectorSpace(k,p eq 2 select 22 else 13);
+    V := ambient_space(R);
     if first eq 0 and second eq 0 then
         S := [* <V!0,V> *];
         if p eq 2 then
-            Z := sub< V | [ V.i : i in [1..9 by 2] ]
-                cat [ V.i : i in [10..22 by 2] ] >;
+            Z := sub< V | [ V!ambient_vector([ R | m^2,0 ]) : m in binary_basis(R,4) ]
+                cat [ V!ambient_vector([ R | 0,m^2 ]) : m in binary_basis(R,6) ] >;
         else
-            Z := sub< V | [ V.i : i in [1..13 by 3] ] >;
+            Z := sub< V | [ V!ambient_vector([ R | m^3 ]) : m in binary_basis(R,4) ] >;
         end if;
         return S,[* <V!0,Z> *];
     end if;
     if p eq 2 then
         rows := [];
         for z in Basis(V) do
-            c := form_from_vector(R,8,[ z[i] : i in [1..9] ]);
-            e := form_from_vector(R,12,[ z[i] : i in [10..22] ]);
+            c,e := Explode(ambient_forms(R,z));
             Append(~rows,coefficients(first^4*c^2+first^5*second*c+first^6*e,24));
         end for;
-        linear := Matrix(k,22,25,rows);
+        linear := Matrix(k,Dimension(V),25,rows);
         ok,x,U := IsConsistent(linear,Vector(k,coefficients(second^4+first^3*second^3,24)));
         S := ok select [* <V!x,U> *] else [* *];
     elif first ne 0 then
         ok,B := IsDivisibleBy(second^2*(first^2-second),first^3);
-        S := ok select [* <V!coefficients(B,12),sub< V | >> *] else [* *];
+        S := ok select [* <V!ambient_vector([ R | B ]),sub< V | >> *] else [* *];
     else
         S := [* *];
     end if;
