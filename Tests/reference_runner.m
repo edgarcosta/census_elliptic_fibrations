@@ -44,4 +44,11 @@ procedure test_reference_result_protocol()
     assert System("rm -rf -- " cat shell_quote(directory)) eq 0;
 end procedure;
 
+// Direct checks have no launcher result file and must finish without a user error.
+procedure test_standalone_reference_check()
+    output := Pipe("\"${MAGMA:-magma}\" -b reference/checks/check_burnside.m 2>&1", "");
+    error if "User error" in output,output;
+end procedure;
+
 test_reference_result_protocol();
+test_standalone_reference_check();

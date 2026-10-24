@@ -74,5 +74,5 @@ procedure test_f2_scan_comparison()
 end procedure;
 
 test_f2_scan_comparison();
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then Write(resultpath,"REFERENCE_CHECK_OK"); end if;
 quit 0;

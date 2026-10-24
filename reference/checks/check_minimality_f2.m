@@ -89,5 +89,5 @@ procedure test_f2_minimality_against_tate()
 end procedure;
 
 test_f2_minimality_against_tate();
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then Write(resultpath,"REFERENCE_CHECK_OK"); end if;
 quit 0;

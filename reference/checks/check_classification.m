@@ -63,5 +63,5 @@ procedure test_singular_classification()
 end procedure;
 
 test_singular_classification();
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then Write(resultpath,"REFERENCE_CHECK_OK"); end if;
 quit 0;

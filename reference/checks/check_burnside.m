@@ -13,5 +13,5 @@ end procedure;
 
 test_f3_burnside();
 
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then Write(resultpath,"REFERENCE_CHECK_OK"); end if;
 quit 0;
