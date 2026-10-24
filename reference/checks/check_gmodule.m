@@ -1,127 +1,120 @@
-// Compares ef3_gmodule.m with the scan-based code in ef3_orbits.m,
-// k3_minimality_f3.m and ef3_stream.m.
-// Run from the repository root: magma -b filename:=examples/slow/check_gmodule.m exitsignal:='' run_tests.m
+AttachSpec("spec");
+load "reference/f3/ef_common.m";
+load "reference/f3/ef3_models.m";
+load "reference/f3/ef3_orbits.m";
+load "reference/f3/k3_minimality_f3.m";
+load "reference/f3/ef3_stream.m";
 
-procedure EF3G_RunChecks()
-clock := Cputime();
-k := GF(3);
-R<s,t> := PolynomialRing(k,2);
-G := GL(2,k);
-for d in [4,8,12] do
-    rho := EF_FormAction(R,G,d);
-    for g in G do
-        for h in G do assert rho(g*h) eq rho(g)*rho(h); end for;
+// Checks public F3 counts and representative membership using reference maps.
+procedure test_f3_scan_comparison()
+    k := GF(3);
+    R<s,t> := PolynomialRing(k,2);
+    old := FibrationOrbitPrefixesF3(R);
+    new := FibrationPrefixes(R);
+    assert #old eq 1860 and #new eq 1860;
+    V8 := VectorSpace(k,9);
+    B4 := EF_BinaryBasis(R,4);
+    base := EF3_BaseMatrices(k);
+    function canonical_prefix(C,A)
+        candidates := [];
+        for M in base do
+            D := EF_BaseChange(C,M);
+            S := sub< V8 | [ V8!EF_Coefficients(D*r,8) : r in B4 ] >;
+            a := ReduceVector(S,V8!EF_Coefficients(EF_BaseChange(A,M),8));
+            Append(~candidates,<EF3_Key(EF_Coefficients(D,4)),EF3_Key(a)>);
+        end for;
+        return Min(candidates);
+    end function;
+    index := AssociativeArray();
+    for i in [1..#old] do index[canonical_prefix(old[i][1],old[i][2])] := i; end for;
+    assert #Keys(index) eq #old;
+    match := [ index[canonical_prefix(P[1],P[2])] : P in new ];
+    assert #SequenceToSet(match) eq #old;
+    n, cells, rows := NumberOfFibrations(R);
+    counts := [ < &+[ c[cell] : cell in Keys(c) ],
+        c[<"smooth","everywhere minimal">]+c[<"smooth","nonminimal somewhere">],
+        c[<"smooth","everywhere minimal">] > where c is row[2] : row in rows ];
+    assert n eq 1307814237;
+    assert &+[ c[2] : c in counts ] eq 1307813899;
+    assert &+[ c[3] : c in counts ] eq 1307723786;
+    for j in [1..#new] do
+        assert counts[j][1] eq EF3_FiberBurnsideCount(old[match[j]]);
     end for;
-end for;
 
-old := FibrationOrbitPrefixesF3(R);
-new := FibrationOrbitPrefixesF3G(R);
-assert #new eq 1860 and #[ P : P in new | P[1] ne 0 ] eq 933;
+    // Match every C=0 smooth fibre and one nonautomatic C!=0 per map order.
+    orders := {};
+    compared := 0;
+    kinds := {};
+    no_fixed_point := false;
+    for j in [1..#new] do
+        P := old[match[j]];
+        if P[1] eq 0 and P[2] eq 0 then continue; end if;
+        Q,maps,S := EF3_FiberData(P);
+        d := Dimension(Q);
+        automatic := K3F3_PrefixAutomaticallyMinimal(P[1],P[2]);
+        if P[1] eq 0 or (not automatic and #maps gt 1 and #maps notin orders) then
+            stats := FibrationStreamPrefixF3(P,"unused" : WriteRepresentatives := false);
+            assert stats`AllOrbits eq counts[j][1];
+            assert stats`SmoothOrbits eq counts[j][2];
+            assert stats`K3Orbits eq counts[j][3];
+            if P[1] ne 0 then Include(~orders,#maps); end if;
+            compared +:= 1;
+        end if;
+        fixed := IsConsistent(HorizontalJoin([ g[1]-IdentityMatrix(k,d) : g in maps ]),
+            Vector(k,&cat[ Eltseq(-g[2]) : g in maps ]));
+        kind := <P[1] eq 0,d,#maps gt 1>;
+        check_kind := not automatic and kind notin kinds;
+        check_affine := not fixed and not no_fixed_point;
+        if not check_kind and not check_affine then continue; end if;
+        if check_kind then Include(~kinds,kind); end if;
+        if check_affine then no_fixed_point := true; end if;
 
-// A pair (C,A) up to the group, for C a least-key orbit representative:
-// the least key of A modulo C*V4 over the stabilizer of C.
-V8 := VectorSpace(k,9);
-B4 := EF_BinaryBasis(R,4);
-base := EF3_BaseMatrices(k);
-function Canonical(C, A)
-    S := sub< V8 | [ V8!EF_Coefficients(C*m,8) : m in B4 ] >;
-    keys := [ EF3_Key(ReduceVector(S,V8!EF_Coefficients(EF_BaseChange(A,M),8)))
-              : M in base | EF_BaseChange(C,M) eq C ];
-    return <EF3_Key(EF_Coefficients(C,4)),Min(keys)>;
-end function;
-oldIndex := AssociativeArray();
-for i in [1..#old] do oldIndex[Canonical(old[i][1],old[i][2])] := i; end for;
-match := [];
-for P in new do
-    i := oldIndex[Canonical(P[1],P[2])];
-    assert 2*#old[i][3] eq #P[3];
-    Append(~match, i);
-end for;
-assert #SequenceToSet(match) eq #old;
-print "Prefixes match the scan-based ones, with the same stabilizer orders.";
-
-fibres := [ FibrationFibreF3G(P) : P in new ];
-counts := [ EF_FibreCounts(F) : F in fibres ];
-totals := < &+[ c[1] : c in counts ], &+[ c[2] : c in counts ], &+[ c[3] : c in counts ] >;
-assert totals[1] eq 1307814237 and totals[2] eq 1307813899;
-for j in [1..#new] do
-    assert counts[j][1] eq EF3_FiberBurnsideCount(old[match[j]]);
-end for;
-printf "Fibre counts match prefix by prefix; totals %o.\n", totals;
-
-// Elliptic K3 counts against enumeration with the local test: every pair
-// with C = 0, and for C != 0 one pair that needs the local test for each
-// nontrivial stabilizer order on the fibre.
-compared := 0;
-orders := {};
-for j in [1..#new] do
-    P := new[j];
-    if P[1] eq 0 and P[2] eq 0 then continue; end if;
-    F := fibres[j];
-    d := F`Dimension;
-    E := F`Group;
-    automatic := K3F3_PrefixAutomaticallyMinimal(P[1],P[2]);
-    if P[1] ne 0 and (automatic or #E eq 1 or #E in orders) then continue; end if;
-    if P[1] ne 0 then Include(~orders, #E); end if;
-    st := FibrationStreamPrefixF3(old[match[j]],"unused" :
-                                  WriteRepresentatives := false);
-    assert st`K3Orbits eq counts[j][3];
-    compared +:= 1;
-end for;
-printf "Elliptic K3 counts match enumeration on %o pairs.\n", compared;
-
-// Representatives and the non-minimal set against the local test.
-kinds := {};
-for j in [1..#new] do
-    P := new[j];
-    if P[1] eq 0 and P[2] eq 0 then continue; end if;
-    if K3F3_PrefixAutomaticallyMinimal(P[1],P[2]) then continue; end if;
-    F := fibres[j];
-    d := F`Dimension;
-    E := F`Group;
-    kind := <P[1] eq 0, d, #E gt 1>;
-    if kind in kinds then continue; end if;
-    Include(~kinds, kind);
-    reps := EF_FibreRepresentatives(F);
-    assert #reps eq counts[j][3];
-    // With a trivial stabilizer every point is its own orbit; sample those.
-    if #E eq 1 then reps := [ Random(reps) : i in [1..20000] ]; end if;
-    for key in reps do
-        assert IsEverywhereMinimalF3(FibrationFromKeyF3(R,key));
+        // Carry public representatives to the matched reference prefix.
+        found := false;
+        for M in base do
+            if EF_BaseChange(new[j][1],M) ne P[1] then continue; end if;
+            A := EF_BaseChange(new[j][2],M);
+            if P[1] eq 0 then
+                if A ne P[2] then continue; end if;
+                q := R!0;
+            else
+                divisible,q := IsDivisibleBy(A-P[2],P[1]);
+                if not divisible then continue; end if;
+            end if;
+            transport := <M,q>;
+            found := true;
+            break;
+        end for;
+        assert found;
+        function orbit_key(W)
+            v := Vector(k,Coordinates(Q,Q!ReduceVector(S,
+                Vector(k,EF_Coefficients(W[3],12)))));
+            return Min([ EF3_Key(v*g[1]+g[2]) : g in maps ]);
+        end function;
+        reps := FibrationRepresentativeKeys(R,j : GenericFibreKinds := ["smooth"],
+            Minimalities := ["everywhere minimal"]);
+        assert not IsEmpty(reps) and #reps eq counts[j][3];
+        // Trivial fibres can have millions of points; check a bounded sample.
+        if #maps eq 1 then reps := [ reps[i] : i in [1..Min([#reps,20000])] ]; end if;
+        actual := {};
+        for key in reps do
+            W := EF3_NormalizeLongModel(aInvariantsFromKey(R,key));
+            W := EF3_Transform(W,transport[1],transport[2]);
+            assert W[1] eq P[1] and W[2] eq P[2];
+            assert IsEverywhereMinimalF3(W);
+            Include(~actual,orbit_key(W));
+        end for;
+        assert #actual eq #reps;
+        if #maps gt 1 then
+            keys,info := FibrationFiberOrbitKeysF3(P);
+            expected := { orbit_key(W) : key in keys | IsEverywhereMinimalF3(W)
+                where W is FibrationFromKeyF3(R,key) };
+            assert actual eq expected;
+        end if;
     end for;
-    W := VectorSpace(k,d+1);
-    canon := { Min([ EF3_Key(Eltseq(W!(Eltseq(F`FromKey(key)) cat [1])*g))
-                     : g in E ]) : key in reps };
-    assert #E eq 1 or #canon eq #reps;
-    bad := Set(EF_NonMinimalPoints(F));
-    for v in bad join { Random(VectorSpace(k,d)) : i in [1..500] } do
-        excluded := v in bad or EF_InSingular(F,v);
-        assert excluded eq not IsEverywhereMinimalF3(FibrationFromKeyF3(R,F`Key(v)));
-    end for;
-    printf "Pair %o, kind %o: %o representatives checked.\n", j, kind, #reps;
-end for;
-// Representatives over a fibre whose stabilizer fixes no point.
-for j in [1..#new] do
-    P := new[j];
-    F := fibres[j];
-    d := F`Dimension;
-    E := F`Group;
-    if #E eq 1 then continue; end if;
-    X := [ Matrix(E.i) : i in [1..Ngens(E)] ];
-    if IsConsistent(HorizontalJoin([ Submatrix(x,1,1,d,d)-IdentityMatrix(k,d)
-                                     : x in X ]),
-                    Vector(k, &cat[ [ -x[d+1,i] : i in [1..d] ] : x in X ]))
-    then continue; end if;
-    reps := EF_FibreRepresentatives(F);
-    assert #reps eq counts[j][3];
-    W := VectorSpace(k,d+1);
-    canon := { Min([ EF3_Key(Eltseq(W!(Eltseq(F`FromKey(key)) cat [1])*g))
-                     : g in E ]) : key in reps };
-    assert #canon eq #reps;
-    printf "Pair %o, no fixed point: %o representatives checked.\n", j, #reps;
-    break;
-end for;
-printf "All checks passed. CPU seconds: %o\n", Cputime(clock);
+    assert compared eq 930 and not IsEmpty(kinds) and no_fixed_point;
 end procedure;
 
-EF3G_RunChecks();
+test_f3_scan_comparison();
+Write(resultpath,"REFERENCE_CHECK_OK");
+quit 0;

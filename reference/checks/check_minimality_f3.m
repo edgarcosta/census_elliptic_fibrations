@@ -1,5 +1,11 @@
+AttachSpec("spec");
+load "reference/f3/ef_common.m";
+load "reference/f3/ef3_models.m";
+load "reference/f3/ef3_orbits.m";
+load "reference/f3/k3_minimality_f3.m";
+load "reference/f3/ef3_stream.m";
+
 // Standalone validation, including an independent Magma Tate-algorithm check.
-// Run from the repository root: magma -b filename:=examples/slow/check_minimality_f3.m exitsignal:='' run_tests.m
 
 function K3F3_PolynomialValuation(f,pi)
     // Used only for nonzero discriminants and their nonzero numerators.
@@ -100,6 +106,10 @@ function K3F3_CheckAgainstTate(W : Context := K3F3_default_context)
     assert local_bad eq (oldv gt newv);
     if oldv gt newv then Append(~tate_bad,t); end if;
 
+    public_ok, certificate := IsEverywhereMinimal(EF3_AsLongModel(W));
+    assert public_ok eq ok and certificate[1] eq "finite";
+    normalized := { pi/LeadingCoefficient(pi) : pi in tate_bad };
+    assert SequenceToSet(certificate[2]) eq normalized;
     assert SequenceToSet(bad) eq SequenceToSet(tate_bad);
     assert ok eq IsEmpty(tate_bad);
     return #Context[2]+1;
@@ -146,6 +156,15 @@ procedure K3F3_RunMinimalityChecks(: RandomModels := 100, Seed := 31003)
     ok,bad := IsEverywhereMinimalF3([R | 0,0,s^12] : Context := context);
     assert not ok and IsEmpty(bad);
 
+    // Singular equations use local congruences, since Tate needs a smooth curve.
+    for W in [ [R | 0,0,0,0,s*t^11], [R | 0,s^4,0,0,0] ] do
+        ok, certificate := IsEverywhereMinimal(W);
+        assert not ok and certificate[1] eq "finite";
+        assert certificate[2] eq [R | W[2] eq 0 select t else s];
+    end for;
+    ok, certificate := IsEverywhereMinimal([R | 0,0,0,0,s^12]);
+    assert not ok and certificate eq <"all">;
+
     degrees := [4,8,12];
     for i in [1..RandomModels] do
         repeat
@@ -160,3 +179,6 @@ procedure K3F3_RunMinimalityChecks(: RandomModels := 100, Seed := 31003)
 end procedure;
 
 K3F3_RunMinimalityChecks();
+
+Write(resultpath,"REFERENCE_CHECK_OK");
+quit 0;
