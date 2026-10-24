@@ -131,8 +131,10 @@ function FibrationFibreF2G(prefix)
     nonminimal := (a1 eq 0 and a3 eq 0) select [] else
         EF_ProjectSubspaces(EF2G_NonMinimalSubspaces(a1,a3), toQ);
     digits := EF_Coefficients(a1,2) cat EF_Coefficients(a3,6);
+    prefixKey := EF_PrimeFieldKey(digits,2)*2^22;
     return rec< EF_Fibre | Dimension := d, Group := E, Singular := singular,
         NonMinimal := nonminimal,
         Key := func< v | EF_PrimeFieldKey(digits cat Eltseq(Vector(k,Eltseq(v))*fromQ),2) >,
+        Keys := func< P | [ prefixKey+b : b in EF_PrimeFieldKeys(P*fromQ,2) ] >,
         FromKey := func< key | W!(EF_VectorFromKey(V22, key mod 2^22)*toQ) > >;
 end function;

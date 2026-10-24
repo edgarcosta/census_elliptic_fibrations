@@ -9,10 +9,11 @@
 //               union is E-invariant and is the set of models that are not
 //               minimal at some place (it may meet Singular);
 //   Key:        a function from fibre vectors to model keys;
+//   Keys:       optional batched Key, on the rows of a matrix;
 //   FromKey:    its inverse, from the key of any model over the prefix to
 //               its fibre vector.
 
-EF_Fibre := recformat< Dimension, Group, Singular, NonMinimal, Key, FromKey >;
+EF_Fibre := recformat< Dimension, Group, Singular, NonMinimal, Key, Keys, FromKey >;
 
 function EF_FormAction(R, G, d)
     assert BaseRing(G) eq BaseRing(R);
@@ -194,6 +195,50 @@ function EF_FibreRepresentatives(F)
     if Type(F`Singular) ne BoolElt and Dimension(F`Singular[2]) eq d then
         return [ Integers() | ];
     end if;
+    keys := [ Integers() | ];
+    batch := 4096;
+    if (#k)^d gt 65536 then
+        p := #k;
+        excluded := { EF_PrimeFieldKey(v,p) : v in EF_NonMinimalPoints(F) };
+        if Type(F`Singular) ne BoolElt then
+            x, U := Explode(F`Singular);
+            excluded join:= { EF_PrimeFieldKey(x+u,p) : u in U };
+        end if;
+        parts := [];
+        for g in E do
+            if IsIdentity(g) then continue; end if;
+            L, b := EF_AffineParts(g,d);
+            Append(~parts,<L,b>);
+        end for;
+        if #E gt 1 then
+            seen := [ false : i in [1..p^d] ];
+            for n in excluded do seen[n+1] := true; end for;
+        end if;
+        powers := [ p^(d-i) : i in [1..d] ];
+        for lo in [0..p^d-1 by batch] do
+            hi := Min(lo+batch-1,p^d-1);
+            P := Transpose(Matrix(k,d,hi-lo+1,
+                &cat[ [ (n div power) mod p : n in [lo..hi] ] : power in powers ]));
+            if #E eq 1 then
+                indices := [ n-lo+1 : n in [lo..hi] | n notin excluded ];
+            else
+                ones := Matrix(k,hi-lo+1,1,[ k | 1 : n in [lo..hi] ]);
+                images := [ EF_PrimeFieldKeys(P*T[1]+ones*Matrix(T[2]),p) : T in parts ];
+                indices := [];
+                for n in [lo..hi] do
+                    if seen[n+1] then continue; end if;
+                    Append(~indices,n-lo+1);
+                    seen[n+1] := true;
+                    for image in images do seen[image[n-lo+1]+1] := true; end for;
+                end for;
+            end if;
+            if #indices eq 0 then continue; end if;
+            P := RowSubmatrix(P,indices);
+            keys cat:= assigned F`Keys select F`Keys(P)
+                else [ F`Key(W!Eltseq(P[i])) : i in [1..Nrows(P)] ];
+        end for;
+        return keys;
+    end if;
     bad := Set(EF_NonMinimalNonsingular(F));
     if #E eq 1 then
         reps := [ v : v in W ];
@@ -215,7 +260,13 @@ function EF_FibreRepresentatives(F)
                       | O[1][d+1] eq 1 ];
         end if;
     end if;
-    return [ F`Key(v) : v in reps | v notin bad and not EF_InSingular(F,v) ];
+    reps := [ v : v in reps | v notin bad and not EF_InSingular(F,v) ];
+    for lo in [1..#reps by batch] do
+        P := Matrix(k,[ Eltseq(v) : v in reps[lo..Min(lo+batch-1,#reps)] ]);
+        keys cat:= assigned F`Keys select F`Keys(P)
+            else [ F`Key(W!Eltseq(P[i])) : i in [1..Nrows(P)] ];
+    end for;
+    return keys;
 end function;
 
 procedure EF_WriteRepresentatives(F, filename)

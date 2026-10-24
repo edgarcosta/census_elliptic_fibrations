@@ -58,6 +58,12 @@ function EF_PrimeFieldKey(v, p)
     return n;
 end function;
 
+function EF_PrimeFieldKeys(M, p)
+    weights := Matrix(Integers(),Ncols(M),1,
+                      [ p^(Ncols(M)-i) : i in [1..Ncols(M)] ]);
+    return Eltseq(ChangeRing(M,Integers())*weights);
+end function;
+
 function EF_VectorFromKey(V, n)
     p := #BaseRing(V);
     assert IsPrime(p);
