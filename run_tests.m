@@ -6,23 +6,12 @@ else
     SetQuitOnError(true);
 end if;
 
-// Load the current entry points here until the package spec is available.
-load "ef_common.m";
-load "ef3_models.m";
-load "ef3_orbits.m";
-load "k3_minimality_f3.m";
-load "ef3_stream.m";
-load "ef_orbits.m";
-load "ef3_gmodule.m";
-load "elliptic_fibration_orbits_f2.m";
-load "k3_minimality_f2.m";
-load "ef2_gmodule.m";
-load "ef3_burnside.m";
+load "config.m";
 
 if assigned filename then
     tests := [filename];
 else
-    tests := Split(Pipe("find Tests examples -maxdepth 1 -type f -name '*.m' | sort", ""), "\n");
+    tests := Split(Pipe("find Tests examples -maxdepth 1 -type f -name '*.m' ! -name '_*' | sort", ""), "\n");
 end if;
 if not assigned target then
     target := "";

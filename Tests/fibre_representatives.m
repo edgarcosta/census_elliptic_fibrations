@@ -1,29 +1,46 @@
-for p in [2,3] do
-    R<s,t> := PolynomialRing(GF(p),2);
-    prefixes := p eq 2 select FibrationOrbitPrefixesF2G(R)
-                      else FibrationOrbitPrefixesF3G(R);
-    P := prefixes[2];
-    F := p eq 2 select FibrationFibreF2G(P) else FibrationFibreF3G(P);
-    keys := EF_FibreRepresentatives(F);
-    assert #keys eq EF_FibreCounts(F)[3];
-    assert #SequenceToSet(keys) eq #keys;
-    for key in keys do
-        assert F`Key(F`FromKey(key)) eq key;
-        model := p eq 2 select FibrationFromKeyF2(R,key) else FibrationFromKeyF3(R,key);
-        assert p eq 2 select IsEverywhereMinimalF2(model) else IsEverywhereMinimalF3(model);
-    end for;
-end for;
+import "Tests/_support.m": expect_error;
 
-k := GF(3);
-d := 11;
-W := VectorSpace(k,d);
-b := W.d;
-E := sub< GL(d+1,k) | EF_AffineMatrix(IdentityMatrix(k,d),b) >;
-F := rec< EF_Fibre | Dimension := d, Group := E,
-    Singular := <W!0,sub< W | [ W.i : i in [2..d] ] >>,
-    NonMinimal := [ <W.2,sub< W | [ W.i : i in [1..d] | i ne 2 ] >> ],
-    Key := func< v | 3^12+EF_PrimeFieldKey(v,3) > >;
-keys := EF_FibreRepresentatives(F);
-assert #keys eq 4*3^8;
-assert SequenceToSet(keys) eq { 3^12+n : n in [0..3^d-1] |
-    n div 3^(d-1) ne 0 and (n div 3^(d-2)) mod 3 ne 1 and n mod 3 eq 0 };
+// Pins listings over the cuspidal prefixes, including empty smooth selections.
+procedure test_selected_representatives()
+    for p in [2,3] do
+        R<s,t> := PolynomialRing(GF(p),2);
+        keys := FibrationRepresentativeKeys(R,1);
+        assert #keys eq (p eq 2 select 720 else 315);
+        assert #Seqset(keys) eq #keys;
+        assert IsEmpty(FibrationRepresentativeKeys(R,1 : GenericFibreKinds := ["smooth"]));
+        for kind in ["regular cusp","nonregular"] do
+            for minimality in ["everywhere minimal","nonminimal somewhere"] do
+                selected := FibrationRepresentativeKeys(R,1 : GenericFibreKinds := [kind], Minimalities := [minimality]);
+                n,cells,rows := NumberOfFibrations(R : PrefixIndices := [1],
+                    GenericFibreKinds := [kind], Minimalities := [minimality]);
+                if n eq 0 then assert IsEmpty(selected); continue; end if;
+                assert #selected gt 0 and #selected eq n;
+                for key in selected[1..Min(#selected,3)] do
+                    k,m := FibrationProperties(aInvariantsFromKey(R,key));
+                    assert <k,m> eq <kind,minimality>;
+                end for;
+            end for;
+        end for;
+        smooth := FibrationRepresentativeKeys(R,2 : GenericFibreKinds := ["smooth"]);
+        assert #smooth eq (p eq 2 select 4296 else 1143);
+        assert #Seqset(smooth) eq #smooth;
+        for minimality in ["everywhere minimal","nonminimal somewhere"] do
+            selected := FibrationRepresentativeKeys(R,2 : GenericFibreKinds := ["smooth"], Minimalities := [minimality]);
+            n,cells,rows := NumberOfFibrations(R : PrefixIndices := [2],
+                GenericFibreKinds := ["smooth"], Minimalities := [minimality]);
+            assert #selected gt 0 and #selected eq n;
+            for key in selected[1..Min(#selected,3)] do
+                k,m := FibrationProperties(aInvariantsFromKey(R,key));
+                assert k eq "smooth" and m eq minimality;
+            end for;
+        end for;
+        expect_error(procedure() x := FibrationRepresentativeKeys(R,0); end procedure,"valid prefix indices");
+        expect_error(procedure() n,c,r := NumberOfFibrations(R : PrefixIndices := [1,1]); end procedure,"PrefixIndices must be distinct");
+        expect_error(procedure() n,c,r := NumberOfFibrations(R : GenericFibreKinds := ["Smooth"]); end procedure,"GenericFibreKinds must contain distinct values");
+        expect_error(procedure() n,c,r := NumberOfFibrations(R : GenericFibreKinds := ["smooth","smooth"]); end procedure,"GenericFibreKinds must contain distinct values");
+        expect_error(procedure() n,c,r := NumberOfFibrations(R : Minimalities := ["minimal"]); end procedure,"Minimalities must contain distinct values");
+        expect_error(procedure() n,c,r := NumberOfFibrations(R : Minimalities := ["everywhere minimal","everywhere minimal"]); end procedure,"Minimalities must contain distinct values");
+    end for;
+end procedure;
+
+test_selected_representatives();
