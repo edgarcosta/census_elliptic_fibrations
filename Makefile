@@ -29,6 +29,8 @@ check-no-dups:
 
 .PHONY: all check check-no-dups
 
+REFERENCE_PROCESSES ?= 8
+
 REFERENCE_FILES := $(wildcard reference/checks/*.m reference/f3/checks/*.m)
 
 check-reference:
@@ -42,7 +44,7 @@ reference-check/%.m:
 	check="$*"; case "$$check" in reference/*) ;; *) \
 	  if test -f "reference/checks/$$check.m"; then check="reference/checks/$$check"; \
 	  else check="reference/f3/checks/$$check"; fi ;; esac; \
-	MAGMA="$(MAGMA_PATH)" MAGMA_TEMP_DIR="$(CURDIR)/artifacts/test-tmp" sh scripts/run_reference_check.sh "$$check.m" "$$result" "$$log" || { cat "$$log"; exit 1; }
+	REFERENCE_PROCESSES="$(REFERENCE_PROCESSES)" MAGMA="$(MAGMA_PATH)" MAGMA_TEMP_DIR="$(CURDIR)/artifacts/test-tmp" sh scripts/run_reference_check.sh "$$check.m" "$$result" "$$log" || { cat "$$log"; exit 1; }
 
 check-slow:
 	@set -e; for check in examples/slow/*.m; do \
