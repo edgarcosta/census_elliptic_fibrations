@@ -4,8 +4,6 @@ on:
   push:
     branches: [ '**' ]
 
-  pull_request_target:
-
 env:
   # Increase this value to reset cache when MAGMA_URL changes.
   MAGMA_CACHE_NUMBER: 2.29-8
@@ -17,32 +15,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Check user permission
-        id: check
-        uses: scherermichael-oss/action-has-permission@master
-        with:
-          required-permission: write
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Stop workflow for users with no write access
-        if: "! steps.check.outputs.has-permission"
-        run: |
-          echo "Sorry! Your permissions are insufficient."
-          false
-
-      - name: The user has write access
-        if: "steps.check.outputs.has-permission"
-        run: |
-          echo "The user has write access"
-
       - uses: actions/checkout@v2
-        if: ${{ github.event_name == 'push' }}
-
-      - uses: actions/checkout@v2
-        if: ${{ github.event_name == 'pull_request_target' }}
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Guard against duplicate test basenames
         run: sh scripts/no_dup_test_basenames.sh
@@ -151,34 +124,8 @@ jobs:
       matrix: ${{fromJson(needs.matrix.outputs.matrix)}}
 
     steps:
-      - name: Check user permission
-        id: check
-        uses: scherermichael-oss/action-has-permission@master
-        with:
-          required-permission: write
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Stop workflow for users with no write access
-        if: "! steps.check.outputs.has-permission"
-        run: |
-          echo "Sorry! Your permissions are insufficient."
-          false
-
-      - name: The user has write access
-        if: "steps.check.outputs.has-permission"
-        run: |
-          echo "The user has write access"
-
-      - name: Checkout for a push event
+      - name: Checkout
         uses: actions/checkout@v2
-        if: ${{ github.event_name == 'push' }}
-
-      - name: Checkout for a PR event
-        uses: actions/checkout@v2
-        if: ${{ github.event_name == 'pull_request_target' }}
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Cache magma
         uses: actions/cache@v3
