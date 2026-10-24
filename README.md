@@ -101,8 +101,6 @@ These all pass with Magma V2.30-1.
 - `census_driver_f3.m` agrees with that run on every one of the 1,860 pairs: the same pairs with the same stabilizer orders, and the same numbers of orbits, of orbits with $\Delta \ne 0$ and of K3 orbits.
 - `examples/slow/check_gmodule.m` repeats the comparison on all pairs for the fibre counts and on 930 pairs for the K3 counts. On one pair of each kind it checks that the representatives pass the local test and lie in distinct orbits, and that the excluded points are exactly those failing the local test.
 
-Author: Edgar Costa
-
 ## Test suite
 
 Run `make check` or `magma -b exitsignal:='' run_tests.m` from the repository root.
@@ -116,3 +114,5 @@ The longer cross-checks live in `examples/slow/` and run only when selected by f
 ```sh
 magma -b filename:=examples/slow/check_minimality_f3.m exitsignal:='' run_tests.m
 ```
+
+Author: Edgar Costa

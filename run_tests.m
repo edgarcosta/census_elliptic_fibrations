@@ -1,8 +1,9 @@
 // Run from the repository root. Select tests with target:= or filename:=.
 // Assign exitsignal:= to return the number of failures; debug:= opens the debugger.
-SetQuitOnError(true);
 if assigned debug then
     SetDebugOnError(true);
+else
+    SetQuitOnError(true);
 end if;
 
 // Load the current entry points here until the package spec is available.
