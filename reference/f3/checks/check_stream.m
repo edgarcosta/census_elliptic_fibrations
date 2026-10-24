@@ -100,5 +100,7 @@ catch e
     error e;
 end try;
 assert System("rm -rf -- " cat quoted_directory) eq 0;
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then
+    Write(resultpath,"REFERENCE_CHECK_OK");
+end if;
 quit 0;

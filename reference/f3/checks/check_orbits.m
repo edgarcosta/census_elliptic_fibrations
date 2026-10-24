@@ -94,5 +94,7 @@ printf "Orbit checks passed. CPU seconds: %o\n",Cputime(clock);
 end procedure;
 
 EF3_RunOrbitChecks();
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then
+    Write(resultpath,"REFERENCE_CHECK_OK");
+end if;
 quit 0;

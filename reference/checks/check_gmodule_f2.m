@@ -62,8 +62,12 @@ procedure test_f2_scan_comparison()
         reps := FibrationRepresentativeKeys(R,j : GenericFibreKinds := ["smooth"],
             Minimalities := ["everywhere minimal"]);
         assert #reps eq #minimal and #expected eq #minimal;
-        actual := { orbit_key(TransformNormalizedF2(aInvariantsFromKey(R,key),h[1],h[2],R!0))
-            : key in reps };
+        actual := {};
+        for key in reps do
+            W := TransformNormalizedF2(aInvariantsFromKey(R,key),h[1],h[2],R!0);
+            assert W[1] eq P[1] and W[3] eq P[2];
+            Include(~actual,orbit_key(W));
+        end for;
         assert actual eq expected;
     end for;
     assert n eq totals[1] and totals eq [1402468,1401732,1397598];

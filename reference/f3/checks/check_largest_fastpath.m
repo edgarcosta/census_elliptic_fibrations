@@ -18,5 +18,7 @@ procedure EF3_CheckLargestFastpath()
 end procedure;
 
 EF3_CheckLargestFastpath();
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then
+    Write(resultpath,"REFERENCE_CHECK_OK");
+end if;
 quit 0;

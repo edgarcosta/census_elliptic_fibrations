@@ -156,7 +156,7 @@ procedure K3F3_RunMinimalityChecks(: RandomModels := 100, Seed := 31003)
     ok,bad := IsEverywhereMinimalF3([R | 0,0,s^12] : Context := context);
     assert not ok and IsEmpty(bad);
 
-    // Singular equations use local congruences, since Tate needs a smooth curve.
+    // Singular equations have fixed certificates from the spec's fixture table.
     for W in [ [R | 0,0,0,0,s*t^11], [R | 0,s^4,0,0,0] ] do
         ok, certificate := IsEverywhereMinimal(W);
         assert not ok and certificate[1] eq "finite";

@@ -67,5 +67,7 @@ procedure EF3_RunStreamCoreChecks()
 end procedure;
 
 EF3_RunStreamCoreChecks();
-Write(resultpath,"REFERENCE_CHECK_OK");
+if assigned resultpath then
+    Write(resultpath,"REFERENCE_CHECK_OK");
+end if;
 quit 0;
