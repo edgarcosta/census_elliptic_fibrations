@@ -61,11 +61,13 @@ and checks invariance under prefix stabilizers and overlapping bad places.
 
 The total-count check compares independent Burnside counts and singular
 cell counts with the public census. The F2 scan comparison covers all
-prefixes, including the smooth minimal/nonminimal split. Over F3, all
-prefixes are checked for total and smooth counts, while the smooth
-minimal/nonminimal split is sampled. Selected representative sets are
-compared as orbits, and smooth local tests are compared with Magma's
-Tate algorithm. This is not an exhaustive independent recount of the
+prefixes, including the smooth minimal/nonminimal split. Over F3, every
+prefix total is checked against an independent Burnside count. The smooth
+count is checked prefix by prefix on the 930 scanned prefixes, and otherwise
+only summed over all prefixes. The smooth minimal/nonminimal split is sampled.
+Selected representative sets are compared as orbits, and smooth local
+tests are compared with Magma's Tate algorithm. This is not an exhaustive
+independent recount of the
 F3 smooth minimal/nonminimal split.
 
 For the definitions of the six cells, see [the mathematics](../docs/mathematics.md).

@@ -131,9 +131,9 @@ followed by a certificate. Nonregular equations are accepted.
 | `false` | `<"finite",places>` | Nonminimal exactly at the nonempty list of places |
 | `false` | `<"all">` | Nonminimal at every closed place |
 
-Finite places are represented by homogeneous irreducible forms, with first
-nonzero coefficient equal to one. They are ordered by degree and then by
-their coefficient key. The place at infinity in the chart `a_i(s,1)` is `t`.
+Places in a finite certificate are represented by homogeneous irreducible
+forms, with first nonzero coefficient equal to one. They are ordered by degree
+and then by their coefficient key. The place at infinity in the chart `a_i(s,1)` is `t`.
 The certificate always includes infinity when it is bad.
 
 Here are a regular cusp nonminimal only at infinity and the zero equation:

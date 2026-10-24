@@ -140,7 +140,8 @@ See [Cossec, Dolgachev and Liedtke, Section 4.4, Case 4, pp. 400-401](https://si
 In an affine chart, write a4 = f(z), a6 = g(z). At the geometric cusp,
 the derivative in z is f'(z)*sqrt(f(z))+g'(z).
 It vanishes exactly when f and g are both squares. If f' is nonzero,
-its vanishing would put sqrt(f) in K, contradicting f' != 0.
+the vanishing of f'(z)*sqrt(f(z))+g'(z) would put sqrt(f) in K,
+contradicting f' != 0.
 If f' = 0, the condition is g' = 0.
 If a1 != 0 and Delta = 0, the singular point is K-rational and nodal.
 The case a1 = 0, a3 != 0 is smooth because Delta = a3^4.
@@ -280,7 +281,8 @@ The fast suite checks these counts and explicit equations through the public
 interface. The [reference suite](../reference/README.md) independently
 enumerates the singular orbits, tests their local congruences in both
 charts, and compares the package with scan and Burnside calculations.
-The F2 smooth comparison covers every prefix. Over F3, the total and
-smooth orbit counts are checked over every prefix. The smooth
-minimal/nonminimal split is sampled. Tate's algorithm supplies further
-smooth local checks.
+The F2 smooth comparison covers every prefix. Over F3, every prefix total
+is checked against an independent Burnside count. The smooth count is
+checked prefix by prefix on the 930 scanned prefixes, and otherwise only
+summed over all prefixes. The smooth minimal/nonminimal split is sampled.
+Tate's algorithm supplies further smooth local checks.

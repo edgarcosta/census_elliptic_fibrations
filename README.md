@@ -94,9 +94,12 @@ everywhere minimal
 
 `WriteFibrationRepresentativeKeys` writes selected prefixes to binary files
 with a summary and completion metadata. It holds one prefix's representatives
-in memory. The GF(3) census is large; choose prefixes before listing or
-writing representatives. See [keys and files](docs/keys.md) for the format
-and a bounded writing example.
+in memory. The GF(3) census is large: all six cells total 1,307,814,237 keys,
+or 10,462,513,896 binary bytes at eight bytes per key, excluding metadata.
+By default, the writer includes all prefixes and all six cells: smooth,
+regular cusp and nonregular, each with both minimalities.
+Choose prefixes before listing or writing representatives.
+See [keys and files](docs/keys.md) for the format and a bounded writing example.
 
 ## Results
 
@@ -131,9 +134,14 @@ Both run `Tests/*.m` and `examples/*.m` and return a nonzero status on failure.
 The examples include counts over both fields and a bounded representative
 calculation. The CI matrix runs these same files.
 
-Use the runner's `filename` parameter to run one file, or `target` to
-select paths containing a string. Its `debug` parameter opens the debugger
-on an error. The longer comparisons have separate Makefile targets,
+To run one file with the runner's `filename` parameter:
+
+```sh
+magma -b filename:=Tests/keys_f3.m exitsignal:="" run_tests.m
+```
+
+Use `target` to select paths containing a string. The `debug` parameter opens
+the debugger on an error. The longer comparisons have separate Makefile targets,
 described in [the reference guide](reference/README.md).
 
 ## Documentation
@@ -142,3 +150,5 @@ described in [the reference guide](reference/README.md).
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 - [Reference calculations](reference/README.md): independent scan, Burnside, and local checks.
+
+Author: Edgar Costa
