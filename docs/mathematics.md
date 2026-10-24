@@ -282,7 +282,12 @@ interface. The [reference suite](../reference/README.md) independently
 enumerates the singular orbits, tests their local congruences in both
 charts, and compares the package with scan and Burnside calculations.
 The F2 smooth comparison covers every prefix. Over F3, every prefix total
-is checked against an independent Burnside count. The smooth count is
-checked prefix by prefix on the 930 scanned prefixes, and otherwise only
-summed over all prefixes. The smooth minimal/nonminimal split is sampled.
+is checked against an independent Burnside count. The smooth
+minimal/nonminimal split is checked on every prefix: 926 with C=0, A!=0
+and 43 with C!=0 are scanned in full. Four of those C!=0 prefixes are in
+the original 930-prefix check; the remaining 39 have a separate recount.
+For 890 further C!=0 prefixes, homogeneous factorization verifies automatic
+minimality, and Burnside counts give the smooth-minimal cell after
+subtracting the node when A=0. The separate singular-orbit check covers
+the cuspidal prefix C=A=0, which has no smooth models.
 Tate's algorithm supplies further smooth local checks.

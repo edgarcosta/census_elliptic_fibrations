@@ -45,6 +45,12 @@ loading the check, and verifies a result marker written after the assertions.
 Its local files are under the ignored `artifacts/` directory.
 The Makefile target is silent on success and prints the log on failure.
 This avoids relying on the exit status of an unguarded Magma `load`.
+The F3 smooth recount uses eight child processes by default. Set the
+Makefile variable `REFERENCE_PROCESSES` to change the count, for example
+`make check-reference REFERENCE_PROCESSES=4`. Each child must exit zero
+and write the result marker. The checks also run directly with `magma -b`;
+set the environment variable `REFERENCE_PROCESSES` to control a direct
+recount run.
 
 The `check-slow` target runs the wrappers in `examples/slow/`, which launch
 their reference checks in child processes. These longer checks are outside
@@ -62,13 +68,21 @@ and checks invariance under prefix stabilizers and overlapping bad places.
 The total-count check compares independent Burnside counts and singular
 cell counts with the public census. The F2 scan comparison covers all
 prefixes, including the smooth minimal/nonminimal split. Over F3, every
-prefix total is checked against an independent Burnside count. The smooth
-count is checked prefix by prefix on the 930 scanned prefixes, and otherwise
-only summed over all prefixes. The smooth minimal/nonminimal split is sampled.
+prefix total is checked against an independent Burnside count, and the
+smooth minimal/nonminimal split is checked on every prefix:
+
+- `check_gmodule.m` scans 926 prefixes with C=0, A!=0 and four with C!=0.
+- `check_smooth_f3.m` scans the remaining 39 nonautomatic C!=0 prefixes,
+  comparing both smooth cells separately on each prefix.
+- `check_automatic_f3.m` verifies automatic minimality on 890 C!=0 prefixes
+  by factoring homogeneous C, including its factor at infinity. A factor
+  pi of multiplicity m admits nonminimality only if m>=2 and pi^min(m,4)
+  divides A. Independent Burnside counts then give the smooth-minimal
+  cell after subtracting the node when A=0.
+- The singular-orbit check covers C=A=0, which has no smooth models.
+
 Selected representative sets are compared as orbits, and smooth local
-tests are compared with Magma's Tate algorithm. This is not an exhaustive
-independent recount of the
-F3 smooth minimal/nonminimal split.
+tests are compared with Magma's Tate algorithm.
 
 For the definitions of the six cells, see [the mathematics](../docs/mathematics.md).
 For package output, use [the public file format](../docs/keys.md).

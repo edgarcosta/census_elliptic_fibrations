@@ -94,10 +94,10 @@ everywhere minimal
 
 `WriteFibrationRepresentativeKeys` writes selected prefixes to binary files
 with a summary and completion metadata. It holds one prefix's representatives
-in memory. The GF(3) census is large: all six cells total 1,307,814,237 keys,
-or 10,462,513,896 binary bytes at eight bytes per key, excluding metadata.
-By default, the writer includes all prefixes and all six cells: smooth,
-regular cusp and nonregular, each with both minimalities.
+in memory. By default, it writes all prefixes and all six cells: smooth,
+regular cusp and nonregular, each with both minimalities. Over GF(3),
+that is 1,307,814,237 keys, occupying 10,462,513,896 bytes at eight bytes
+per key, excluding metadata.
 Choose prefixes before listing or writing representatives.
 See [keys and files](docs/keys.md) for the format and a bounded writing example.
 
