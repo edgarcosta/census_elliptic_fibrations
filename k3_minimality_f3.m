@@ -1,7 +1,7 @@
 // Local minimality for completed-square models over GF(3):
 // y^2 = x^3 + C*x^2 + A*x + B, with homogeneous degrees 4, 8, 12.
 // This file is self-contained.  It does not call Tate's algorithm.
-// checks/check_minimality_f3.m compares it with Tate's algorithm.
+// examples/slow/check_minimality_f3.m compares it with Tate's algorithm.
 
 function K3F3_CheckModel(W)
     assert #W eq 3;

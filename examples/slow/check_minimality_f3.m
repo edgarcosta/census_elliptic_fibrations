@@ -1,6 +1,5 @@
 // Standalone validation, including an independent Magma Tate-algorithm check.
-// Run from the repository root: magma -b checks/check_minimality_f3.m
-load "k3_minimality_f3.m";
+// Run from the repository root: magma -b filename:=examples/slow/check_minimality_f3.m exitsignal:='' run_tests.m
 
 function K3F3_PolynomialValuation(f,pi)
     // Used only for nonzero discriminants and their nonzero numerators.
@@ -161,4 +160,3 @@ procedure K3F3_RunMinimalityChecks(: RandomModels := 100, Seed := 31003)
 end procedure;
 
 K3F3_RunMinimalityChecks();
-quit;

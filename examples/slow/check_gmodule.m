@@ -1,13 +1,6 @@
 // Compares ef3_gmodule.m with the scan-based code in ef3_orbits.m,
 // k3_minimality_f3.m and ef3_stream.m.
-// Run from the repository root: magma -b checks/check_gmodule.m
-load "ef_common.m";
-load "ef3_models.m";
-load "ef3_orbits.m";
-load "k3_minimality_f3.m";
-load "ef3_stream.m";
-load "ef_orbits.m";
-load "ef3_gmodule.m";
+// Run from the repository root: magma -b filename:=examples/slow/check_gmodule.m exitsignal:='' run_tests.m
 
 procedure EF3G_RunChecks()
 clock := Cputime();
@@ -133,4 +126,3 @@ printf "All checks passed. CPU seconds: %o\n", Cputime(clock);
 end procedure;
 
 EF3G_RunChecks();
-quit;

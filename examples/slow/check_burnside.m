@@ -1,6 +1,5 @@
-// Run from the repository root: magma -b checks/check_burnside.m
+// Run from the repository root: magma -b filename:=examples/slow/check_burnside.m exitsignal:='' run_tests.m
 // The constants below were computed independently in Python.
-load "ef3_burnside.m";
 
 R<s,t> := PolynomialRing(GF(3),2);
 clock := Cputime();
@@ -20,4 +19,3 @@ printf "All model orbits: %o\nCPU seconds: %o\n", n,Cputime(clock);
 // n2,sp2,e2,sum2,G2 := EFB_BurnsideF3(R : UseGroupIterator := true);
 // assert n2 eq n and e2 eq empty and sum2 eq fixedSum;
 // for d in [0..27] do assert sp2[d] eq spectrum[d]; end for;
-quit;

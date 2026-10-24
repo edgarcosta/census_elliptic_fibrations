@@ -43,7 +43,7 @@ Run `magma -b census_driver.m` from the repository root. It is tested with Magma
 
 - The 88 pairs, the 1,402,468 orbits and the 736 with $\Delta = 0$ agree with an independent Burnside count over all $2^{37}$ models.
 - The minimality filter agrees with Magma's Tate algorithm (`LocalInformation`) on all 97,036 census representatives with $v(\Delta) \ge 12$ at a candidate place, and on 20,000 random others.
-- `checks/check_gmodule_f2.m` compares `ef2_gmodule.m` with the scan-based code on all 88 pairs: the same numbers of orbits, of orbits with $\Delta \ne 0$ and of K3 orbits, and K3 representatives in the same orbits.
+- `examples/slow/check_gmodule_f2.m` compares `ef2_gmodule.m` with the scan-based code on all 88 pairs: the same numbers of orbits, of orbits with $\Delta \ne 0$ and of K3 orbits, and K3 representatives in the same orbits.
 - Not yet done: a comparison with an outside count, and the automorphism groups needed for a mass formula check.
 
 ## Over F3
@@ -74,7 +74,7 @@ A model is non-minimal at a place $\pi$ exactly when $\pi^2 \mid C$ and some $r$
 
 ### Usage
 
-Run `magma -b census_driver_f3.m` from the repository root for the census counts, in about 2 s of CPU. For the scan-based code, load `ef_common.m`, `ef3_models.m`, `ef3_orbits.m`, `k3_minimality_f3.m` and `ef3_stream.m` in that order, then call for example `CensusF3(R, [], "runs/full")` with `R<s,t> := PolynomialRing(GF(3),2)`; an empty list of indices means every pair. Run the checks from the repository root, as in `magma -b checks/check_orbits.m`. A failed assertion prints `Runtime error in assert`, but `magma -b` still exits with status 0, so read the output. `checks/check_stream.m` writes `stream_check_*` files in the current directory and refuses to overwrite them, so delete them before running it again.
+Run `magma -b census_driver_f3.m` from the repository root for the census counts, in about 2 s of CPU. For the scan-based code, load `ef_common.m`, `ef3_models.m`, `ef3_orbits.m`, `k3_minimality_f3.m` and `ef3_stream.m` in that order, then call for example `CensusF3(R, [], "runs/full")` with `R<s,t> := PolynomialRing(GF(3),2)`; an empty list of indices means every pair. Run the standalone checks from the repository root, as in `magma -b checks/check_orbits.m`. A failed assertion prints `Runtime error in assert`, but `magma -b` still exits with status 0, so read the output. `checks/check_stream.m` writes `stream_check_*` files in the current directory and refuses to overwrite them, so delete them before running it again.
 
 ### Results
 
@@ -99,6 +99,20 @@ These all pass with Magma V2.30-1.
 - The minimality test agrees with Magma's Tate algorithm (`LocalInformation`) on 994 local checks over 142 models.
 - The census without representatives, `CensusF3(R, [], stem : WriteRepresentatives := false)`, took 6,567 s of CPU in total, run as 12 processes on disjoint sets of pairs. Writing the 1.3 billion representatives (10.5 GB) adds an estimated 50 minutes.
 - `census_driver_f3.m` agrees with that run on every one of the 1,860 pairs: the same pairs with the same stabilizer orders, and the same numbers of orbits, of orbits with $\Delta \ne 0$ and of K3 orbits.
-- `checks/check_gmodule.m` repeats the comparison on all pairs for the fibre counts and on 930 pairs for the K3 counts. On one pair of each kind it checks that the representatives pass the local test and lie in distinct orbits, and that the excluded points are exactly those failing the local test.
+- `examples/slow/check_gmodule.m` repeats the comparison on all pairs for the fibre counts and on 930 pairs for the K3 counts. On one pair of each kind it checks that the representatives pass the local test and lie in distinct orbits, and that the excluded points are exactly those failing the local test.
 
 Author: Edgar Costa
+
+## Test suite
+
+Run `make check` or `magma -b exitsignal:='' run_tests.m` from the repository root.
+These run `Tests/*.m` and `examples/*.m`; a failed test gives a nonzero exit status.
+Use `target:=keys` to select paths containing `keys`, or `filename:=Tests/keys_f3.m` for one file.
+Assign `debug:=''` to open the debugger on an error.
+Test files use the code loaded by `run_tests.m` and cannot contain `load` or `quit`.
+
+The longer cross-checks live in `examples/slow/` and run only when selected by filename, for example:
+
+```sh
+magma -b filename:=examples/slow/check_minimality_f3.m exitsignal:='' run_tests.m
+```

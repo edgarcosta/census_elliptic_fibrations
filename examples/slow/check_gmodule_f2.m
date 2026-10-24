@@ -1,12 +1,7 @@
 // Compares ef2_gmodule.m with the scan-based code in
 // elliptic_fibration_orbits_f2.m and k3_minimality_f2.m on all 88 prefixes:
 // orbit counts, and the K3 representatives up to isomorphism.
-// Run from the repository root: magma -b checks/check_gmodule_f2.m
-load "elliptic_fibration_orbits_f2.m";
-load "k3_minimality_f2.m";
-load "ef_common.m";
-load "ef_orbits.m";
-load "ef2_gmodule.m";
+// Run from the repository root: magma -b filename:=examples/slow/check_gmodule_f2.m exitsignal:='' run_tests.m
 
 procedure EF2G_RunChecks()
 clock := Cputime();
@@ -81,4 +76,3 @@ printf "All checks passed. CPU seconds: %o\n", Cputime(clock);
 end procedure;
 
 EF2G_RunChecks();
-quit;
