@@ -66,7 +66,7 @@ end function;
 // Complete selected fibres detect a wrong split even if their totals agree.
 // F2 samples each a1; F3 samples each C=0 map order and minimality shortcut.
 // check_gmodule_f2.m recounts all F2 fibres; check_gmodule.m covers more F3
-// fibres. The F3 smooth minimal/nonminimal split is sampled, not exhaustive.
+// fibres. This check samples the F3 smooth split; make check-heavy is exhaustive.
 procedure test_reference_totals()
     for p in [2,3] do
         R<s,t> := PolynomialRing(GF(p),2);

@@ -4,6 +4,10 @@ Thanks for checking the census against an independent calculation.
 These plain Magma files retain the scan-based orbit calculations and
 local tests. They are outside the package spec, and production code
 does not import them. Package comparisons call the public intrinsics.
+`checks/check_equation_weights.m` and `checks/check_identity_terms.m` also
+import engine internals from `src/` to check stored stabilizers, fibre
+dimensions, equation weights and Boolean locus patterns that no public
+intrinsic exposes.
 
 ## Files
 

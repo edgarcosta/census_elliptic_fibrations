@@ -135,8 +135,8 @@ function published_reference_map_orders()
     return orders;
 end function;
 
-// Pins the tables, example outputs, listing size and prefix counts in both
-// census documents. Missing statements or blocks must not skip comparisons.
+// Pins census tables, example outputs, listing size and prefix counts in the
+// README, mathematics and interface docs. Missing statements must fail.
 procedure test_published_counts()
     labels := [];
     mathematics_labels := [];
@@ -149,12 +149,21 @@ procedure test_published_counts()
         end for;
     end for;
     counts := [];
+    prefix_counts := [];
     for p in [2,3] do
         R<s,t> := PolynomialRing(GF(p),2);
         n,cells := NumberOfFibrations(R);
         Append(~counts,[ cells[<label[1],label[2]>] : label in labels ] cat [n]);
-        check_published_prefixes("docs/mathematics.md",p,#FibrationPrefixes(R));
+        Append(~prefix_counts,#FibrationPrefixes(R));
+        check_published_prefixes("docs/mathematics.md",p,prefix_counts[#prefix_counts]);
+        check_published_statement("docs/interface.md",
+            Sprintf("GF[(]%o[)]: ([0-9,]+) prefixes, ([0-9,]+) quasi-elliptic K3 orbits",p),
+            [prefix_counts[p-1],cells[<"regular cusp","everywhere minimal">]],
+            "FibrationPrefixes and NumberOfFibrations");
     end for;
+    check_published_statement("docs/interface.md",
+        "The tables have ([0-9,]+) and ([0-9,]+) entries, respectively[.]",
+        prefix_counts,"FibrationPrefixes");
     check_published_table("README.md",
         "| Generic-fibre kind | Minimality | GF(2) | GF(3) |",labels cat [["All",""]],counts);
     check_published_table("docs/mathematics.md","| Quantity | F2 | F3 |",
