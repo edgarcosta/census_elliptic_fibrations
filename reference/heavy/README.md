@@ -32,11 +32,12 @@ processes. Other checks run in one process. The target runs checks in
 sequence, so these process counts do not accumulate. Permutation-group
 checks can use several GB of memory per process.
 
-The original full listing of 1,309,216,705 keys took 27,533 seconds
-(about 7.6 hours) on 24 workers with Magma 2.30-1. The independent recount
-took about 35 seconds for F2 on eight workers and 734 seconds for F3 on
-24 workers. These are measurements of the original scripts, before this
-port. The new Magma F2 coefficient check took 97 seconds. The additional
+A one-off harness on the package at `14fb936` measured the full listing of
+1,309,216,705 keys at 27,533 seconds (about 7.6 hours).
+It used 24 workers with Magma 2.30-1. Independent recounts took about
+35 seconds for F2 on eight workers and 734 seconds for F3 on 24 workers.
+That harness was later rewritten as `reference/heavy/`. The new Magma F2
+coefficient check took 97 seconds. The additional
 permutation-group checks have no measured full-target run time; some F3
 targets can take hours.
 
