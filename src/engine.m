@@ -209,6 +209,11 @@ function fibre_counts(F)
     return exact;
 end function;
 
+function fibre_equation_counts(F)
+    F`Group := sub< F`Group | >;
+    return fibre_counts(F);
+end function;
+
 function fibre_representatives(F, selected)
     d := F`Dimension;
     E := F`Group;

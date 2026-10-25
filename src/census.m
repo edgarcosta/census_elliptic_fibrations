@@ -1,7 +1,7 @@
 import "models.m": valid_ring;
 import "f2.m": f2_prefixes, f2_fibre;
 import "f3.m": f3_prefixes, f3_fibre;
-import "engine.m": fibre_counts, fibre_representatives;
+import "engine.m": fibre_counts, fibre_equation_counts, fibre_representatives;
 
 KINDS := [ "smooth","regular cusp","nonregular" ];
 MINIMALITIES := [ "everywhere minimal","nonminimal somewhere" ];
@@ -71,6 +71,44 @@ function selected_representative_keys(R, P, kinds, minimalities)
     return keys,cells;
 end function;
 
+function equation_weight(R, P, F)
+    q := #BaseRing(R);
+    if q eq 2 then
+        prefix_multiplicity := (#GL(2,q)*q^3) div #P[3];
+        ambient_dimension := 22;
+    else
+        // P[3] retains the scalar kernel of GL(2,3). Quartic translations
+        // fix a prefix exactly when C=0; otherwise they move A freely.
+        prefix_multiplicity := (#GL(2,q) div #P[3])*(P[1] eq 0 select 1 else q^5);
+        ambient_dimension := 13;
+    end if;
+    // The quotient dimension records the translation image, including its kernels.
+    return prefix_multiplicity*q^(ambient_dimension-F`Dimension);
+end function;
+
+function census_counts(R, P, indices, kinds, minimalities, equations)
+    totals := empty_cells(kinds,minimalities);
+    rows := [];
+    for i in indices do
+        timestamp := Cputime();
+        F := fibre(R,P[i]);
+        patterns := equations select fibre_equation_counts(F) else fibre_counts(F);
+        weight := equations select equation_weight(R,P[i],F) else 1;
+        cells := empty_cells(kinds,minimalities);
+        for pattern in Keys(patterns) do
+            if not pattern[1] and pattern[2] then assert patterns[pattern] eq 0; continue; end if;
+            cell := pattern_to_cell(pattern);
+            if IsDefined(cells,cell) then cells[cell] +:= weight*patterns[pattern]; end if;
+        end for;
+        for cell in Keys(totals) do totals[cell] +:= cells[cell]; end for;
+        Append(~rows,<i,cells>);
+        vprintf FibrationCensus,1: "Completed prefix %o\n",i;
+        vprintf FibrationCensus,2: "Dimension %o, group order %o, CPU %o s\n",
+            F`Dimension,#F`Group,Cputime(timestamp);
+    end for;
+    return &+[ Integers() | totals[cell] : cell in Keys(totals) ],totals,rows;
+end function;
+
 intrinsic FibrationPrefixes(R::RngMPol) -> SeqEnum
 {The ordered prefix pairs for the fibration census over R, a binary
 polynomial ring over GF(2) or GF(3). The pairs are <a1,a3> over GF(2)
@@ -94,25 +132,26 @@ See also FibrationProperties, FibrationRepresentativeKeys}
     message := selection_error(PrefixIndices,GenericFibreKinds,Minimalities,#P);
     require message eq "": message;
     indices,kinds,minimalities := selections(PrefixIndices,GenericFibreKinds,Minimalities,#P);
-    totals := empty_cells(kinds,minimalities);
-    rows := [];
-    for i in indices do
-        timestamp := Cputime();
-        F := fibre(R,P[i]);
-        patterns := fibre_counts(F);
-        cells := empty_cells(kinds,minimalities);
-        for pattern in Keys(patterns) do
-            if not pattern[1] and pattern[2] then assert patterns[pattern] eq 0; continue; end if;
-            cell := pattern_to_cell(pattern);
-            if IsDefined(cells,cell) then cells[cell] +:= patterns[pattern]; end if;
-        end for;
-        for cell in Keys(totals) do totals[cell] +:= cells[cell]; end for;
-        Append(~rows,<i,cells>);
-        vprintf FibrationCensus,1: "Completed prefix %o\n",i;
-        vprintf FibrationCensus,2: "Dimension %o, group order %o, CPU %o s\n",
-            F`Dimension,#F`Group,Cputime(timestamp);
-    end for;
-    return &+[ Integers() | totals[cell] : cell in Keys(totals) ],totals,rows;
+    return census_counts(R,P,indices,kinds,minimalities,false);
+end intrinsic;
+
+intrinsic NumberOfEquations(R::RngMPol : PrefixIndices := [],
+    GenericFibreKinds := [], Minimalities := []) -> RngIntElt, Assoc, SeqEnum
+{The number of selected normalized equations over R, followed by their
+generic-fibre and minimality cell counts and pairs <prefix index, cell counts>.
+Each prefix row counts every coefficient pair in its prefix orbit.
+The parameter PrefixIndices (default []) selects all prefixes when empty.
+The parameter GenericFibreKinds (default []) selects "smooth", "regular cusp",
+and "nonregular" when empty, or a subset of these case-sensitive values.
+The parameter Minimalities (default []) selects "everywhere minimal" and
+"nonminimal somewhere" when empty, or a subset of these case-sensitive values.
+See also NumberOfFibrations, FibrationPrefixes}
+    require valid_ring(R): "R must be a binary polynomial ring over GF(2) or GF(3)";
+    P := prefixes(R);
+    message := selection_error(PrefixIndices,GenericFibreKinds,Minimalities,#P);
+    require message eq "": message;
+    indices,kinds,minimalities := selections(PrefixIndices,GenericFibreKinds,Minimalities,#P);
+    return census_counts(R,P,indices,kinds,minimalities,true);
 end intrinsic;
 
 intrinsic FibrationRepresentativeKeys(R::RngMPol, i::RngIntElt :

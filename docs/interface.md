@@ -1,7 +1,7 @@
 # Interface
 
-The public intrinsics count model orbits, list representatives, and test
-individual equations. Attach `spec` before calling them.
+The public intrinsics count model orbits and normalized equations, list
+representatives, and test individual equations. Attach `spec` before calling them.
 The [README](../README.md) gives installation and initial examples.
 
 ## Rings and models
@@ -79,6 +79,22 @@ end for;
 GF(2): 88 prefixes, 680 quasi-elliptic K3 orbits
 GF(3): 1860 prefixes, 294 quasi-elliptic K3 orbits
 ```
+
+> **NumberOfEquations** (R :: *RngMPol* : PrefixIndices := [],
+> GenericFibreKinds := [], Minimalities := []) -> *RngIntElt*, *Assoc*, *SeqEnum*
+
+The selected normalized-equation count, cell counts, and prefix rows, with
+the same selections, errors, and return format as `NumberOfFibrations`.
+These count normalized equations before coordinate identifications;
+they are neither orbit counts nor an automorphism-weighted mass.
+Each prefix row includes every raw prefix in that prefix's orbit.
+
+Over GF(2), the coefficients `<a1,a3,a4,a6>` have degrees `<2,6,8,12>`
+and `a2=0`, giving `2^32` equations with no selections.
+Over GF(3), completing the square gives `<C,A,B>` of degrees `<4,8,12>`,
+giving `3^27` equations with no selections.
+The counts come from the identity terms of the same cell computation as
+the orbit counts, weighted by prefix orbit size and fibre translation-image size.
 
 ## Representatives and keys
 
