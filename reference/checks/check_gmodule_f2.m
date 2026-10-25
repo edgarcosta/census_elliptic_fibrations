@@ -1,6 +1,7 @@
 AttachSpec("spec");
 load "reference/f2/elliptic_fibration_orbits_f2.m";
 load "reference/f2/k3_minimality_f2.m";
+load "reference/support/f2_prefix_match.m";
 
 // Checks all F2 counts and smooth minimal representatives by reference orbits.
 procedure test_f2_scan_comparison()
@@ -10,18 +11,12 @@ procedure test_f2_scan_comparison()
     new := FibrationPrefixes(R);
     assert #old eq 88 and #new eq 88;
     pairs := [ <Matrix(g),EF2FormFromMask(R,2,n)> : g in GL(2,k), n in [0..7] ];
-    function canonical_prefix(a1,a3)
-        return Min([ EF2BitKey(EF2Coefficients(B[1],2) cat EF2Coefficients(B[3],6))
-            where B is TransformNormalizedF2([R | a1,0,a3,0,0],h[1],h[2],R!0)
-            : h in pairs ]);
-    end function;
-    index := AssociativeArray();
-    for j in [1..#new] do index[canonical_prefix(new[j][1],new[j][2])] := j; end for;
-    assert #Keys(index) eq #old;
+    match := reference_f2_prefix_match(R,new,old);
     n, cells, rows := NumberOfFibrations(R);
     totals := [0,0,0];
-    for P in old do
-        j := index[canonical_prefix(P[1],P[2])];
+    for i in [1..#old] do
+        P := old[i];
+        j := match[i];
         Q := new[j];
         transport := [ h : h in pairs | B[1] eq P[1] and B[3] eq P[2]
             where B is TransformNormalizedF2([R | Q[1],0,Q[2],0,0],h[1],h[2],R!0) ];

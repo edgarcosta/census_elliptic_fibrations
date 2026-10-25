@@ -50,33 +50,7 @@ procedure test_f3_remaining_smooth_splits(shard, processes)
     end for;
 end procedure;
 
-// Child checks use the same result-file protocol as other reference checks.
-procedure test_f3_parallel_smooth_splits(processes)
-    function shell_quote(s)
-        return "'" cat Join(Split(s,"'"),"'\"'\"'") cat "'";
-    end function;
-    assert System("mkdir -p artifacts/test-tmp") eq 0;
-    scratch := GetCurrentDirectory() cat "/artifacts/test-tmp";
-    files := [];
-    command := "pids=''; ";
-    for shard in [1..processes] do
-        result,handle := TemporaryFile("f3-split-" : ParentDirectory := scratch); delete handle;
-        log,handle := TemporaryFile("f3-split-" : ParentDirectory := scratch); delete handle;
-        Append(~files,<result,log>);
-        command cat:= Sprintf("REFERENCE_SHARD=%o REFERENCE_PROCESSES=%o ",
-            shard,processes) cat Join([ shell_quote(s) : s in [
-            "sh","scripts/run_reference_check.sh",
-            "reference/checks/check_smooth_f3.m",result,log ] ]," ")
-            cat " & pids=\"$pids $!\"; ";
-    end for;
-    command cat:= "status=0; for pid in $pids; do wait \"$pid\" || status=1; done; exit $status";
-    status := System(command);
-    for pair in files do
-        if status ne 0 then printf "%o",Read(pair[2]); end if;
-        Remove(pair[1]); Remove(pair[2]);
-    end for;
-    error if status ne 0, "F3 smooth-split child check failed";
-end procedure;
+load "reference/support/parallel.m";
 
 value := GetEnv("REFERENCE_PROCESSES");
 processes := value eq "" select 8 else StringToInteger(value);
@@ -90,7 +64,7 @@ if value ne "" then
 elif processes eq 1 then
     test_f3_remaining_smooth_splits(1,1);
 else
-    test_f3_parallel_smooth_splits(processes);
+    reference_parallel_check("reference/checks/check_smooth_f3.m",processes);
 end if;
 if assigned resultpath then Write(resultpath,"REFERENCE_CHECK_OK"); end if;
 quit 0;

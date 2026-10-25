@@ -57,6 +57,11 @@ their reference checks in child processes. These longer checks are outside
 the fast suite and CI matrix. The scan drivers and F3 benchmark are manual;
 they are not additional test targets.
 
+The [heavy checks](heavy/README.md) add a complete six-cell recount and
+representative listing on every prefix, independent permutation-group
+calculations, and coefficient enumerations. Run them with `make check-heavy`.
+The full listing alone previously took about 7.6 hours on 24 workers.
+
 ## What is independently checked
 
 The singular classification enumerates every discriminant-zero orbit using

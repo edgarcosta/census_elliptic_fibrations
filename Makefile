@@ -32,6 +32,12 @@ check-no-dups:
 REFERENCE_PROCESSES ?= 8
 
 REFERENCE_FILES := $(wildcard reference/checks/*.m reference/f3/checks/*.m)
+HEAVY_FILES := $(wildcard reference/heavy/check_*.m)
+
+export HEAVY_PREFIX_INDICES HEAVY_TARGET_LIMIT
+
+check-heavy:
+	@set -e; for check in $(HEAVY_FILES); do $(MAKE) reference-check/$$check; done
 
 check-reference:
 	@set -e; for check in $(REFERENCE_FILES); do $(MAKE) reference-check/$$check; done
@@ -52,4 +58,4 @@ check-slow:
 	  MAGMA="$(MAGMA_PATH)" MAGMA_TEMP_DIR="$(CURDIR)/artifacts/test-tmp" "$(MAGMA)" -b filename:=$$check exitsignal:='' run_tests.m; \
 	done
 
-.PHONY: check-reference check-slow
+.PHONY: check-reference check-slow check-heavy
