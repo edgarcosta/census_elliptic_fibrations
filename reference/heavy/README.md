@@ -60,6 +60,8 @@ equation-row check independently tests the corresponding six cells.
 The formulas themselves are already checked by `Tests/equation_counts.m`.
 
 Distinct integer keys do not independently establish that two models lie
-in different coordinate-change orbits. The scan and permutation-group
-checks provide separate orbit comparisons. All checks still share Magma
-arithmetic and the stated Weierstrass equivalence and minimality criteria.
+in different coordinate-change orbits. `check_prefix_f2.m` and
+`check_prefix_f3.m` compare per-cell permutation-group orbit counts with
+`NumberOfFibrations`; they do not inspect listed representatives. All checks
+still share Magma arithmetic and the stated Weierstrass equivalence and
+minimality criteria.

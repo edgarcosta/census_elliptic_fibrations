@@ -133,6 +133,8 @@ make check
 Both run `Tests/*.m` and `examples/*.m` and return a nonzero status on failure.
 The examples include counts over both fields and a bounded representative
 calculation. The CI matrix runs these same files.
+The tests need Magma, a POSIX shell, standard shell utilities, and `python3`
+for the reference launcher.
 
 To run one file with the runner's `filename` parameter:
 

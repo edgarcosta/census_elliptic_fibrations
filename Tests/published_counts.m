@@ -162,10 +162,10 @@ procedure test_published_counts()
             Sprintf("GF[(]%o[)]: ([0-9,]+) prefixes, ([0-9,]+) quasi-elliptic K3 orbits",p),
             [prefix_counts[p-1],cells[<"regular cusp","everywhere minimal">]],
             "FibrationPrefixes and NumberOfFibrations");
-        equations := NumberOfEquations(R);
+        // equation_counts.m checks these totals through NumberOfEquations.
         check_published_statement("docs/interface.md",
             Sprintf("`(%o\\^[0-9]+)` equations with no selections[.]",p),
-            [equations],"NumberOfEquations");
+            [p eq 2 select 2^32 else 3^27],"normalized equation total");
     end for;
     check_published_statement("docs/interface.md",
         "The tables have ([0-9,]+) and ([0-9,]+) entries, respectively[.]",

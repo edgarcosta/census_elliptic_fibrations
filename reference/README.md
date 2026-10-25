@@ -36,8 +36,10 @@ filters do not supply the package's all-model certificates.
 
 ## Running checks
 
-Run from the repository root. For the complete reference suite use the
-Makefile target `check-reference`; for one check use
+Run from the repository root. The checks need Magma, a POSIX shell, standard
+shell utilities, and `python3` for the reference launcher.
+For the complete reference suite use the Makefile target `check-reference`;
+for one check use
 `reference-check/<basename>.m`. A bounded classification check is:
 
 ```sh
