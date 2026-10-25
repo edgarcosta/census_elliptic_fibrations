@@ -11,8 +11,11 @@ The target runs every `reference/heavy/check_*.m` through the same launcher
 as `check-reference`. A disagreement prints `MISMATCH` and exits nonzero.
 Every child must exit zero and write the completion marker. Checks are
 silent on success. Temporary files stay under `artifacts/` and listing
-files are removed after validation. These checks need no additional Python
-runner or C++ compiler.
+files are removed after validation. Both `make check-reference` and
+`make check-heavy` need Magma, a POSIX shell, standard shell utilities, and
+`python3` for `scripts/run_reference_check.sh` to write its Magma launcher.
+The fast `Tests/reference_runner.m` test uses that launcher and has the same
+requirements. No C++ compiler is needed.
 
 | Check | Coverage |
 | --- | --- |

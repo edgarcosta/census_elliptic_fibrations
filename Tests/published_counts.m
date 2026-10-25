@@ -3,6 +3,8 @@ import "Tests/_support.m": shell_quote;
 function published_number(text, document, row)
     words := ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"];
     if text in words then return Index(words,text)-1; end if;
+    found,match,powers := Regexp("^([0-9]+)\\^([0-9]+)$",text);
+    if found then return StringToInteger(powers[1])^StringToInteger(powers[2]); end if;
     digits := Join(Split(text,","),"");
     error if #digits eq 0 or not &and[ c in "0123456789" : c in Eltseq(digits) ],
         Sprintf("MISMATCH: %o, %o: cannot parse count %o",document,row,text);
@@ -135,8 +137,8 @@ function published_reference_map_orders()
     return orders;
 end function;
 
-// Pins census tables, example outputs, listing size and prefix counts in the
-// README, mathematics and interface docs. Missing statements must fail.
+// Pins census tables, example outputs, listing size, prefix and equation counts
+// in the README, mathematics and interface docs. Missing statements must fail.
 procedure test_published_counts()
     labels := [];
     mathematics_labels := [];
@@ -160,6 +162,10 @@ procedure test_published_counts()
             Sprintf("GF[(]%o[)]: ([0-9,]+) prefixes, ([0-9,]+) quasi-elliptic K3 orbits",p),
             [prefix_counts[p-1],cells[<"regular cusp","everywhere minimal">]],
             "FibrationPrefixes and NumberOfFibrations");
+        equations := NumberOfEquations(R);
+        check_published_statement("docs/interface.md",
+            Sprintf("`(%o\\^[0-9]+)` equations with no selections[.]",p),
+            [equations],"NumberOfEquations");
     end for;
     check_published_statement("docs/interface.md",
         "The tables have ([0-9,]+) and ([0-9,]+) entries, respectively[.]",
