@@ -157,5 +157,6 @@ the debugger on an error.
 - [Interface](docs/interface.md): intrinsics, selections, and certificates.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
+- [Native mathematics](docs/native-mathematics.md): exact radix-3 trace-table bounds, field conventions, and integer recovery.
 
 Author: Edgar Costa
