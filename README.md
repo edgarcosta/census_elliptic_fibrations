@@ -138,6 +138,10 @@ and `docs/mathematics.md`; it does not execute Markdown code blocks.
 The tests need Magma, Python 3 (`python3`), Git LFS, a POSIX shell,
 and standard shell utilities. If Git LFS was installed after cloning, run
 `git lfs pull` to download the fixtures before testing.
+The native tests also need `make`, a C++17 compiler, and development packages
+for NTL, GMP, FLINT, Boost headers and zstd; `make census-native` builds the
+native executable.
+
 
 To run one file with the runner's `filename` parameter:
 
