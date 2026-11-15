@@ -33,6 +33,8 @@ The remaining tests check classification fixtures, counts and selections,
 coefficient encodings, coordinate substitutions, affine loci, minimality,
 and saved files. `published_counts.m` checks the printed census numbers;
 `runner.m` checks shell exit status for successful and failing assertions.
-`native_build.m` checks native build dependencies, command help and invalid invocations.
 Underscore-prefixed files provide shared helpers. See the
 [root README](../README.md#tests-and-examples) for test commands and prerequisites.
+
+- `native_build.m`: native build dependencies, command help and invalid invocations.
+- `native_model_magma.m`: fixed model keys, both charts, six-cell classification and encoding bounds.
