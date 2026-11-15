@@ -1,12 +1,24 @@
 MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
+CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
+NATIVE_LDLIBS = -lntl -lflint -lgmp -lzstd
+NATIVE_BINARY := artifacts/native/census-native
+
 CHECK_FILES := $(patsubst tests/%,check/%,$(filter-out tests/_%,$(wildcard tests/*.m))) \
                $(patsubst examples/%,check/%,$(filter-out examples/_%,$(wildcard examples/*.m)))
 
 MAKEFLAGS += -j$(shell nproc 2>/dev/null || printf 1)
 
 all: check
+
+census-native: $(NATIVE_BINARY)
+
+$(NATIVE_BINARY): native/main.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $< $(NATIVE_LDLIBS) $(LDLIBS)
+
+check/native_build.m debug/native_build.m: census-native
 
 check/%.m: tests/%.m | check-no-dups
 	@mkdir -p artifacts/test-tmp
@@ -27,4 +39,5 @@ check: $(CHECK_FILES)
 check-no-dups:
 	@sh scripts/no_dup_test_basenames.sh
 
-.PHONY: all check check-no-dups
+.PHONY: all check check-no-dups census-native
+
