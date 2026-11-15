@@ -160,6 +160,7 @@ the debugger on an error.
 - [Native trace tables](docs/native-tables.md): exact Magma tables, field definitions and comparison hashes.
 - [Native mathematics](docs/native-mathematics.md): exact trace-table bounds, the Frobenius-twist sign and the complete K3 torsion search bound.
 - [Native model records](docs/native-format.md): key input, chart coefficients, classification, and arithmetic status.
+- [Native torsion](docs/native-torsion.md): complete bounded zero-height sections and torsion invariant factors.
 - [Native local records](docs/native-local.md): minimized Tate data, wild conductors, Frobenius twists and component cycles.
 
 Author: Edgar Costa

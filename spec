@@ -2,6 +2,7 @@
     magma {
         trace_tables.m
         local.m
+        torsion.m
     }
     src {
         declarations.m
