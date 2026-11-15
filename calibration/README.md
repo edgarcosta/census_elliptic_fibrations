@@ -57,8 +57,13 @@ placement, topology, compiler, executable digests and source identity.
 Reports give total CPU seconds, CPU seconds per surface, wall seconds,
 surfaces per second, shard sizes, compressed bytes and maximum child RSS.
 The RSS value is a process high-water mark, not the aggregate resident memory
-of concurrent workers. Wall time includes worker startup and collection;
-serial final readback is outside the timed interval.
+of concurrent workers. Shard CPU and wall times exclude fixture loading and
+comparison. Run wall time includes worker startup, fixture checks and
+collection; serial final readback is outside the timed interval.
+
+The Linux process pool uses fork to start every worker before dispatching
+shards, including short fixed-total shards. Each run requires a distinct
+worker PID for every shard.
 
 `stage_cpu_per_surface` separates decode, L-function/local data (`lfun`),
 bounded generators, derived invariants (`derive`, `extras`), admissible lists,
@@ -75,3 +80,6 @@ agreement does not independently prove every certificate.
 This measures the existing smooth, everywhere-minimal arithmetic pipeline.
 It excludes enumeration, final packing, unbounded generator searches and
 lattice assembly. It does not calibrate the other fibration classes.
+
+After building, run `python3 -m unittest discover -s . -p 'test_census.py'`
+from this directory for the timing and worker-count regression checks.

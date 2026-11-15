@@ -68,17 +68,17 @@ def shard(task):
     pipe = Pipeline(work, scalar)
     before, start = cpu(), time.monotonic()
     rows = pipe.run(q, keys)
+    tables = publish_shard(q, rows, dest, label, scalar)
+    total, wall = cpu() - before, time.monotonic() - start
+    pipe.timings['writer_and_dispatch'] = max(0, total - sum(pipe.timings.values()))
     with gzip.open(ROOT / 'reference' / f'f{q}-expected.jsonl.gz', 'rt') as f:
         expected = {r['key']: r for r in map(json.loads, f)}
     for r in rows:
         compare_records(expected[r['key']], r, f'F_{q}/{r["key"]}')
-    tables = publish_shard(q, rows, dest, label, scalar)
-    total = cpu() - before
-    pipe.timings['writer_and_dispatch'] = max(0, total - sum(pipe.timings.values()))
     m = dict(format=2, q=q, label=label, count=count, worker_pid=os.getpid(),
              worker_cpu=next(iter(os.sched_getaffinity(0))), source=identity, keys_sha256=keyhash,
              input=dict(file=os.path.relpath(keypath, out), offset=offset),
-             tables=tables, bytes=sum(t['bytes'] for t in tables.values()), cpu=total, wall=time.monotonic()-start,
+             tables=tables, bytes=sum(t['bytes'] for t in tables.values()), cpu=total, wall=wall,
              regression_compared=True, work_bytes=sum(p.stat().st_size for p in work.rglob('*') if p.is_file()),
              stages=pipe.timings, max_rss_kib=__import__('resource').getrusage(__import__('resource').RUSAGE_CHILDREN).ru_maxrss,
              split_proved=sum(r['split']['proved'] for r in rows),
@@ -90,7 +90,8 @@ def shard(task):
 def parallel(fn, tasks, cpus, label):
     results = []
     start = last = time.monotonic()
-    with cf.ProcessPoolExecutor(max_workers=len(cpus), initializer=initialize, initargs=(cpus,)) as pool:
+    with cf.ProcessPoolExecutor(max_workers=len(cpus), mp_context=multiprocessing.get_context('fork'),
+                                initializer=initialize, initargs=(cpus,)) as pool:
         pending = {pool.submit(fn, t) for t in tasks}
         try:
             while pending:
@@ -220,6 +221,8 @@ def main():
             start = time.monotonic()
             ms = parallel(shard, tasks, cpus[:n], f'F_{q} {mode} {n}')
             wall = time.monotonic() - start
+            if len({m['worker_pid'] for m in ms}) != n:
+                raise RuntimeError(f'F_{q} {mode} {n}: not every requested worker ran a shard')
             for m in ms:
                 records, _ = read_fragment(folder / 'shards', m)
                 if q == 3:
