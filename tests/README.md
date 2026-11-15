@@ -39,4 +39,5 @@ Underscore-prefixed files provide shared helpers. See the
 - `native_build.m`: native build dependencies, command help and invalid invocations.
 - `native_model.m`: native coefficients, both charts, six-cell labels and invalid inputs against Magma.
 - `native_model_magma.m`: fixed model keys, both charts, six-cell classification and encoding bounds.
+- `native_local_magma.m`: Tate records on both charts, split and nonsplit fibres, wild conductors and minimized Frobenius twists.
 - `native_tables_magma.m`: exact ordinary tables in both characteristics through degree 12, direct small-field counts and stable hashes.

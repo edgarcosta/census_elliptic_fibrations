@@ -1,6 +1,7 @@
 {
     magma {
         trace_tables.m
+        local.m
     }
     src {
         declarations.m
