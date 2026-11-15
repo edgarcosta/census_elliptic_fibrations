@@ -37,4 +37,5 @@ Underscore-prefixed files provide shared helpers. See the
 [root README](../README.md#tests-and-examples) for test commands and prerequisites.
 
 - `native_build.m`: native build dependencies, command help and invalid invocations.
+- `native_model.m`: native coefficients, both charts, six-cell labels and invalid inputs against Magma.
 - `native_model_magma.m`: fixed model keys, both charts, six-cell classification and encoding bounds.

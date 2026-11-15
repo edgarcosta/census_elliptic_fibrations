@@ -4,6 +4,8 @@ MAGMA_PATH := $(shell command -v "$(MAGMA)")
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
 NATIVE_LDLIBS = -lntl -lflint -lgmp -lzstd
 NATIVE_BINARY := artifacts/native/census-native
+NATIVE_SOURCES := $(wildcard native/*.cpp)
+NATIVE_HEADERS := $(wildcard native/*.hpp)
 
 CHECK_FILES := $(patsubst tests/%,check/%,$(filter-out tests/_%,$(wildcard tests/*.m))) \
                $(patsubst examples/%,check/%,$(filter-out examples/_%,$(wildcard examples/*.m)))
@@ -14,9 +16,9 @@ all: check
 
 census-native: $(NATIVE_BINARY)
 
-$(NATIVE_BINARY): native/main.cpp
+$(NATIVE_BINARY): $(NATIVE_SOURCES) $(NATIVE_HEADERS)
 	@mkdir -p $(@D)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $< $(NATIVE_LDLIBS) $(LDLIBS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $(NATIVE_SOURCES) $(NATIVE_LDLIBS) $(LDLIBS)
 
 NATIVE_CHECKS := $(filter check/native_%,$(CHECK_FILES))
 $(NATIVE_CHECKS) $(NATIVE_CHECKS:check/%=debug/%): census-native

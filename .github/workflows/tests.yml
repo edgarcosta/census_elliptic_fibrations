@@ -129,3 +129,4 @@ jobs:
           export MAGMA="$PWD/artifacts/magma-install/magma/magma"
           export MAGMA_TEMP_DIR="$PWD/artifacts/test-tmp"
           "$MAGMA" -bn filename:=${{matrix.target}} run_tests.m
+

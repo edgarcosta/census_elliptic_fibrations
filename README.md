@@ -158,5 +158,6 @@ the debugger on an error.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 - [Native mathematics](docs/native-mathematics.md): exact radix-3 trace-table bounds, field conventions, and integer recovery.
+- [Native model records](docs/native-format.md): key input, chart coefficients, classification, and arithmetic status.
 
 Author: Edgar Costa
