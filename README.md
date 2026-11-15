@@ -158,7 +158,7 @@ the debugger on an error.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 - [Native trace tables](docs/native-tables.md): exact Magma tables, field definitions and comparison hashes.
-- [Native mathematics](docs/native-mathematics.md): exact trace-table bounds and the Frobenius-twist sign with its BSD normalization.
+- [Native mathematics](docs/native-mathematics.md): exact trace-table bounds, the Frobenius-twist sign and the complete K3 torsion search bound.
 - [Native model records](docs/native-format.md): key input, chart coefficients, classification, and arithmetic status.
 - [Native local records](docs/native-local.md): minimized Tate data, wild conductors, Frobenius twists and component cycles.
 
