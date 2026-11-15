@@ -38,3 +38,35 @@ including zero, in degrees 1 through 4. It uses finite-field arithmetic without
 character or transform tables. Each test run emits a SHA-256 hash covering the
 characteristic, degree, polynomial, and complete ordinary table in the fixture
 format. These hashes are checked against the retained fixture hashes.
+
+## Native point counts
+
+Build with `make census-native`. The counting command reads one `p degree parameter`
+row per line from standard input:
+
+```sh
+printf '3 2 0\n3 2 zero\n' | artifacts/native/census-native count
+```
+
+An integer parameter e denotes a=alpha^e, with 0 <= e < p^degree-1. The token
+`zero` denotes a=0. The CSV output gives `p,degree,parameter,trace,points`, where
+points=p^degree+1-trace includes the point at infinity, also on the singular cubic.
+The field polynomials, generators, and table order match `FibrationTraceTable`.
+
+`native/field.cpp` retains the prototype's polynomial and packed-coordinate
+arithmetic. `native/lfun.cpp` constructs the F_3 tables by exact modular convolution
+and the F_2 tables by the integer Walsh transform. Construction checks the prime,
+cube root, normalization, coefficient bounds and nodal trace. All modular products
+and butterfly sums fit in signed 64-bit integers. Each field and degree is computed
+once per process; subsequent counts use its table.
+
+The optional `--table-cache DIRECTORY` writes `f2-d1.txt` through `f3-d12.txt`
+as needed, using the canonical three-line fixture format. An existing file must
+match the exact regenerated table, including its field polynomial. A changed or
+incomplete file causes an error before a count using that table is emitted.
+Verification still computes the exact transform; the disk cache records reproducible
+tables and does not reduce the arithmetic cost. The command needs no Magma subprocess.
+
+Run `make check/native_tables.m` for fresh Magma comparisons of every native entry
+through degree 12 in both characteristics. It also checks direct affine-pair counts
+through degree 3, reproducible cache hashes and rejection of changed entries.
