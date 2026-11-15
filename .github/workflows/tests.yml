@@ -117,7 +117,7 @@ jobs:
           echo 'SetQuitOnError(true); quit;' | ./artifacts/magma-install/magma/magma -bn
 
       - name: Install native build dependencies
-        if: matrix.target == 'tests/native_build.m'
+        if: startsWith(matrix.target, 'tests/native_')
         run: |
           sudo apt-get update
           sudo apt-get install -y g++ make python3 libntl-dev libgmp-dev libflint-dev libboost-dev libzstd-dev

@@ -1,8 +1,32 @@
 from pathlib import Path
+import shutil
 import subprocess
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_native_test_dependencies():
+    (ROOT / "artifacts").mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=ROOT / "artifacts") as directory:
+        root = Path(directory)
+        shutil.copyfile(ROOT / "Makefile", root / "Makefile")
+        (root / "native").mkdir()
+        (root / "native/main.cpp").touch()
+        (root / "Tests").mkdir()
+        (root / "Tests/native_probe.m").touch()
+        for target in ("check/native_probe.m", "debug/native_probe.m"):
+            result = subprocess.run(
+                ["make", "--dry-run", target],
+                cwd=root, capture_output=True, text=True,
+            )
+            assert result.returncode == 0, result.stdout + result.stderr
+            commands = result.stdout
+            build = "-o artifacts/native/census-native"
+            assert commands.count(build) == 1, commands
+            invocation = "filename:=Tests/native_probe.m"
+            assert commands.index(build) < commands.index(invocation), commands
 
 
 def test_build_and_usage():
@@ -23,4 +47,5 @@ def test_build_and_usage():
 
 
 if __name__ == "__main__":
+    test_native_test_dependencies()
     test_build_and_usage()

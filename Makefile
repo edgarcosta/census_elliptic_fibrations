@@ -18,7 +18,8 @@ $(NATIVE_BINARY): native/main.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $< $(NATIVE_LDLIBS) $(LDLIBS)
 
-check/native_build.m debug/native_build.m: census-native
+NATIVE_CHECKS := $(filter check/native_%,$(CHECK_FILES))
+$(NATIVE_CHECKS) $(NATIVE_CHECKS:check/%=debug/%): census-native
 
 check/%.m: tests/%.m | check-no-dups
 	@mkdir -p artifacts/test-tmp
