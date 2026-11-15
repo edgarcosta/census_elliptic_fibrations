@@ -4,6 +4,7 @@
         local.m
         lfun.m
         torsion.m
+        invariants.m
     }
     src {
         declarations.m

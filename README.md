@@ -161,6 +161,7 @@ the debugger on an error.
 - [Native mathematics](docs/native-mathematics.md): exact trace-table bounds, the Frobenius-twist sign and the complete K3 torsion search bound.
 - [Native model records](docs/native-format.md): key input, chart coefficients, classification, and arithmetic status.
 - [Native L-polynomials](docs/native-lfun.md): signed exact coefficients, lower-half encoding and independent Magma comparisons.
+- [Native derived invariants](docs/native-invariants.md): exact ranks, cohomology, point counts, formal height and BSD/Artin-Tate products.
 - [Native torsion](docs/native-torsion.md): complete bounded zero-height sections and torsion invariant factors.
 - [Native local records](docs/native-local.md): minimized Tate data, wild conductors, Frobenius twists and component cycles.
 
