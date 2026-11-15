@@ -5,6 +5,7 @@
         lfun.m
         torsion.m
         invariants.m
+        candidates.m
     }
     src {
         declarations.m

@@ -36,8 +36,9 @@ arithmetic or the K3 hypothesis. Fibre records need `ComponentCycles` and
 
 All arithmetic uses Magma integers and rationals. Infinite formal height
 is distinct from every integer. The record determines neither a geometric
-NS discriminant nor an integral NS lattice. Separating Sha and the regulator
-requires further evidence and is outside this interface.
+NS discriminant nor an integral NS lattice. The
+[candidate interface](native-candidates.md) lists the admissible Sha orders
+and regulators and identifies splits forced by these constraints.
 
 ## Exact formulas
 
