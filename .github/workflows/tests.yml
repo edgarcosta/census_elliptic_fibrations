@@ -89,6 +89,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          lfs: ${{ matrix.target == 'tests/native_tables_magma.m' }}
 
       - name: Cache magma
         uses: actions/cache@v3

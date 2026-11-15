@@ -1,4 +1,7 @@
 {
+    magma {
+        trace_tables.m
+    }
     src {
         declarations.m
         forms.m
