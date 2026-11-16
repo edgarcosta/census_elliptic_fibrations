@@ -6,6 +6,7 @@
         torsion.m
         invariants.m
         candidates.m
+        records.m
     }
     src {
         declarations.m
