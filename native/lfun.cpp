@@ -11,7 +11,7 @@
 
 #if !defined(CENSUS_SCALAR_ONLY) && (defined(__x86_64__) || defined(__i386__)) \
     && (defined(__GNUC__) || defined(__clang__))
-#define CENSUS_X86_SIMD 1
+#define CENSUS_AVX2 1
 #include <immintrin.h>
 #endif
 
@@ -228,7 +228,7 @@ void evaluate_scalar(const CountingTable& table, const std::vector<int>& poly,
     }
 }
 
-#ifdef CENSUS_X86_SIMD
+#ifdef CENSUS_AVX2
 __attribute__((target("avx2")))
 __m256i add3(__m256i a, __m256i b) {
     const auto mask = _mm256_set1_epi32(65535);
@@ -265,7 +265,7 @@ void evaluate_avx2(const CountingTable& table, const std::vector<int>& poly,
 }
 
 __attribute__((target("avx2")))
-bool sum_ordinary3_avx2(const CountingTable& table, const std::vector<std::uint32_t>& c,
+bool sum_ordinary3(const CountingTable& table, const std::vector<std::uint32_t>& c,
                    const std::vector<std::uint32_t>& delta, std::int64_t& sum) {
     const auto& f = table.traces.field;
     const auto zero = _mm256_setzero_si256(), mask = _mm256_set1_epi32(f.mask);
@@ -295,81 +295,6 @@ bool sum_ordinary3_avx2(const CountingTable& table, const std::vector<std::uint3
         tr = _mm256_sub_epi32(_mm256_xor_si256(tr, sign), sign);
         alignas(32) int values[8];
         _mm256_store_si256(reinterpret_cast<__m256i*>(values), tr);
-        for (const int value : values) sum += value;
-    }
-    for (; i < c.size(); ++i) {
-        if (!c[i] || !delta[i]) return false;
-        const int a = f.logarithms[f.index(c[i])], b = f.logarithms[f.index(delta[i])];
-        sum += (a & 1 ? -1 : 1)*table.traces.ordinary[(b-6*a+6*f.order) % f.order];
-    }
-    return true;
-}
-
-__attribute__((target("avx512f")))
-__m512i add3(__m512i a, __m512i b) {
-    const auto mask = _mm512_set1_epi32(65535);
-    const auto al = _mm512_and_si512(a, mask), ah = _mm512_srli_epi32(a, 16);
-    const auto bl = _mm512_and_si512(b, mask), bh = _mm512_srli_epi32(b, 16);
-    const auto an = _mm512_or_si512(al, ah), bn = _mm512_or_si512(bl, bh);
-    const auto lo = _mm512_or_si512(_mm512_or_si512(
-        _mm512_andnot_si512(bn, al), _mm512_andnot_si512(an, bl)), _mm512_and_si512(ah, bh));
-    const auto hi = _mm512_or_si512(_mm512_or_si512(
-        _mm512_andnot_si512(bn, ah), _mm512_andnot_si512(an, bh)), _mm512_and_si512(al, bl));
-    return _mm512_or_si512(lo, _mm512_slli_epi32(hi, 16));
-}
-
-__attribute__((target("avx512f")))
-void evaluate_avx512(const CountingTable& table, const std::vector<int>& poly,
-                   std::vector<std::uint32_t>& output) {
-    output.assign(table.powers[0].size(), 0);
-    const auto& f = table.traces.field;
-    for (std::size_t j = 0; j < poly.size(); ++j) {
-        if (!poly[j]) continue;
-        std::size_t i = 0;
-        for (; i + 16 <= output.size(); i += 16) {
-            auto v = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(table.powers[j].data()+i));
-            if (poly[j] == 2) v = _mm512_or_si512(_mm512_srli_epi32(v, 16), _mm512_slli_epi32(v, 16));
-            const auto a = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(output.data()+i));
-            const auto sum = f.p == 2 ? _mm512_xor_si512(a, v) : add3(a, v);
-            _mm512_storeu_si512(reinterpret_cast<__m512i*>(output.data()+i), sum);
-        }
-        for (; i < output.size(); ++i) {
-            const auto value = table.powers[j][i];
-            output[i] = f.add(output[i], poly[j] == 2 ? f.negate(value) : value);
-        }
-    }
-}
-
-__attribute__((target("avx512f")))
-bool sum_ordinary3_avx512(const CountingTable& table, const std::vector<std::uint32_t>& c,
-                   const std::vector<std::uint32_t>& delta, std::int64_t& sum) {
-    const auto& f = table.traces.field;
-    const auto zero = _mm512_setzero_si512(), mask = _mm512_set1_epi32(f.mask);
-    const auto six = _mm512_set1_epi32(6), sixm = _mm512_set1_epi32(6*f.order);
-    sum = 0;
-    std::size_t i = 0;
-    for (; i + 16 <= c.size(); i += 16) {
-        const auto a = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(c.data()+i));
-        const auto b = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(delta.data()+i));
-        if (_mm512_cmpeq_epi32_mask(a, zero) | _mm512_cmpeq_epi32_mask(b, zero)) return false;
-        const auto index = [&](const __m512i v) __attribute__((target("avx512f"))) {
-            return _mm512_add_epi32(_mm512_i32gather_epi32(
-                _mm512_and_si512(v, mask), f.index_mask.data(), 4),
-                _mm512_slli_epi32(_mm512_i32gather_epi32(
-                _mm512_srli_epi32(v, 16), f.index_mask.data(), 4), 1));
-        };
-        const auto la = _mm512_i32gather_epi32(index(a), f.logarithms.data(), 4);
-        const auto lb = _mm512_i32gather_epi32(index(b), f.logarithms.data(), 4);
-        const auto e = _mm512_add_epi32(_mm512_sub_epi32(lb, _mm512_mullo_epi32(la, six)), sixm);
-        alignas(64) int exponents[16];
-        _mm512_store_si512(reinterpret_cast<__m512i*>(exponents), e);
-        for (int& exponent : exponents) exponent %= f.order;
-        auto tr = _mm512_i32gather_epi32(
-            _mm512_load_si512(reinterpret_cast<const __m512i*>(exponents)), table.traces.ordinary.data(), 4);
-        const auto sign = _mm512_sub_epi32(zero, _mm512_and_si512(la, _mm512_set1_epi32(1)));
-        tr = _mm512_sub_epi32(_mm512_xor_si512(tr, sign), sign);
-        alignas(64) int values[16];
-        _mm512_store_si512(reinterpret_cast<__m512i*>(values), tr);
         for (const int value : values) sum += value;
     }
     for (; i < c.size(); ++i) {
@@ -471,9 +396,7 @@ void local_series(std::vector<std::int64_t>& sums, int trace, bool good, int nor
 }
 
 struct LPolynomialCounter::State {
-    decltype(&evaluate_scalar) evaluate = evaluate_scalar;
-    bool (*sum_ordinary)(const CountingTable&, const std::vector<std::uint32_t>&,
-                         const std::vector<std::uint32_t>&, std::int64_t&) = nullptr;
+    bool avx2 = false;
     std::map<std::pair<int, int>, CountingTable> tables;
 
     CountingTable& table(int p, int d) {
@@ -482,21 +405,14 @@ struct LPolynomialCounter::State {
 };
 
 LPolynomialCounter::LPolynomialCounter(std::string_view backend) : state(std::make_unique<State>()) {
-    if (backend != "auto" && backend != "scalar" && backend != "avx2" && backend != "avx512") {
-        throw std::invalid_argument("backend must be auto, scalar, avx2 or avx512");
+    if (backend != "auto" && backend != "scalar" && backend != "avx2") {
+        throw std::invalid_argument("backend must be auto, scalar or avx2");
     }
-#ifdef CENSUS_X86_SIMD
-    if ((backend == "auto" || backend == "avx512") && __builtin_cpu_supports("avx512f")) {
-        state->evaluate = evaluate_avx512;
-        state->sum_ordinary = sum_ordinary3_avx512;
-    } else if ((backend == "auto" || backend == "avx2") && __builtin_cpu_supports("avx2")) {
-        state->evaluate = evaluate_avx2;
-        state->sum_ordinary = sum_ordinary3_avx2;
-    }
+#ifdef CENSUS_AVX2
+    state->avx2 = backend != "scalar" && __builtin_cpu_supports("avx2");
 #endif
-    if ((backend == "avx2" || backend == "avx512") && !state->sum_ordinary) {
-        throw std::invalid_argument(backend == "avx2"
-            ? "AVX2 backend is unavailable" : "AVX512 backend is unavailable");
+    if (backend == "avx2" && !state->avx2) {
+        throw std::invalid_argument("AVX2 backend is unavailable");
     }
 }
 
@@ -524,15 +440,22 @@ LPolynomial LPolynomialCounter::compute(const Model& model, const LocalModels& l
         const auto& table = state->table(model.q, d);
         const auto& f = table.traces.field;
         std::vector<std::uint32_t> primary, values;
-        state->evaluate(table, primary_poly, primary);
-        state->evaluate(table, delta_poly, values);
+#ifdef CENSUS_AVX2
+        const auto evaluate = state->avx2 ? evaluate_avx2 : evaluate_scalar;
+#else
+        const auto evaluate = evaluate_scalar;
+#endif
+        evaluate(table, primary_poly, primary);
+        evaluate(table, delta_poly, values);
         bool summed = false;
+#ifdef CENSUS_AVX2
         std::int64_t sum;
-        if (state->sum_ordinary && model.q == 3 && d > sign.degree/4
-            && state->sum_ordinary(table, primary, values, sum)) {
+        if (state->avx2 && model.q == 3 && d > sign.degree/4
+            && sum_ordinary3(table, primary, values, sum)) {
             result.trace_sums[d-1] += d*sum;
             summed = true;
         }
+#endif
         if (!summed) {
             for (std::size_t i = 0; i < primary.size(); ++i) {
                 if (!values[i]) continue;

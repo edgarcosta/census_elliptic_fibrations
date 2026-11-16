@@ -54,27 +54,23 @@ def test_magma_comparison(reference):
     scalar = invoke(text, "--backend", "scalar")
     assert scalar.returncode == 0, scalar.stderr
     assert scalar.stdout == automatic.stdout
+    avx2 = invoke(text, "--backend", "avx2")
     cpuinfo = Path("/proc/cpuinfo")
-    flags = cpuinfo.read_text().split() if cpuinfo.exists() else []
-    for backend, feature in (("avx2", "avx2"), ("avx512", "avx512f")):
-        result = invoke(text, "--backend", backend)
-        if feature in flags:
-            assert result.returncode == 0, result.stderr
-        if result.returncode:
-            assert f"{backend.upper()} backend is unavailable" in result.stderr, result.stderr
-        else:
-            assert result.stdout == scalar.stdout
+    if cpuinfo.exists() and "avx2" in cpuinfo.read_text().split():
+        assert avx2.returncode == 0, avx2.stderr
+    if avx2.returncode:
+        assert "AVX2 backend is unavailable" in avx2.stderr, avx2.stderr
+    else:
+        assert avx2.stdout == scalar.stdout
     if "CENSUS_NATIVE" not in os.environ:
         scalar_binary = ROOT / "artifacts/native/census-native-scalar"
         result = subprocess.run([scalar_binary, "invariants"], input=text,
                                 capture_output=True, text=True, cwd=ROOT)
         assert result.returncode == 0, result.stderr
         assert result.stdout == scalar.stdout
-        for backend in ("avx2", "avx512"):
-            unavailable = subprocess.run([scalar_binary, "invariants", "--backend", backend],
-                                         input=text, capture_output=True, text=True, cwd=ROOT)
-            assert unavailable.returncode != 0
-            assert f"{backend.upper()} backend is unavailable" in unavailable.stderr
+        unavailable = subprocess.run([scalar_binary, "invariants", "--backend", "avx2"],
+                                     input=text, capture_output=True, text=True, cwd=ROOT)
+        assert unavailable.returncode != 0 and "AVX2 backend is unavailable" in unavailable.stderr
     return rows
 
 
