@@ -2,7 +2,7 @@ MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
-NATIVE_LDLIBS = -lntl -lflint -lgmp -lzstd
+NATIVE_LDLIBS = -lntl -lflint -lgmp
 NATIVE_SCALAR_BINARY := artifacts/native/census-native-scalar
 NATIVE_BINARY := artifacts/native/census-native
 NATIVE_SOURCES := $(wildcard native/*.cpp)
