@@ -7,6 +7,7 @@ procedure test_native_local()
     delete reference;
     delete logfile;
     try
+        Write(referencepath, "stale reference");
         command := "make census-native > " cat shell_quote(logpath) cat " 2>&1";
         error if System(command) ne 0, Read(logpath);
         command := "\"${MAGMA:-magma}\" -bn referencepath:=" cat shell_quote(referencepath)

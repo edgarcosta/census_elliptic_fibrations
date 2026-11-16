@@ -13,6 +13,8 @@ function coordinates(P, p)
         Numerator(P[2]), Denominator(P[2])]], ":");
 end function;
 
+empty := Open(referencepath, "w");
+delete empty;
 fprintf referencepath, "q,key,torsion,torsion_points,torsion_orders\n";
 for p in [2, 3] do
     F<t> := FunctionField(GF(p));

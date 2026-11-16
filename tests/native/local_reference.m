@@ -17,6 +17,8 @@ function encode_fibres(rows)
 end function;
 
 procedure write_local_reference(path)
+    empty := Open(path, "w");
+    delete empty;
     fprintf path, "q,key,fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent\n";
     for p in [2, 3] do
         F<t> := FunctionField(GF(p));

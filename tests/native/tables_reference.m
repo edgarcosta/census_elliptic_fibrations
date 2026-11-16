@@ -1,6 +1,8 @@
 SetQuitOnError(true);
 AttachSpec("spec");
 
+empty := Open(referencepath, "w");
+delete empty;
 for p in [2, 3], d in [1..12] do
     table := FibrationTraceTable(p, d);
     fprintf referencepath, "%o %o\n", p, d;

@@ -4,6 +4,8 @@ AttachSpec("spec");
 import "tests/_native_fixed_models.m": fixed_models;
 
 procedure write_lfun_reference(path)
+    empty := Open(path, "w");
+    delete empty;
     fprintf path, "q,key,degree,sign,lower_L,L_polynomial,trace_sums\n";
     for p in [2, 3] do
         F<t> := FunctionField(GF(p));

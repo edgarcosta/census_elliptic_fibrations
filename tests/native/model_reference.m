@@ -11,6 +11,8 @@ end function;
 
 // The fixed forms pin all six cells; monomials pin every digit on both charts.
 procedure write_model_reference(path)
+    empty := Open(path, "w");
+    delete empty;
     fprintf path, "q,key,kind,minimality,a1,a2,a3,a4,a6,infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6\n";
     for p in [2, 3] do
         R<s, t> := PolynomialRing(GF(p), 2);
