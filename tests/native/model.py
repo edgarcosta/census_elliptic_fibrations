@@ -3,6 +3,7 @@ import io
 from pathlib import Path
 import subprocess
 import sys
+from derived import FIELDS as DERIVED_FIELDS
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,7 +33,7 @@ def test_magma_comparison(reference):
         assert got["chart"] == CHART, context
         supported = want["kind"] == "smooth" and want["minimality"] == "everywhere minimal"
         assert got["status"] == ("partial" if supported else "unsupported"), context
-        assert set(got) == set(want) | {"chart", "status", "fibres", "twist_fibres",
+        assert set(got) == set(want) | set(DERIVED_FIELDS) | {"chart", "status", "fibres", "twist_fibres",
                                        "degree", "sign", "height", "twist_height",
                                        "tamagawa_exponent", "torsion", "torsion_points",
                                        "torsion_orders", "lower_L", "L_polynomial", "trace_sums"}, got

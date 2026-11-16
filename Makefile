@@ -51,3 +51,7 @@ check-no-dups:
 
 .PHONY: all check check-no-dups census-native census-native-scalar
 
+
+artifacts/native/derived-exact: tests/native/derived_exact.cpp native/invariants.cpp $(NATIVE_HEADERS)
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/derived_exact.cpp native/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)

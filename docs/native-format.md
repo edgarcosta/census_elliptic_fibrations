@@ -11,6 +11,9 @@ Build with `make census-native`, then pass one decimal `q key` pair per line:
 printf '2 1346371584\n3 951893735796\n' | artifacts/native/census-native invariants
 ```
 
+The command also emits the [exact derived K3 fields](native-invariants.md#native-command)
+from shared local data, torsion and the signed L-polynomial.
+
 Only the prime fields `q=2` and `q=3` are supported. Keys satisfy
 `0 <= key < 2^32` and `0 <= key < 3^27`, respectively. The command rejects
 malformed or oversized integers before decoding. Blank lines are ignored.

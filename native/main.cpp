@@ -16,7 +16,7 @@ void print_help(std::ostream& output) {
     output << "Usage: census-native <command>\n\n"
               "Commands:\n"
               "  help        Show this help\n"
-              "  invariants  Compute signed L-polynomials, local data and torsion\n"
+              "  invariants  Compute exact K3 invariants\n"
               "  count       Count points on the ordinary cubic families\n\n"
               "Options:\n"
               "  -h, --help                Show this help\n"
@@ -24,7 +24,7 @@ void print_help(std::ostream& output) {
               "  --coefficients            Read q a1 a2 a3 a4 a6 as base-q codes\n"
               "  --chart 'a_i(t,1)'        Input chart for invariants (default a_i(t,1))\n\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels, local fibres, signed L and torsion.\n"
+              "Output: CSV with both charts, cell labels, local fibres, signed L, torsion and derived invariants.\n"
               "Coefficient input uses a2=0 over F_2 and a1=a3=0 over F_3.\n"
               "The key and sign are derived from the equation; no sign is supplied.\n"
               "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
@@ -85,7 +85,10 @@ void invariants(std::string_view backend, bool coefficients) {
     std::cout << "q,key,kind,minimality,status,chart,a1,a2,a3,a4,a6,"
                  "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6,"
                  "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent,"
-                 "torsion,torsion_points,torsion_orders,lower_L,L_polynomial,trace_sums\n";
+                 "torsion,torsion_points,torsion_orders,lower_L,L_polynomial,trace_sums,"
+                 "rank,geometric_rank,picard_number,geometric_picard_number,"
+                 "P2,zeta_sign,point_counts,brauer_height,artin_tate_product,ns_splitting_degree,"
+                 "j_degree,j_inseparability_exponent,is_isotrivial,sha_reg\n";
     std::string line;
     std::size_t line_number = 0;
     while (std::getline(std::cin, line)) {
@@ -121,11 +124,13 @@ void invariants(std::string_view backend, bool coefficients) {
             census::SignData sign{};
             census::TorsionData torsion;
             census::LPolynomial lfun;
+            census::DerivedInvariants derived;
             if (model.status == "partial") {
                 local = census::local_models(model);
                 sign = census::functional_equation_sign(local, model.q);
                 torsion = census::complete_torsion(model, local);
                 lfun = counter.compute(model, local, sign);
+                derived = census::derived_invariants(model, local, torsion, lfun);
             }
             std::cout << model.q << ',' << model.key << ',' << model.kind << ','
                       << model.minimality << ',' << model.status << ",\""
@@ -161,7 +166,20 @@ void invariants(std::string_view backend, bool coefficients) {
                 write_list(lfun.coefficients, 0, lfun.coefficients.size());
                 std::cout << ',';
                 write_list(lfun.trace_sums, 0, lfun.trace_sums.size());
-            } else std::cout << ",,,,,,,,,,,,";
+                std::cout << ',' << derived.rank << ',' << derived.geometric_rank
+                          << ',' << derived.picard_number << ',' << derived.geometric_picard_number << ',';
+                write_list(derived.p2, 0, derived.p2.size());
+                std::cout << ',' << derived.zeta_sign << ',';
+                write_list(derived.point_counts, 0, derived.point_counts.size());
+                std::cout << ',';
+                if (derived.brauer_height) std::cout << derived.brauer_height;
+                else std::cout << "infinity";
+                std::cout << ',' << derived.artin_tate_product << ',' << derived.ns_splitting_degree
+                          << ',' << derived.j_degree << ',' << derived.j_inseparability_exponent
+                          << ',' << (derived.j_degree == 0 ? "true" : "false") << ',';
+                std::cout << numerator(derived.sha_reg);
+                if (denominator(derived.sha_reg) != 1) std::cout << '/' << denominator(derived.sha_reg);
+            } else std::cout << std::string(26, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());

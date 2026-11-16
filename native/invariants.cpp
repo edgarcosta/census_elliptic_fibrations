@@ -2,6 +2,7 @@
 #include "weierstrass.hpp"
 
 #include <NTL/lzz_pX.h>
+#include <flint/fmpz_poly.h>
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include <algorithm>
@@ -259,6 +260,167 @@ TorsionData complete_torsion(const Model& model, const LocalModels& local) {
     if (points.size() % exponent || exponent % first) throw std::runtime_error("invalid torsion invariant factors");
     if (first > 1) result.factors.push_back(first);
     if (exponent > 1) result.factors.push_back(exponent);
+    return result;
+}
+
+namespace {
+using Z = boost::multiprecision::cpp_int;
+using Poly = std::vector<Z>;
+
+Z integer_power(Z base, int exponent) {
+    Z value = 1;
+    for (; exponent; exponent /= 2, base *= base) if (exponent % 2) value *= base;
+    return value;
+}
+
+void multiply_binomial(Poly& a, int n, const Z& q) {
+    const int degree = int(a.size())-1;
+    const Z scale = integer_power(q, n);
+    a.resize(a.size()+n);
+    for (int i = degree; i >= 0; --i) a[i+n] -= scale*a[i];
+}
+
+bool divide_polynomial(const Poly& a, const Poly& b, Poly& quotient) {
+    if (a.size() < b.size()) return false;
+    Poly work = a;
+    Poly result(a.size()-b.size()+1);
+    for (std::size_t i = 0; i < result.size(); ++i) {
+        result[i] = work[i]/b[0];
+        for (std::size_t j = 0; j < b.size(); ++j) work[i+j] -= result[i]*b[j];
+    }
+    if (std::any_of(work.begin(), work.end(), [](const Z& c) { return c != 0; })) return false;
+    quotient = std::move(result);
+    return true;
+}
+
+Q evaluate_inverse(const Poly& a, const Z& q) {
+    Q value = 0;
+    for (auto i = a.rbegin(); i != a.rend(); ++i) value = value/q+*i;
+    return value;
+}
+
+void include_order(Z& degree, int n) {
+    degree *= n/std::gcd((degree % n).convert_to<int>(), n);
+}
+
+const std::vector<std::pair<int, Poly>>& cyclotomic_factors() {
+    static const auto factors = [] {
+        std::vector<std::pair<int, Poly>> result;
+        // phi(n) >= sqrt(n/2); a factor of an L-polynomial has degree <= 20.
+        fmpz_poly_t f;
+        fmpz_poly_init(f);
+        for (int n = 1; n <= 2*20*20; ++n) {
+            fmpz_poly_cyclotomic(f, n);
+            const int degree = fmpz_poly_degree(f);
+            if (degree > 20) continue;
+            Poly c(degree+1);
+            for (int i = 0; i <= degree; ++i) c[i] = fmpz_poly_get_coeff_si(f, i);
+            if (c[0] < 0) for (auto& value : c) value = -value;
+            result.emplace_back(n, std::move(c));
+        }
+        fmpz_poly_clear(f);
+        return result;
+    }();
+    return factors;
+}
+}
+
+DerivedInvariants derived_invariants(const Model& model, const LocalModels& local,
+    const TorsionData& torsion, const LPolynomial& lfun, int constant_degree) {
+    if (model.status != "partial" || constant_degree < 1) {
+        throw std::invalid_argument("derived invariants require an elliptic K3 and positive constant degree");
+    }
+    const Poly& L = lfun.coefficients;
+    if (L.empty() || L[0] != 1 || L.size() > 21) throw std::invalid_argument("invalid K3 L-polynomial");
+    const Z q = integer_power(model.q, constant_degree);
+    DerivedInvariants result;
+    result.p2 = L;
+    multiply_binomial(result.p2, 1, q);
+    multiply_binomial(result.p2, 1, q);
+    int cycle_count = 0, cycle_sum = 0;
+    Z tamagawa = 1, torsion_order = 1;
+    for (int n : torsion.factors) torsion_order *= n;
+    for (const auto& f : local.fibres) {
+        tamagawa *= f.tamagawa;
+        for (int n : f.component_cycles) {
+            multiply_binomial(result.p2, n, q);
+            ++cycle_count;
+            cycle_sum += n;
+            include_order(result.ns_splitting_degree, n);
+        }
+    }
+    if (result.p2.size() != 23) throw std::invalid_argument("L and component cycles must give P2 of degree 22");
+    Poly quotient = L, divided;
+    while (divide_polynomial(quotient, {1, -q}, divided)) {
+        quotient = divided;
+        ++result.rank;
+    }
+    result.picard_number = 2+result.rank+cycle_count;
+    Poly remainder = L;
+    for (const auto& [order, coefficients] : cyclotomic_factors()) {
+        if (coefficients.size() > remainder.size()) continue;
+        Poly scaled = coefficients;
+        Z scale = 1;
+        for (auto& c : scaled) { c *= scale; scale *= q; }
+        while (divide_polynomial(remainder, scaled, divided)) {
+            remainder = divided;
+            result.geometric_rank += int(scaled.size())-1;
+            include_order(result.ns_splitting_degree, order);
+        }
+    }
+    result.geometric_picard_number = 2+result.geometric_rank+cycle_sum;
+    Q slope = 1;
+    for (std::size_t i = 1; i < L.size(); ++i) {
+        if (L[i] == 0) continue;
+        Z c = L[i];
+        int v = 0;
+        while (c % model.q == 0) { c /= model.q; ++v; }
+        slope = std::min(slope, Q(v)/(constant_degree*i));
+    }
+    if (slope < 1) {
+        const Q height = 1/(1-slope);
+        if (denominator(height) != 1 || height < 1 || height > 10) throw std::runtime_error("invalid formal Brauer height");
+        result.brauer_height = numerator(height).convert_to<int>();
+    }
+    Poly algebraic_quotient = result.p2;
+    for (int i = 0; i < result.picard_number; ++i) {
+        if (!divide_polynomial(algebraic_quotient, {1, -q}, divided)) throw std::runtime_error("Picard multiplicity mismatch");
+        algebraic_quotient = divided;
+    }
+    const Q artin_tate = q*evaluate_inverse(algebraic_quotient, q);
+    if (denominator(artin_tate) != 1 || artin_tate <= 0) throw std::runtime_error("invalid Artin-Tate product");
+    result.artin_tate_product = numerator(artin_tate);
+    result.sha_reg = q*evaluate_inverse(quotient, q)*torsion_order*torsion_order/tamagawa;
+    const Z leading_scale = integer_power(q, 22);
+    if (result.p2.back() != leading_scale && result.p2.back() != -leading_scale) {
+        throw std::runtime_error("invalid cohomology determinant");
+    }
+    result.zeta_sign = result.p2.back() == leading_scale ? 1 : -1;
+    std::vector<Z> traces(6);
+    for (int n = 1; n <= 5; ++n) {
+        traces[n] = -n*result.p2[n];
+        for (int j = 1; j < n; ++j) traces[n] -= result.p2[j]*traces[n-j];
+        result.point_counts.push_back(1+integer_power(q, 2*n)+traces[n]);
+    }
+    NTL::zz_pPush context(model.q);
+    const WeierstrassInvariants w(polynomials(model.affine));
+    P numerator = NTL::power(w.b2*w.b2-24*w.b4, 3), denominator = w.discriminant();
+    const P common = NTL::GCD(numerator, denominator);
+    numerator /= common;
+    denominator /= common;
+    result.j_degree = std::max(NTL::deg(numerator), NTL::deg(denominator));
+    if (result.j_degree > 0) {
+        int common_exponent = 0;
+        for (const auto& f : {numerator, denominator}) {
+            for (int i = 1; i <= NTL::deg(f); ++i) {
+                if (!NTL::IsZero(NTL::coeff(f, i))) common_exponent = std::gcd(common_exponent, i);
+            }
+        }
+        while (common_exponent % model.q == 0) {
+            ++result.j_inseparability_exponent;
+            common_exponent /= model.q;
+        }
+    }
     return result;
 }
 
