@@ -86,7 +86,7 @@ Hermite's inequality gives Reg >= h_min^r / gamma_r^r. For ranks 2 through
 classical bound gamma_r <= (4/3)^((r-1)/2) gives the conservative exact test
 
 ```text
-Reg^2 * (4/3)^(r*(r-1)/2) >= h_min^(2*r).
+Reg * (4/3)^(r*(r-1)/2) >= h_min^r.
 ```
 
 This may retain more candidates than sharper Hermite constants would.
@@ -104,6 +104,11 @@ The minimum-height Hermite filter removes additional higher-rank candidates.
 Supplied arithmetic controls cover the correction table, parity, ranks
 through 20 and square orders above 2^53. Every returned pair multiplies
 to the exact supplied product.
+
+The constant extension of y^2 = x^3 + x + t^7 to GF(729)(t) has rank 12.
+It retains Sha orders [1, 9, 81, 729] with regulators [729, 81, 9, 1].
+The regression checks its L-polynomial by raising the base-field Frobenius
+matrix to the sixth power, and checks its II* fibre with `LocalInformation`.
 
 Fixtures are equations and arithmetic controls in test source; no census
 dataset is added. Prototype paths are relative to `artifacts/mw/`.

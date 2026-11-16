@@ -96,6 +96,36 @@ procedure test_large_exact_candidates()
     assert IsEmpty(sha) and IsEmpty(regulators);
 end procedure;
 
+// The rank-12 constant extension retains every candidate from Hermite's bound.
+procedure test_constant_extension_candidates()
+    F<t> := FunctionField(GF(3));
+    E := EllipticCurve([F | 0, 0, 0, 1, t^7]);
+    P<T> := PolynomialRing(Rationals());
+    L := P!LFunction(E);
+    M := CompanionMatrix(P!Reverse(Coefficients(L)));
+    extended := Determinant(ScalarMatrix(Nrows(M), P!1)-T*ChangeRing(M^6, P));
+    assert extended eq (1-729*T)^12;
+    fibres := FibrationLocalData(E);
+    assert #fibres eq 1;
+    assert fibres[1]`Type eq "II*" and fibres[1]`Tamagawa eq 1;
+    assert fibres[1]`Place cmpeq "inf" and fibres[1]`Degree eq 1;
+    assert fibres[1]`ComponentCycles eq [1 : i in [1..8]];
+    F<t> := FunctionField(GF(729));
+    E := EllipticCurve([F | 0, 0, 0, 1, t^7]);
+    information := LocalInformation(E);
+    assert #information eq 1 and Sprint(information[1][5]) eq "II*";
+    assert information[1][4] eq 1 and information[1][2] eq 24;
+    assert Degree(information[1][1]) eq 1 and not IsFinite(information[1][1]);
+    // The II* components stay rational; zero corrections rule out torsion.
+    data := FibrationInvariants(E, extended, fibres, []);
+    assert data`Rank eq 12 and data`PicardNumber eq 22;
+    assert data`ArtinTateProduct eq 729 and data`ShaRegulatorProduct eq 729;
+    sha, regulators := FibrationCandidates(data, fibres);
+    assert sha eq [1, 9, 81, 729];
+    assert regulators eq [Rationals() | 729, 81, 9, 1];
+    assert &and[sha[i]*regulators[i] eq 729 : i in [1..#sha]];
+end procedure;
+
 // Above the tabulated Hermite ranks, the conservative bound retains valid pairs.
 procedure test_high_rank_hermite_bound()
     D := recformat<Rank, PicardNumber, ArtinTateProduct, ShaRegulatorProduct>;
@@ -106,7 +136,11 @@ procedure test_high_rank_hermite_bound()
         assert 1 in sha;
         assert &and[sha[i]*regulators[i] eq 4^r : i in [1..#sha]];
         if r eq 3 then assert sha eq [1]; end if;
-        if r in [4, 5, 6] then assert sha eq [1, 4]; end if;
+        if r in [4, 5] then assert sha eq [1, 4]; end if;
+        if r eq 6 then
+            assert sha eq [1, 4, 16, 64];
+            assert regulators eq [Rationals() | 4096, 1024, 256, 64];
+        end if;
     end for;
     data := rec<D | Rank := 21, PicardNumber := 22,
         ArtinTateProduct := 1, ShaRegulatorProduct := 1>;
@@ -117,6 +151,7 @@ end procedure;
 test_fixed_candidates();
 test_rational_component_corrections();
 test_large_exact_candidates();
+test_constant_extension_candidates();
 test_high_rank_hermite_bound();
 Write(resultpath, "CANDIDATES_MAGMA_OK");
 quit;

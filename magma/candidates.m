@@ -66,9 +66,9 @@ See also FibrationInvariants}
                 gamma_powers := [Rationals() | 1, 4/3, 2, 4, 8];
                 squares := [s : s in squares | product/s ge minimum^rank/gamma_powers[rank]];
             else
-                // Hermite's bound gamma_r <= (4/3)^((r-1)/2), squared exactly.
-                squares := [s : s in squares | (product/s)^2*(4/3)^(rank*(rank-1) div 2)
-                    ge minimum^(2*rank)];
+                // Hermite's bound gamma_r <= (4/3)^((r-1)/2), raised to rank r.
+                squares := [s : s in squares | (product/s)*(4/3)^(rank*(rank-1) div 2)
+                    ge minimum^rank];
             end if;
         end if;
     end if;
