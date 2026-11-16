@@ -19,7 +19,7 @@ error on standard error. Earlier valid rows may already have been written.
 
 The input chart is `a_i(t,1)`. You can state it explicitly with
 `invariants --chart 'a_i(t,1)'`; any other chart argument is rejected.
-The output is uncompressed CSV with these columns:
+The output is uncompressed CSV beginning with these model columns:
 
 | Column | Meaning |
 | --- | --- |
@@ -37,10 +37,11 @@ To change charts, reverse a list padded to its homogeneous degree plus one.
 The five degrees are `2,4,6,8,12`. The two charts satisfy
 `a_i(1,u) = u^(2i)*a_i(1/u,1)`.
 
-This command currently computes model data only. All arithmetic fields are
-absent, and neither partial nor unsupported rows enter BSD computations.
-The stage 1 Magma reference format is described below. Connecting it to the
-native arithmetic writer is a separate step.
+Supported rows also contain [local records and signs](native-local.md#native-local-data-and-sign)
+and [complete torsion](native-torsion.md#native-torsion).
+Their status remains `partial` while the remaining invariants are pending.
+Unsupported rows have empty arithmetic columns. The stage 1 Magma reference
+format is described below; connecting it to the native writer is a separate step.
 
 The computations follow `src/models.m`, `src/classification.m`,
 `src/minimality.m` and `src/forms.m`. `make check/native_model.m` compares

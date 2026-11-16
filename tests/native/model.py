@@ -34,7 +34,8 @@ def test_magma_comparison(reference):
         assert got["status"] == ("partial" if supported else "unsupported"), context
         assert set(got) == set(want) | {"chart", "status", "fibres", "twist_fibres",
                                        "degree", "sign", "height", "twist_height",
-                                       "tamagawa_exponent"}, got
+                                       "tamagawa_exponent", "torsion", "torsion_points",
+                                       "torsion_orders"}, got
     for p in ("2", "3"):
         cells = {(row["kind"], row["minimality"]) for row in actual if row["q"] == p}
         assert len(cells) == 6, cells

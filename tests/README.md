@@ -41,4 +41,5 @@ Underscore-prefixed files provide shared helpers. See the
 - `native_model_magma.m`: fixed model keys, both charts, six-cell classification and encoding bounds.
 - `native_local_magma.m`: Tate records on both charts, split and nonsplit fibres, wild conductors and minimized Frobenius twists.
 - `native_torsion_magma.m`: complete bounded torsion groups, point orders, rank zero and infinity against Magma.
+- `native_torsion.m`: native torsion points, orders, and invariant factors against the same Magma sample on both charts.
 - `native_tables_magma.m`: exact ordinary tables in both characteristics through degree 12, direct small-field counts and stable hashes.
