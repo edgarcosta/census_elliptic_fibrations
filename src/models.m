@@ -145,6 +145,37 @@ See also FibrationKey, FibrationProperties}
     return model_from_key(R, key);
 end intrinsic;
 
+intrinsic aInvariants(E::CrvEll[FldFunRat], R::RngMPol) -> SeqEnum
+{The coefficients [a1, a2, a3, a4, a6] of E homogenized in R to degrees
+2, 4, 6, 8, 12, without normalization or minimization.
+See also EllipticCurve, aInvariantsFromKey}
+    require valid_ring(R): "R must be a binary polynomial ring over GF(2) or GF(3)";
+    require BaseRing(BaseRing(E)) eq BaseRing(R):
+        "E and R must have the same constant field";
+    a := aInvariants(E);
+    degrees := [2, 4, 6, 8, 12];
+    require &and[Denominator(a[i]) eq 1 and Degree(Numerator(a[i])) le degrees[i]
+        : i in [1..5]]:
+        "coefficients must be polynomials of degrees at most 2,4,6,8,12";
+    P := PolynomialRing(BaseRing(R));
+    return [R | form_from_vector(R, degrees[i],
+        [Coefficient(P!Numerator(a[i]), j) : j in Reverse([0..degrees[i]])])
+        : i in [1..5]];
+end intrinsic;
+
+intrinsic EllipticCurve(W::SeqEnum, F::FldFunRat : Infinity := false) -> CrvEll
+{The elliptic curve over F with coefficients W evaluated at (F.1, 1),
+without normalization or minimization.
+The parameter Infinity (default false) uses the chart (1, F.1) when true.
+See also aInvariants, FibrationProperties}
+    require valid_model(W): "W must have five homogeneous coefficients of degrees 2,4,6,8,12 over one supported ring";
+    require BaseRing(Universe(W)) eq BaseRing(F):
+        "W and F must have the same constant field";
+    require model_discriminant(W) ne 0: "W must have nonzero discriminant";
+    coordinates := Infinity select [F | 1, F.1] else [F | F.1, 1];
+    return EllipticCurve([F | Evaluate(a, coordinates) : a in W]);
+end intrinsic;
+
 intrinsic FibrationKey(W::SeqEnum) -> RngIntElt
 {The coefficient key of the normalized five-coefficient Weierstrass model W.
 Normalization removes a2 over GF(2) and completes the square over GF(3).

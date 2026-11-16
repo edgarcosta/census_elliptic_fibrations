@@ -41,7 +41,7 @@ end procedure;
 // These invariants do not depend on the chosen orbit representative or bad-place names.
 procedure check_sample_invariants(W, row)
     F<T> := FunctionField(GF(2));
-    E := EllipticCurve([F | Evaluate(a, [F!1, T]) : a in W]);
+    E := EllipticCurve(W, F : Infinity := true);
     G := TorsionSubgroup(E);
     torsion := IsEmpty(Invariants(G)) select "trivial"
         else Join(["Z/" cat Sprint(n) : n in Invariants(G)], " x ");

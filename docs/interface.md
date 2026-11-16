@@ -22,6 +22,29 @@ Zero coefficients are allowed. Use a typed sequence such as
 An integer sequence or a characteristic-3 triple `[C, A, B]` is not a public model.
 Invalid arguments raise a requirement error with a message for the caller.
 
+## Model conversions
+
+> **aInvariants** (E :: *CrvEll[FldFunRat]*, R :: *RngMPol*) -> *SeqEnum*
+
+The coefficients `[a1, a2, a3, a4, a6]` of `E`, homogenized in `R` to
+degrees `[2, 4, 6, 8, 12]`. If `u` is the generator of the rational function
+field of `E`, a term `c*u^j` in coefficient `a_i` becomes `c*s^j*t^(2*i-j)`.
+The constant fields of `E` and `R` must agree. The affine coefficients must
+be polynomials of degrees at most `[2, 4, 6, 8, 12]`.
+The built-in `aInvariants(E)` gives the affine coefficients.
+
+> **EllipticCurve** (W :: *SeqEnum*, F :: *FldFunRat* : Infinity := false) -> *CrvEll*
+
+The elliptic curve over `F` obtained by evaluating `W` at `(F.1, 1)`.
+With `Infinity := true`, the chart is `(1, F.1)`.
+The model must satisfy the homogeneous degree contract above and have
+nonzero discriminant. The constant fields of `W` and `F` must agree.
+The built-in `EllipticCurve(A)` constructs a curve from affine coefficients `A`.
+
+Both conversions preserve the given coefficients without square completion,
+normalization, or minimization. In particular, the constructor accepts
+nonminimal smooth models and does not promise a minimal curve.
+
 ## Selections
 
 Counts, listings and file output accept these case-sensitive property values:

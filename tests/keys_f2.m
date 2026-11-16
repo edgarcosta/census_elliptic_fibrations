@@ -25,3 +25,34 @@ procedure test_key_encoding_f2()
 end procedure;
 
 test_key_encoding_f2();
+
+// Pins both charts and weighted coefficients without normalization or minimization.
+// Built-in forms share these inputs to check overload registration and dispatch.
+procedure test_model_conversions_f2()
+    R<s, t> := PolynomialRing(GF(2), 2);
+    F<u> := FunctionField(GF(2));
+    // Rank-one function fields can have multivariate polynomial numerators.
+    G := FunctionField(GF(2), 1);
+    fixtures := [
+        <[F | 1, 1, 0, 0, 1],
+         [R | t^2, t^4, 0, 0, t^12],
+         [F | u^2, u^4, 0, 0, u^12]>,
+        <[F | u^2+u+1, u^4+u, u^6+u^2+1, u^8+u^3, u^12+u+1],
+         [R | s^2+s*t+t^2, s^4+s*t^3, s^6+s^2*t^4+t^6,
+                s^8+s^3*t^5, s^12+s*t^11+t^12],
+         [F | 1+u+u^2, 1+u^3, 1+u^4+u^6, 1+u^5, 1+u^11+u^12]>];
+    assert #fixtures gt 0;
+    for fixture in fixtures do
+        A, W, reciprocal := Explode(fixture);
+        E := EllipticCurve(A);
+        assert aInvariants(E) eq A;
+        assert aInvariants(E, R) eq W;
+        assert aInvariants(EllipticCurve(W, F)) eq A;
+        assert aInvariants(EllipticCurve(W, G), R) eq W;
+        Einf := EllipticCurve(W, F : Infinity := true);
+        assert aInvariants(Einf) eq reciprocal;
+        assert aInvariants(EllipticCurve(reciprocal)) eq reciprocal;
+    end for;
+end procedure;
+
+test_model_conversions_f2();
