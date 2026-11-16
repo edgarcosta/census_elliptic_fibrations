@@ -1,0 +1,2 @@
+/tests/data/published-f2/*.csv filter=lfs diff=lfs merge=lfs -text
+/tests/data/oldcode-archive/*.tsv filter=lfs diff=lfs merge=lfs -text
