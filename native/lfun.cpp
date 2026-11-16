@@ -3,11 +3,13 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <map>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
 
 #if !defined(CENSUS_SCALAR_ONLY) && (defined(__x86_64__) || defined(__i386__)) \
     && (defined(__GNUC__) || defined(__clang__))
@@ -168,10 +170,26 @@ void check_cache(const TraceTable& table, const std::filesystem::path& directory
         }
     } else {
         std::filesystem::create_directories(directory);
-        std::ofstream output(path, std::ios::binary);
-        output << expected;
-        output.close();
-        if (!output) throw std::runtime_error("could not write trace-table cache: " + path.string());
+        const auto pattern = path.string() + ".XXXXXX";
+        std::vector<char> name(pattern.begin(), pattern.end());
+        name.push_back('\0');
+        const int descriptor = mkstemp(name.data());
+        if (descriptor == -1) {
+            throw std::runtime_error("could not create trace-table cache: " + path.string());
+        }
+        close(descriptor);
+        const std::filesystem::path temporary(name.data());
+        try {
+            std::ofstream output(temporary, std::ios::binary);
+            output << expected;
+            output.close();
+            if (!output) throw std::runtime_error("could not write trace-table cache: " + path.string());
+            std::filesystem::rename(temporary, path);
+        } catch (...) {
+            std::error_code ignored;
+            std::filesystem::remove(temporary, ignored);
+            throw;
+        }
     }
 }
 }

@@ -1,4 +1,5 @@
 import csv
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import io
 from pathlib import Path
@@ -140,7 +141,24 @@ def test_in_memory_tables():
     assert [int(row["points"]) for row in rows] == [3, 4, 3, 3], rows
 
 
+def test_concurrent_cold_cache():
+    with tempfile.TemporaryDirectory(dir=ROOT / "artifacts") as directory:
+        with ThreadPoolExecutor(max_workers=4) as workers:
+            for round_number in range(20):
+                cache = Path(directory) / str(round_number)
+                results = list(workers.map(lambda _: count("3 12 0\n", cache), range(4)))
+                for result in results:
+                    assert result.returncode == 0, (round_number, result.stderr)
+                    assert result.stdout == (
+                        "p,degree,parameter,trace,points\n3,12,0,658,530784\n"
+                    ), (round_number, result.stdout)
+                warm = count("3 12 0\n", cache)
+                assert warm.returncode == 0, (round_number, warm.stderr)
+                assert warm.stdout == results[0].stdout, (round_number, warm.stdout)
+
+
 if __name__ == "__main__":
     test_all_entries(sys.argv[1])
     test_rejected_inputs()
     test_in_memory_tables()
+    test_concurrent_cold_cache()
