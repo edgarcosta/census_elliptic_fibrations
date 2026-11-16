@@ -2,6 +2,8 @@
 
 #include "lfun.hpp"
 
+#include <iosfwd>
+
 namespace census {
 
 struct TorsionData {
@@ -24,5 +26,7 @@ struct DerivedInvariants {
 // Supplied arithmetic is complete over GF(model.q^constant_degree), as in Magma.
 DerivedInvariants derived_invariants(const Model& model, const LocalModels& local,
     const TorsionData& torsion, const LPolynomial& lfun, int constant_degree = 1);
+
+void write_derived_invariants(std::ostream& output, const DerivedInvariants& result);
 
 }

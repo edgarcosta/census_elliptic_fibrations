@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <ostream>
 #include <stdexcept>
 #include <utility>
 
@@ -422,6 +423,24 @@ DerivedInvariants derived_invariants(const Model& model, const LocalModels& loca
         }
     }
     return result;
+}
+
+void write_derived_invariants(std::ostream& output, const DerivedInvariants& r) {
+    const auto list = [&output](const auto& values) {
+        for (std::size_t i = 0; i < values.size(); ++i) output << (i ? " " : "") << values[i];
+    };
+    output << r.rank << ',' << r.geometric_rank << ',' << r.picard_number
+           << ',' << r.geometric_picard_number << ',';
+    list(r.p2);
+    output << ',' << r.zeta_sign << ',';
+    list(r.point_counts);
+    output << ',';
+    if (r.brauer_height) output << r.brauer_height;
+    else output << "infinity";
+    output << ',' << r.artin_tate_product << ',' << r.ns_splitting_degree
+           << ',' << r.j_degree << ',' << r.j_inseparability_exponent << ','
+           << (r.j_degree == 0 ? "true" : "false") << ',' << numerator(r.sha_reg);
+    if (denominator(r.sha_reg) != 1) output << '/' << denominator(r.sha_reg);
 }
 
 }

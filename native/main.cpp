@@ -166,19 +166,8 @@ void invariants(std::string_view backend, bool coefficients) {
                 write_list(lfun.coefficients, 0, lfun.coefficients.size());
                 std::cout << ',';
                 write_list(lfun.trace_sums, 0, lfun.trace_sums.size());
-                std::cout << ',' << derived.rank << ',' << derived.geometric_rank
-                          << ',' << derived.picard_number << ',' << derived.geometric_picard_number << ',';
-                write_list(derived.p2, 0, derived.p2.size());
-                std::cout << ',' << derived.zeta_sign << ',';
-                write_list(derived.point_counts, 0, derived.point_counts.size());
                 std::cout << ',';
-                if (derived.brauer_height) std::cout << derived.brauer_height;
-                else std::cout << "infinity";
-                std::cout << ',' << derived.artin_tate_product << ',' << derived.ns_splitting_degree
-                          << ',' << derived.j_degree << ',' << derived.j_inseparability_exponent
-                          << ',' << (derived.j_degree == 0 ? "true" : "false") << ',';
-                std::cout << numerator(derived.sha_reg);
-                if (denominator(derived.sha_reg) != 1) std::cout << '/' << denominator(derived.sha_reg);
+                census::write_derived_invariants(std::cout, derived);
             } else std::cout << std::string(26, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {

@@ -2,6 +2,7 @@ SetQuitOnError(true);
 SetNthreads(1);
 AttachSpec("spec");
 import "tests/_support.m": expect_error;
+import "tests/native/_derived_fixtures.m": gf4096_fixture, gf4_fixture;
 
 // Independent Magma algorithms pin ranks, cohomology, heights and both products.
 procedure check_invariants(E, rank, height, splitting, isotrivial)
@@ -81,16 +82,8 @@ end procedure;
 
 // Constant-field extension preserves finite formal height and normalizes v_q(q)=1.
 procedure test_height_over_a_nonprime_field()
-    F<t> := FunctionField(GF(2));
-    E := EllipticCurve([F | 0, 0, 1, t^7, 0]);
-    P<T> := PolynomialRing(Rationals());
-    L := P!LFunction(E);
-    M := CompanionMatrix(P!Reverse(Coefficients(L)));
-    extended := Determinant(ScalarMatrix(Nrows(M), P!1)-T*ChangeRing(M^2, P));
-    F<t> := FunctionField(GF(4));
-    E := EllipticCurve([F | 0, 0, 1, t^7, 0]);
-    R := recformat<ComponentCycles, Tamagawa>;
-    rows := [rec<R | ComponentCycles := [1], Tamagawa := 2>];
+    E, extended, rows, L := gf4_fixture();
+    P<T> := Parent(L);
     result := FibrationInvariants(E, extended, rows, []);
     assert result`BrauerHeight eq 3;
     P2 := L*(1-2*T)^3;
@@ -101,12 +94,9 @@ end procedure;
 // Over GF(2^12), all 22 eigenvalues of this supersingular K3 equal q.
 procedure test_large_exact_integers()
     q := 2^12;
-    F<t> := FunctionField(GF(q));
-    E := EllipticCurve([F | 0, 0, 1, t^6, 0]);
-    P<T> := PolynomialRing(Integers());
-    R := recformat<ComponentCycles, Tamagawa>;
-    rows := [rec<R | ComponentCycles := [1 : i in [1..13]], Tamagawa := 4>];
-    result := FibrationInvariants(E, (1-q*T)^7, rows, []);
+    E, L, rows := gf4096_fixture();
+    P<T> := Parent(L);
+    result := FibrationInvariants(E, L, rows, []);
     assert result`P2 eq (1-q*T)^22;
     assert result`PointCounts eq [1+q^(2*n)+22*q^n : n in [1..5]];
     assert result`PointCounts[5] gt 2^53 and IsOdd(result`PointCounts[5]);

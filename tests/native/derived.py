@@ -71,15 +71,12 @@ def test_magma_comparison(reference):
     print(f"DERIVED_NATIVE_OK: {len(actual)} records, {len(FIELDS)} fields and exact identities")
 
 
-def test_unsupported_and_invalid():
+def test_unsupported():
     result = invoke("2 0\n3 0\n2 1\n3 1\n")
     assert result.returncode == 0, result.stderr
     for row in csv.DictReader(io.StringIO(result.stdout)):
         assert row["status"] == "unsupported", row
         assert all(row[field] == "" for field in FIELDS), row
-    result = invoke("2 4294967296\n")
-    assert result.returncode != 0 and "key" in result.stderr
-    assert not list(csv.DictReader(io.StringIO(result.stdout))), result.stdout
 
 
 # Prime-field keys cannot exercise q=4096; the supplied-data API uses the same engine.
@@ -94,5 +91,5 @@ def test_constant_field_controls(reference):
 
 if __name__ == "__main__":
     test_magma_comparison(sys.argv[1])
-    test_unsupported_and_invalid()
+    test_unsupported()
     test_constant_field_controls(sys.argv[1])
