@@ -1,10 +1,9 @@
 import csv
 import io
-import os
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
+from _support import fake_magma
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,13 +20,8 @@ def test_magma_comparison(reference):
         expected = list(csv.DictReader(source))
     assert len(expected) == 26, len(expected)
     text = "".join(f"{r['q']} {r['key']}\n" for r in expected)
-    with tempfile.TemporaryDirectory(dir=ROOT / "artifacts") as directory:
-        sentinel = Path(directory) / "magma"
-        marker = Path(directory) / "called"
-        sentinel.write_text(f"#!/bin/sh\n: > '{marker}'\nexit 99\n")
-        sentinel.chmod(0o755)
-        result = invoke(text, env={**os.environ, "PATH": directory,
-                                   "MAGMA": str(sentinel)})
+    with fake_magma() as (env, marker):
+        result = invoke(text, env=env)
         assert not marker.exists(), "native command started Magma"
     assert result.returncode == 0, result.stderr
     actual = list(csv.DictReader(io.StringIO(result.stdout)))

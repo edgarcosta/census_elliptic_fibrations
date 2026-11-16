@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
+from _support import fake_magma
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -46,12 +46,7 @@ def compare(reference, output):
 def test_magma_comparison(reference):
     text = "".join(f"{r['q']} {r['key']}\n" for r in reference)
     assert FORMER_OPEN.keys() <= {(int(r["q"]), int(r["key"])) for r in reference}
-    with tempfile.TemporaryDirectory(dir=ROOT / "artifacts") as directory:
-        sentinel = Path(directory) / "magma"
-        marker = Path(directory) / "called"
-        sentinel.write_text(f"#!/bin/sh\n: > '{marker}'\nexit 99\n")
-        sentinel.chmod(0o755)
-        env = {**os.environ, "PATH": directory, "MAGMA": str(sentinel)}
+    with fake_magma() as (env, marker):
         automatic = invoke(text, env=env)
         assert automatic.returncode == 0, automatic.stderr
         assert not marker.exists(), "native command started Magma"
