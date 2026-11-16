@@ -3,6 +3,7 @@ MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
 NATIVE_LDLIBS = -lntl -lflint -lgmp -lzstd
+NATIVE_SCALAR_BINARY := artifacts/native/census-native-scalar
 NATIVE_BINARY := artifacts/native/census-native
 NATIVE_SOURCES := $(wildcard native/*.cpp)
 NATIVE_HEADERS := $(wildcard native/*.hpp)
@@ -15,6 +16,12 @@ MAKEFLAGS += -j$(shell nproc 2>/dev/null || printf 1)
 all: check
 
 census-native: $(NATIVE_BINARY)
+
+census-native-scalar: $(NATIVE_SCALAR_BINARY)
+
+$(NATIVE_SCALAR_BINARY): $(NATIVE_SOURCES) $(NATIVE_HEADERS)
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DCENSUS_SCALAR_ONLY -std=c++17 $(LDFLAGS) -o $@ $(NATIVE_SOURCES) $(NATIVE_LDLIBS) $(LDLIBS)
 
 $(NATIVE_BINARY): $(NATIVE_SOURCES) $(NATIVE_HEADERS)
 	@mkdir -p $(@D)
@@ -42,5 +49,5 @@ check: $(CHECK_FILES)
 check-no-dups:
 	@sh scripts/no_dup_test_basenames.sh
 
-.PHONY: all check check-no-dups census-native
+.PHONY: all check check-no-dups census-native census-native-scalar
 

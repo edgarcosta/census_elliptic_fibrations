@@ -16,13 +16,17 @@ void print_help(std::ostream& output) {
     output << "Usage: census-native <command>\n\n"
               "Commands:\n"
               "  help        Show this help\n"
-              "  invariants  Decode q/key rows and compute local data, signs and torsion\n"
+              "  invariants  Compute signed L-polynomials, local data and torsion\n"
               "  count       Count points on the ordinary cubic families\n\n"
               "Options:\n"
               "  -h, --help                Show this help\n"
+              "  --backend auto|scalar|avx2  Counting backend (default auto)\n"
+              "  --coefficients            Read q a1 a2 a3 a4 a6 as base-q codes\n"
               "  --chart 'a_i(t,1)'        Input chart for invariants (default a_i(t,1))\n\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels, local fibres, signs and torsion.\n"
+              "Output: CSV with both charts, cell labels, local fibres, signed L and torsion.\n"
+              "Coefficient input uses a2=0 over F_2 and a1=a3=0 over F_3.\n"
+              "The key and sign are derived from the equation; no sign is supplied.\n"
               "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
     output << "\ncount [--table-cache DIRECTORY] reads p degree parameter rows.\n"
               "Parameter is an exponent 0 <= e < p^degree-1, or zero for parameter 0.\n"
@@ -67,11 +71,21 @@ void write_fibres(const std::vector<census::LocalFibre>& fibres) {
     }
 }
 
-void invariants() {
+template<class Values>
+void write_list(const Values& values, std::size_t first, std::size_t end) {
+    if (first == end) std::cout << "[]";
+    for (std::size_t i = first; i < end; ++i) {
+        if (i != first) std::cout << ' ';
+        std::cout << values[i];
+    }
+}
+
+void invariants(std::string_view backend, bool coefficients) {
+    census::LPolynomialCounter counter(backend);
     std::cout << "q,key,kind,minimality,status,chart,a1,a2,a3,a4,a6,"
                  "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6,"
                  "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent,"
-                 "torsion,torsion_points,torsion_orders\n";
+                 "torsion,torsion_points,torsion_orders,lower_L,L_polynomial,trace_sums\n";
     std::string line;
     std::size_t line_number = 0;
     while (std::getline(std::cin, line)) {
@@ -80,19 +94,38 @@ void invariants() {
             std::istringstream input(line);
             std::string field, key, extra;
             if (!(input >> field)) continue;
-            if (!(input >> key) || input >> extra) {
-                throw std::invalid_argument("expected q key");
-            }
             const auto q = unsigned_integer(field, "q");
             if (q != 2 && q != 3) throw std::invalid_argument("q must be the prime 2 or 3");
-            const auto model = census::model_from_key(q, unsigned_integer(key, "key"));
+            std::uint64_t packed = 0;
+            if (coefficients) {
+                std::array<std::string, 5> codes;
+                if (!(input >> codes[0] >> codes[1] >> codes[2] >> codes[3] >> codes[4])
+                    || input >> extra) throw std::invalid_argument("expected q a1 a2 a3 a4 a6");
+                for (int j = 0; j < 5; ++j) {
+                    const auto code = unsigned_integer(codes[j], "coefficient code");
+                    const bool included = q == 2 ? j != 1 : j != 0 && j != 2;
+                    if (!included && code != 0) {
+                        throw std::invalid_argument("coefficients must use the census normal form");
+                    }
+                    std::uint64_t bound = 1;
+                    for (int k = 0; k <= census::model_degrees[j]; ++k) bound *= q;
+                    if (code >= bound) throw std::invalid_argument("coefficient exceeds K3 degree bound");
+                    if (included) packed = packed*bound+code;
+                }
+            } else {
+                if (!(input >> key) || input >> extra) throw std::invalid_argument("expected q key");
+                packed = unsigned_integer(key, "key");
+            }
+            const auto model = census::model_from_key(q, packed);
             census::LocalModels local;
             census::SignData sign{};
             census::TorsionData torsion;
+            census::LPolynomial lfun;
             if (model.status == "partial") {
                 local = census::local_models(model);
                 sign = census::functional_equation_sign(local, model.q);
                 torsion = census::complete_torsion(model, local);
+                lfun = counter.compute(model, local, sign);
             }
             std::cout << model.q << ',' << model.key << ',' << model.kind << ','
                       << model.minimality << ',' << model.status << ",\""
@@ -122,7 +155,13 @@ void invariants() {
                     if (i) std::cout << ' ';
                     std::cout << torsion.orders[i];
                 }
-            } else std::cout << ",,,,,,,,,";
+                std::cout << ',';
+                write_list(lfun.coefficients, 1, 1+sign.degree/2);
+                std::cout << ',';
+                write_list(lfun.coefficients, 0, lfun.coefficients.size());
+                std::cout << ',';
+                write_list(lfun.trace_sums, 0, lfun.trace_sums.size());
+            } else std::cout << ",,,,,,,,,,,,";
             std::cout << '\n';
         } catch (const std::exception& error) {
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());
@@ -194,13 +233,18 @@ int main(int argc, char* argv[]) {
         }
     }
     if (argc >= 2 && std::string_view(argv[1]) == "invariants") {
-        if (argc != 2 && !(argc == 4 && std::string_view(argv[2]) == "--chart"
-                          && std::string_view(argv[3]) == census::model_chart)) {
-            std::cerr << "invariants requires chart 'a_i(t,1)'\n";
-            return 2;
-        }
         try {
-            invariants();
+            std::string_view backend = "auto";
+            bool coefficients = false;
+            for (int i = 2; i < argc; ++i) {
+                const std::string_view option(argv[i]);
+                if (option == "--coefficients") coefficients = true;
+                else if (option == "--backend" && i+1 < argc) backend = argv[++i];
+                else if (option == "--chart" && i+1 < argc
+                         && std::string_view(argv[i+1]) == census::model_chart) ++i;
+                else throw std::invalid_argument("invariants requires chart 'a_i(t,1)' and valid options");
+            }
+            invariants(backend, coefficients);
             return 0;
         } catch (const std::exception& error) {
             std::cerr << error.what() << '\n';

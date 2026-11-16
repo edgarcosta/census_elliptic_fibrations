@@ -37,8 +37,8 @@ To change charts, reverse a list padded to its homogeneous degree plus one.
 The five degrees are `2,4,6,8,12`. The two charts satisfy
 `a_i(1,u) = u^(2i)*a_i(1/u,1)`.
 
-Supported rows also contain [local records and signs](native-local.md#native-local-data-and-sign)
-and [complete torsion](native-torsion.md#native-torsion).
+Supported rows also contain [local records and signs](native-local.md#native-local-data-and-sign),
+[signed L-polynomials](native-lfun.md#native-command) and [complete torsion](native-torsion.md#native-torsion).
 Their status remains `partial` while the remaining invariants are pending.
 Unsupported rows have empty arithmetic columns. The stage 1 Magma reference
 format is described below; connecting it to the native writer is a separate step.
