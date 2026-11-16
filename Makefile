@@ -60,6 +60,12 @@ artifacts/native/candidates-exact: tests/native/candidates_exact.cpp native/inva
 	@mkdir -p $(@D)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/candidates_exact.cpp native/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)
 
-check-native-invariants: $(NATIVE_CHECKS)
+artifacts/native/f2-orbit-match: tests/native/f2_orbit_match.c
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) -O2 -Wall -Wextra -Wpedantic $(LDFLAGS) -o $@ $<
 
-.PHONY: check-native-invariants
+check-native-invariants-f2: check/native_full_f2.m
+
+check-native-invariants: $(NATIVE_CHECKS) check-native-invariants-f2
+
+.PHONY: check-native-invariants check-native-invariants-f2

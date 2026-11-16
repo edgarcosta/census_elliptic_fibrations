@@ -90,7 +90,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          lfs: ${{ matrix.target == 'tests/native_tables_magma.m' }}
+          lfs: ${{ matrix.target == 'tests/native_tables_magma.m' || matrix.target == 'tests/native_full_f2.m' }}
 
       - name: Cache magma
         uses: actions/cache@v3
@@ -132,3 +132,14 @@ jobs:
           export MAGMA_TEMP_DIR="$PWD/artifacts/test-tmp"
           "$MAGMA" -bn filename:=${{matrix.target}} run_tests.m
 
+      - name: Save full F_2 comparison evidence
+        if: always() && matrix.target == 'tests/native_full_f2.m'
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-full-f2
+          path: |
+            artifacts/full-f2/summary.json
+            artifacts/full-f2/unmatched-*.csv
+            artifacts/full-f2/disagreements.csv
+            artifacts/full-f2/matches.csv
+            artifacts/full-f2/*.log

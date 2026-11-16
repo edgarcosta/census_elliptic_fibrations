@@ -1,0 +1,14 @@
+{
+  "package_base": "c1560f21e5e8525498d4121813c926e141ef3ab1",
+  "archive_source": "https://github.com/Census-of-elliptic-fibrations/Census-of-elliptic-and-quasi-elliptic-K3-surfaces-over-F2",
+  "source_commit": "9d1b3b85b702811da14d0e53a3d768356e998f27",
+  "archive_sha256": "a896fc522244519440cf0242374d02bcecbf114e0978becf6442ab927e5f221c",
+  "csv_sha256": "e59fe1be4fa21b04ee6c64369884c2ceca3ae717c8f0484c81b878ac1ff2d629",
+  "published_rows": 1249569,
+  "native_rows": 1397598,
+  "population_encoding": "sorted smooth everywhere minimal keys, uint32 little endian, no header",
+  "population_sha256": "b9e9e716af49399c595ee318a63a14996e1db03f138b7af85526d8c7ec960065",
+  "expected_unmatched_native": 148029,
+  "orbit_match_source": "verify-f2run/scripts/orbit_match.c",
+  "orbit_match_source_sha256": "1505d36a6ae27affba49fc79935e174a2fc8a767b3babc2c071640616f05a77b"
+}
