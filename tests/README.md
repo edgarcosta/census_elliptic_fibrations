@@ -43,4 +43,5 @@ Underscore-prefixed files provide shared helpers. See the
 - `native_torsion_magma.m`: complete bounded torsion groups, point orders, rank zero and infinity against Magma.
 - `native_torsion.m`: native torsion points, orders, and invariant factors against the same Magma sample on both charts.
 - `native_derived.m`: exact native K3 fields and identities against Magma, including constant-field integer controls.
+- `native_candidates.m`: complete native Sha and regulator lists against Magma, with singleton-only values and exact supplied-data controls.
 - `native_tables_magma.m`: exact ordinary tables in both characteristics through degree 12, direct small-field counts and stable hashes.

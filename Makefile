@@ -55,3 +55,7 @@ check-no-dups:
 artifacts/native/derived-exact: tests/native/derived_exact.cpp native/invariants.cpp $(NATIVE_HEADERS)
 	@mkdir -p $(@D)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/derived_exact.cpp native/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)
+
+artifacts/native/candidates-exact: tests/native/candidates_exact.cpp native/invariants.cpp $(NATIVE_HEADERS)
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/candidates_exact.cpp native/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)

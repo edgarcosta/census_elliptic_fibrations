@@ -119,3 +119,41 @@ These sources are provenance, not runtime dependencies.
 | `hard/code/analyze.py` | `5b10dd729a1134696557a4249158f1763dc12c525c2b2dcd8410f5a697800243` |
 | `hard/code/lattice.py` | `19c2093361887e45419b6f4ff55acca4268dc7e4291dce8c235c17a0cc1b619e` |
 | `sha-reg-split/analyze.py`, minimum-height filter | `76ff3bac68625483b7d14961fa1352022165a9e42398fa79f63148195bc102d4` |
+
+## Native command
+
+`census-native invariants` applies these constraints to its in-memory derived
+values and local fibres. Its diagnostic CSV includes these columns:
+
+| Column | Value |
+| --- | --- |
+| `admissible_sha` | Sorted distinct positive square Sha orders |
+| `admissible_regulators` | Corresponding exact rational regulators |
+| `split_method` | `constraints` for a singleton, otherwise `unresolved` |
+| `regulator`, `sha` | Proved individual values for a singleton |
+| `brauer_order` | Sha order for a singleton |
+| `ns_discriminant` | Absolute base-field NS discriminant, N/Sha, for a singleton |
+
+Lists use spaces; a known empty list is `[]`. Individual values stay blank
+when the split is unresolved. Unsupported cells have blank candidate fields.
+Rationals are reduced, with integral values written as integers. No geometric
+NS discriminant is inferred. The command uses no Magma subprocess, d2 or
+generator search.
+
+`admissible_candidates(data, fibres)` in `native/invariants.hpp` accepts complete
+derived values and local fibres for the same elliptic K3. It returns aligned
+Sha and regulator vectors; correct supplied arithmetic remains a precondition.
+FLINT factors the Artin-Tate product. Square-divisor enumeration, correction
+sums, lattice parity and Hermite comparisons use arbitrary-precision integers
+and rationals. The port follows `magma/candidates.m`, SHA-256
+`677d5affd1578f3db664d7bd36b3b6bdb3dc262d1c7b7320ae0948d91d9d517c`.
+
+Run `make check/native_candidates.m` for the native comparison. The eight
+fixed equations above are shared with the Magma test and checked on both
+charts through the public command. The existing Magma assertions also export
+supplied-data controls for the same native engine, covering every correction
+family, ranks through 20 and large square orders. These controls include
+the GF(729) regression and all 21 orders 9^i for 0 <= i <= 20.
+Constant extensions and these large supplied integers have no prime-field
+census key. The named test is discovered by `run_tests.m`, `make check` and
+the CI matrix, with the existing 30-minute job limit.

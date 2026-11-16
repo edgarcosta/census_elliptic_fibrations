@@ -2,12 +2,15 @@
 #include "weierstrass.hpp"
 
 #include <NTL/lzz_pX.h>
+#include <flint/fmpz.h>
 #include <flint/fmpz_poly.h>
+#include <flint/fmpz_factor.h>
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include <algorithm>
 #include <numeric>
 #include <ostream>
+#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -441,6 +444,126 @@ void write_derived_invariants(std::ostream& output, const DerivedInvariants& r) 
            << ',' << r.j_degree << ',' << r.j_inseparability_exponent << ','
            << (r.j_degree == 0 ? "true" : "false") << ',' << numerator(r.sha_reg);
     if (denominator(r.sha_reg) != 1) output << '/' << denominator(r.sha_reg);
+}
+
+namespace {
+std::vector<Z> square_divisors(const Z& value) {
+    fmpz_t n;
+    fmpz_init(n);
+    fmpz_set_str(n, value.str().c_str(), 10);
+    fmpz_factor_t factors;
+    fmpz_factor_init(factors);
+    fmpz_factor(factors, n);
+    std::vector<Z> squares{1};
+    for (slong i = 0; i < factors->num; ++i) {
+        char* text = fmpz_get_str(nullptr, 10, factors->p+i);
+        const Z prime(text);
+        flint_free(text);
+        const std::size_t count = squares.size();
+        Z power = 1;
+        for (ulong j = 1; j <= factors->exp[i]/2; ++j) {
+            power *= prime*prime;
+            for (std::size_t k = 0; k < count; ++k) squares.push_back(squares[k]*power);
+        }
+    }
+    fmpz_factor_clear(factors);
+    fmpz_clear(n);
+    std::sort(squares.begin(), squares.end());
+    return squares;
+}
+
+std::set<Q> rational_corrections(const LocalFibre& f) {
+    std::set<Q> values{0};
+    if (f.type == "I") {
+        if (f.tamagawa == f.index) {
+            for (int i = 0; i < f.index; ++i) values.insert(fraction(i*(f.index-i), f.index));
+        } else if (f.index % 2 == 0) values.insert(fraction(f.index, 4));
+    } else if (f.type == "I*") {
+        if (f.tamagawa == 2 || f.tamagawa == 4) values.insert(1);
+        if (f.tamagawa == 4) values.insert(1+fraction(f.index, 4));
+    } else if (f.type == "III") values.insert(fraction(1, 2));
+    else if (f.type == "III*") values.insert(fraction(3, 2));
+    else if (f.type == "IV" && f.tamagawa == 3) values.insert(fraction(2, 3));
+    else if (f.type == "IV*" && f.tamagawa == 3) values.insert(fraction(4, 3));
+    std::set<Q> weighted;
+    for (const auto& c : values) weighted.insert(f.degree*c);
+    return weighted;
+}
+
+Z rational_floor(const Q& value) {
+    const Z n = numerator(value), d = denominator(value);
+    Z result = n/d;
+    if (n < 0 && n % d != 0) --result;
+    return result;
+}
+
+Q rational_power(const Q& value, int exponent) {
+    return Q(integer_power(numerator(value), exponent))/integer_power(denominator(value), exponent);
+}
+}
+
+CandidateInvariants admissible_candidates(const DerivedInvariants& data,
+    const std::vector<LocalFibre>& fibres) {
+    if (data.rank < 0 || data.rank > 20 || data.picard_number < 2 || data.picard_number > 22
+        || data.artin_tate_product <= 0 || data.sha_reg <= 0) {
+        throw std::invalid_argument("candidates require K3 ranks and positive exact products");
+    }
+    std::set<Q> corrections{0};
+    if (data.rank > 0) {
+        for (const auto& f : fibres) {
+            std::set<Q> sums;
+            const auto local = rational_corrections(f);
+            for (const auto& a : corrections) for (const auto& b : local) sums.insert(a+b);
+            corrections = std::move(sums);
+        }
+    }
+    Q lower_bound = 0;
+    if (data.rank > 1) {
+        Q minimum = 4;
+        for (const auto& c : corrections) {
+            const Z intersections = std::max(Z(0), Z(rational_floor((c-4)/2)+1));
+            minimum = std::min(minimum, Q(4+2*intersections-c));
+        }
+        const Q gamma_powers[] = {1, fraction(4, 3), 2, 4, 8};
+        const Q gamma = data.rank <= 5 ? gamma_powers[data.rank-1]
+            : rational_power(fraction(4, 3), data.rank*(data.rank-1)/2);
+        lower_bound = rational_power(minimum, data.rank)/gamma;
+    }
+    CandidateInvariants result;
+    for (const auto& s : square_divisors(data.artin_tate_product)) {
+        const Z discriminant = data.artin_tate_product/s;
+        const bool parity = data.picard_number % 2 ? discriminant % 2 == 0
+            : discriminant % 4 == 0 || discriminant % 4 == (data.picard_number % 4 == 0 ? 3 : 1);
+        if (!parity) continue;
+        const Q regulator = data.sha_reg/s;
+        if (data.rank == 0) {
+            if (regulator != 1) continue;
+        } else if (data.rank == 1) {
+            const bool height = std::any_of(corrections.begin(), corrections.end(), [&](const Q& c) {
+                const Q intersections = (regulator+c-4)/2;
+                return intersections >= 0 && denominator(intersections) == 1;
+            });
+            if (!height) continue;
+        } else if (regulator < lower_bound) continue;
+        result.sha.push_back(s);
+        result.regulators.push_back(regulator);
+    }
+    return result;
+}
+
+void write_candidate_invariants(std::ostream& output, const DerivedInvariants& data,
+    const CandidateInvariants& candidates) {
+    const auto list = [&output](const auto& values) {
+        if (values.empty()) output << "[]";
+        for (std::size_t i = 0; i < values.size(); ++i) output << (i ? " " : "") << values[i];
+    };
+    list(candidates.sha);
+    output << ',';
+    list(candidates.regulators);
+    if (candidates.sha.size() == 1) {
+        output << ",constraints," << candidates.regulators[0] << ',' << candidates.sha[0]
+               << ',' << candidates.sha[0] << ',' << data.artin_tate_product/candidates.sha[0];
+    } else output << ",unresolved,,,,";
 }
 
 }

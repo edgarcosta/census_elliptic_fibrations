@@ -139,6 +139,10 @@ Booleans are `true` or `false`. Supported rows retain `partial` status;
 unsupported cells have blank derived fields. Invalid keys stop the command
 with its existing line-numbered diagnostic.
 
+The [candidate columns](native-candidates.md#native-command) preserve every
+admissible Sha order and matching regulator. Individual values are emitted
+only when the necessary constraints prove a singleton.
+
 `derived_invariants` in `native/invariants.hpp` implements the same formulas.
 Its optional `constant_degree` is 1 by default. With a larger value, the
 caller supplies the complete L-polynomial, component cycles, Tamagawa numbers

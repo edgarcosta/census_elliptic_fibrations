@@ -29,4 +29,16 @@ DerivedInvariants derived_invariants(const Model& model, const LocalModels& loca
 
 void write_derived_invariants(std::ostream& output, const DerivedInvariants& result);
 
+struct CandidateInvariants {
+    std::vector<boost::multiprecision::cpp_int> sha;
+    std::vector<boost::multiprecision::cpp_rational> regulators;
+};
+
+// Supplied derived values and fibres describe the same elliptic K3 surface.
+CandidateInvariants admissible_candidates(const DerivedInvariants& data,
+    const std::vector<LocalFibre>& fibres);
+
+void write_candidate_invariants(std::ostream& output, const DerivedInvariants& data,
+    const CandidateInvariants& candidates);
+
 }

@@ -24,7 +24,7 @@ void print_help(std::ostream& output) {
               "  --coefficients            Read q a1 a2 a3 a4 a6 as base-q codes\n"
               "  --chart 'a_i(t,1)'        Input chart for invariants (default a_i(t,1))\n\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels, local fibres, signed L, torsion and derived invariants.\n"
+              "Output: CSV with both charts, cell labels, local fibres, signed L, torsion, derived invariants and candidates.\n"
               "Coefficient input uses a2=0 over F_2 and a1=a3=0 over F_3.\n"
               "The key and sign are derived from the equation; no sign is supplied.\n"
               "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
@@ -88,7 +88,8 @@ void invariants(std::string_view backend, bool coefficients) {
                  "torsion,torsion_points,torsion_orders,lower_L,L_polynomial,trace_sums,"
                  "rank,geometric_rank,picard_number,geometric_picard_number,"
                  "P2,zeta_sign,point_counts,brauer_height,artin_tate_product,ns_splitting_degree,"
-                 "j_degree,j_inseparability_exponent,is_isotrivial,sha_reg\n";
+                 "j_degree,j_inseparability_exponent,is_isotrivial,sha_reg,"
+                 "admissible_sha,admissible_regulators,split_method,regulator,sha,brauer_order,ns_discriminant\n";
     std::string line;
     std::size_t line_number = 0;
     while (std::getline(std::cin, line)) {
@@ -125,12 +126,14 @@ void invariants(std::string_view backend, bool coefficients) {
             census::TorsionData torsion;
             census::LPolynomial lfun;
             census::DerivedInvariants derived;
+            census::CandidateInvariants candidates;
             if (model.status == "partial") {
                 local = census::local_models(model);
                 sign = census::functional_equation_sign(local, model.q);
                 torsion = census::complete_torsion(model, local);
                 lfun = counter.compute(model, local, sign);
                 derived = census::derived_invariants(model, local, torsion, lfun);
+                candidates = census::admissible_candidates(derived, local.fibres);
             }
             std::cout << model.q << ',' << model.key << ',' << model.kind << ','
                       << model.minimality << ',' << model.status << ",\""
@@ -168,7 +171,9 @@ void invariants(std::string_view backend, bool coefficients) {
                 write_list(lfun.trace_sums, 0, lfun.trace_sums.size());
                 std::cout << ',';
                 census::write_derived_invariants(std::cout, derived);
-            } else std::cout << std::string(26, ',');
+                std::cout << ',';
+                census::write_candidate_invariants(std::cout, derived, candidates);
+            } else std::cout << std::string(33, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());
