@@ -1,3 +1,4 @@
 *.sig
 *.lck
 artifacts/
+AGENTS.local.md
