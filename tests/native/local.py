@@ -48,6 +48,17 @@ def test_magma_comparison(reference):
     with open(reference, newline="") as source:
         expected = list(csv.DictReader(source))
     assert expected
+    for p in ("2", "3"):
+        sample = [r for r in expected if r["q"] == p]
+        keys = {r["key"] for r in sample}
+        assert len(keys) >= 100, (p, "distinct keys", len(keys))
+        reductions = [f for r in sample for field in ("fibres", "twist_fibres")
+                      for f in fibres(r[field])]
+        families = {f[2] for f in reductions}
+        assert families == {
+            "I", "I*", "II", "III", "IV", "IV*", "III*", "II*",
+        }, (p, families)
+        assert any(f[2] == "I*" and f[3] > 0 for f in reductions), p
     text = "".join(f"{r['q']} {r['key']}\n" for r in expected)
     # A runtime Magma fallback must fail even when the test host has Magma.
     with tempfile.TemporaryDirectory(dir=ROOT / "artifacts") as directory:

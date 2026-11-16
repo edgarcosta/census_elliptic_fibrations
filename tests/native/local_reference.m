@@ -34,15 +34,20 @@ procedure write_local_reference(path)
         keys := p eq 2 select [4884480, 11821184] else [372699133912, 320009441124];
         fixed cat:= [aInvariantsFromKey(R, key) : key in keys];
         models := fixed;
+        // Full periods modulo 2^32 and 3^27 require multiplier 1 mod 12
+        // and an increment coprime to 6.
         key := 17;
+        sampled_keys := {Integers() |};
         for i in [1..100] do
-            key := (1103515245*key+12345) mod p^(p eq 2 select 32 else 27);
+            key := (1103515249*key+12347) mod p^(p eq 2 select 32 else 27);
+            Include(~sampled_keys, key);
             W := aInvariantsFromKey(R, key);
             kind, minimality := FibrationProperties(W);
             if kind eq "smooth" and minimality eq "everywhere minimal" then
                 Append(~models, W);
             end if;
         end for;
+        assert #sampled_keys eq 100;
         for W in models do
             E := EllipticCurve([F | Evaluate(a, [t, F!1]) : a in W]);
             original := FibrationLocalData(E);

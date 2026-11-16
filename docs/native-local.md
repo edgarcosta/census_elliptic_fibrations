@@ -102,12 +102,14 @@ Local failures report the input line and place and exit with nonzero status.
 
 Run `make check/native_local.m` for comparisons through `census-native invariants`.
 The test generates 422 Magma reference rows from fixed equations and keys,
-including reciprocal charts and a fixed integer recurrence.
+including reciprocal charts and 100 distinct recurrence keys per characteristic.
 It compares every local and twist field, component cycles, conductor degree,
 height, Tamagawa exponent and sign. The eleven fixed equations also compare
 with the signed package L-polynomial computation.
-The same sample covers every Kodaira family, split and nonsplit fibres,
-nonrational closed places, wild terms, both signs, and twist heights 1, 2 and 4.
+Each characteristic must have at least 100 distinct keys and every Kodaira
+family among the original and twist fibres, including `I_n*` with n > 0.
+The sample also covers split and nonsplit fibres, nonrational closed places,
+wild terms, both signs, and twist heights 1, 2 and 4.
 The test checks Ogg identities and both discriminant sums, and runs the native
 command with a failing Magma executable on its search path.
 The existing runner, Makefile and CI matrix discover the named test.
@@ -121,5 +123,3 @@ No census dataset is added; reference rows are generated during testing.
 | `lfun-csign/tate.cpp` | `a2bd160ae5b1b5c8847a50361bedbfc8f55adc7c5cd8ae73bec304bebc3c8161` |
 | `lfun-csign/tate.hpp` | `b556141722ecf04a5003011eb06ac1bc601ab983bb9fce8e1b235172dc8f527a` |
 | `census-invariants/derive.cpp` | `cff4e2da73d90f81cd0bc720ff511c2f6e929cf8b6bc9f0b14b2b44ed16550b5` |
-| `magma/local.m` | `cb6a37e465cc6a27fc3392afea996fb78546daa206d4a14927bbffe579e0dad2` |
-| `magma/lfun.m` | `c8eec2a97579db8502aabd2d131086ec0c1a3ecc609a56f762e34408099cf7cd` |
