@@ -56,7 +56,7 @@ required.
 The Magma reference codec constructs and encodes the lean inputs to the native
 invariants writer. Attach `spec` from the repository root to use these intrinsics:
 
-```c++
+```text
 row := FibrationInvariantRow(key, W);
 header := FibrationInvariantCSV();
 text := FibrationInvariantCSV(row);
@@ -64,7 +64,7 @@ copy := FibrationInvariantRow(text);
 ```
 
 `W` is a homogeneous five-coefficient census model over GF(2) or GF(3).
-The caller supplies the full coefficient key exported by the census package.
+The caller supplies the full coefficient key `FibrationKey(W)`.
 The constructor classifies
 `W` with `FibrationProperties`. For a smooth, everywhere minimal model it uses
 `FibrationLPolynomial`, `FibrationLocalData`, `FibrationTorsion`,
@@ -174,6 +174,6 @@ newlines, exact integers beyond 2^53, rational reduction, and unknown and empty
 lists. It covers all six cells in both characteristics, nontrivial torsion,
 rank-zero singletons, and complete ambiguous Sha lists. Fixed curves also compare
 reconstructed L with Magma's independent `LFunction`. The test is discovered by `run_tests.m`,
-`make check` and the existing CI matrix, whose jobs have a 30-minute limit.
+`make check` and the CI matrix, whose jobs have a 30-minute limit.
 Test inputs are source-level equations and arithmetic controls, not census data
-files. No dataset or LFS object is added by this codec.
+files.

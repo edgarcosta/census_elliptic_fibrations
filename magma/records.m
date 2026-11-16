@@ -244,6 +244,7 @@ intrinsic FibrationInvariantRow(key::RngIntElt, W::SeqEnum) -> Rec
 Only smooth everywhere minimal models receive K3 arithmetic.
 See also FibrationProperties, FibrationCandidates}
     require valid_model(W): "W must have five homogeneous coefficients of degrees 2,4,6,8,12 over one supported ring";
+    require key eq FibrationKey(W): "key must equal FibrationKey(W)";
     kind, minimality := FibrationProperties(W);
     q := #BaseRing(Universe(W));
     row := FibrationInvariantRow(key, q, kind, minimality);

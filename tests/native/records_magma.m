@@ -121,6 +121,11 @@ end procedure;
 
 // Invalid wire values and unsupported versions must not acquire exact meanings.
 procedure test_record_rejections()
+    R<s, u> := PolynomialRing(GF(2), 2);
+    W := [R | s^2, 0, u^6, 0, 0];
+    key := FibrationKey(W)+1;
+    expect_error(procedure() row := FibrationInvariantRow(key, W); end procedure,
+        "key must equal FibrationKey(W)");
     row := FibrationInvariantRow(0, 3, "smooth", "everywhere minimal");
     row`RefinementStatus := "exact";
     expect_error(procedure() text := FibrationInvariantCSV(row); end procedure,
