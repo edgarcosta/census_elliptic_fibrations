@@ -52,12 +52,16 @@ procedure write_model_reference(path)
             assert not IsEverywhereMinimal(W);
             Append(~models, W);
         end for;
-        // A fixed integer recurrence generates the coefficient samples.
+        // Full periods modulo 2^32 and 3^27 require multiplier 1 mod 12
+        // and an increment coprime to 6.
         key := 17;
+        sampled_keys := {Integers() |};
         for i in [1..100] do
-            key := (1103515245*key+12345) mod p^width;
+            key := (1103515249*key+12347) mod p^width;
+            Include(~sampled_keys, key);
             Append(~models, aInvariantsFromKey(R, key));
         end for;
+        assert #sampled_keys eq 100;
         for W in models do
             kind, minimality := FibrationProperties(W);
             row := [IntegerToString(p), IntegerToString(FibrationKey(W)), kind, minimality]
