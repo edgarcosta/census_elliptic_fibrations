@@ -52,7 +52,7 @@ procedure write_model_reference(path)
             assert not IsEverywhereMinimal(W);
             Append(~models, W);
         end for;
-        // A fixed integer recurrence samples coefficients without an external dataset.
+        // A fixed integer recurrence generates the coefficient samples.
         key := 17;
         for i in [1..100] do
             key := (1103515245*key+12345) mod p^width;
