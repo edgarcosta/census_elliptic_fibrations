@@ -14,8 +14,8 @@ def test_native_test_dependencies():
         shutil.copyfile(ROOT / "Makefile", root / "Makefile")
         (root / "native").mkdir()
         (root / "native/main.cpp").touch()
-        (root / "Tests").mkdir()
-        (root / "Tests/native_probe.m").touch()
+        (root / "tests").mkdir()
+        (root / "tests/native_probe.m").touch()
         for target in ("check/native_probe.m", "debug/native_probe.m"):
             result = subprocess.run(
                 ["make", "--dry-run", target],
@@ -25,7 +25,7 @@ def test_native_test_dependencies():
             commands = result.stdout
             build = "-o artifacts/native/census-native"
             assert commands.count(build) == 1, commands
-            invocation = "filename:=Tests/native_probe.m"
+            invocation = "filename:=tests/native_probe.m"
             assert commands.index(build) < commands.index(invocation), commands
 
 
