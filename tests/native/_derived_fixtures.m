@@ -12,8 +12,8 @@ function gf4_fixture()
     E := EllipticCurve([F | 0, 0, 1, t^7, 0]);
     P<T> := PolynomialRing(Rationals());
     L := P!LFunction(E);
-    M := CompanionMatrix(P!Reverse(Coefficients(L)));
-    extended := Determinant(ScalarMatrix(Nrows(M), P!1)-T*ChangeRing(M^2, P));
+    extended := ReciprocalPolynomial(WeilPolynomialOverFieldExtension(
+        ReciprocalPolynomial(L), 2));
     F<t> := FunctionField(GF(4));
     E := EllipticCurve([F | 0, 0, 1, t^7, 0]);
     R := recformat<ComponentCycles, Tamagawa>;

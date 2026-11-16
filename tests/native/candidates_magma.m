@@ -123,8 +123,8 @@ procedure test_constant_extension_candidates()
     E := EllipticCurve([F | 0, 0, 0, 1, t^7]);
     P<T> := PolynomialRing(Rationals());
     L := P!LFunction(E);
-    M := CompanionMatrix(P!Reverse(Coefficients(L)));
-    extended := Determinant(ScalarMatrix(Nrows(M), P!1)-T*ChangeRing(M^6, P));
+    extended := ReciprocalPolynomial(WeilPolynomialOverFieldExtension(
+        ReciprocalPolynomial(L), 6));
     assert extended eq (1-729*T)^12;
     fibres := FibrationLocalData(E);
     assert #fibres eq 1;
