@@ -1,5 +1,6 @@
 SetQuitOnError(true);
 AttachSpec("spec");
+import "tests/_native_torsion_samples.m": torsion_samples;
 
 function code(f, p)
     return &+[Integers() | (Integers()!Coefficient(f, i))*p^i
@@ -17,18 +18,8 @@ for p in [2, 3] do
     F<t> := FunctionField(GF(p));
     R<s, u> := PolynomialRing(GF(p), 2);
     weights := [2, 4, 6, 8, 12];
-    equations := p eq 2 select [
-        [F | 0, 0, 1, t^6, 0], [F | 0, 0, 1, t^7, 0],
-        [F | t, 0, t^6+1, 0, 0], [F | t^2, 0, 1, t^8, t^6],
-        [F | 1, 0, t^6, 1, t^6], [F | t^2, 0, 1, 0, 0]] else [
-        [F | 0, 0, 0, t^8, t+1], [F | 0, t^3+t, 0, t^8+1, 0],
-        [F | 0, t^4, 0, 0, 2], [F | 0, t^4+1, 0, t^4, 0],
-        [F | 1, t^4, t, t^4+t, -t^2]];
-    key := p eq 2 select 1346994688 else 75547326549;
-    Append(~equations, [F | Evaluate(a, [t, F!1])
-        : a in aInvariantsFromKey(R, key)]);
-    for equation in equations do
-        a := equation;
+    for sample in torsion_samples(F) do
+        a := sample[1];
         // Keys omit a1 and a3 in characteristic 3, so normalize this chart first.
         if p eq 3 then
             a := [F | 0, a[2]+a[1]^2/4, 0, a[4]+a[1]*a[3]/2, a[5]+a[3]^2/4];

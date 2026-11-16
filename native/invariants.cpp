@@ -1,4 +1,5 @@
 #include "invariants.hpp"
+#include "weierstrass.hpp"
 
 #include <NTL/lzz_pX.h>
 #include <boost/multiprecision/cpp_int.hpp>
@@ -15,24 +16,10 @@ using Q = boost::multiprecision::cpp_rational;
 
 Q fraction(int n, int d) { return Q(n)/d; }
 
-P polynomial(const std::vector<int>& coefficients) {
-    P f;
-    for (std::size_t i = 0; i < coefficients.size(); ++i) {
-        NTL::SetCoeff(f, i, coefficients[i]);
-    }
-    return f;
-}
-
 P decode(std::uint64_t n, unsigned q) {
     P f;
     for (int i = 0; n; ++i, n /= q) NTL::SetCoeff(f, i, n % q);
     return f;
-}
-
-std::string encode(const P& f, unsigned q) {
-    boost::multiprecision::cpp_int n = 0;
-    for (long i = NTL::deg(f); i >= 0; --i) n = n*q + NTL::rep(NTL::coeff(f, i));
-    return n.str();
 }
 
 struct Rational {
@@ -69,13 +56,7 @@ bool operator==(const Point& a, const Point& b) {
     return a.x == b.x && a.y == b.y;
 }
 
-constexpr int infinite_valuation = 1000000;
-int valuation(P f, const P& pi) {
-    if (NTL::IsZero(f)) return infinite_valuation;
-    int value = 0;
-    while (NTL::IsZero(f % pi)) { f /= pi; ++value; }
-    return value;
-}
+using census::valuation;
 
 int valuation(const Rational& f, const P& pi) {
     return NTL::IsZero(f.n) ? infinite_valuation : valuation(f.n, pi)-valuation(f.d, pi);
@@ -90,18 +71,13 @@ Rational reciprocal(const Rational& f, int weight) {
     return {n, d};
 }
 
-struct HeightChart {
+struct HeightChart : WeierstrassInvariants {
     std::array<Rational, 5> a;
-    Rational b2, b4, b6, b8, c4;
+    P c4;
 
-    explicit HeightChart(const std::array<std::vector<int>, 5>& coefficients) {
-        for (int i = 0; i < 5; ++i) a[i] = Rational(polynomial(coefficients[i]));
-        const auto& [a1, a2, a3, a4, a6] = a;
-        b2 = a1*a1+Rational(4)*a2;
-        b4 = a1*a3+Rational(2)*a4;
-        b6 = a3*a3+Rational(4)*a6;
-        b8 = a1*a1*a6+Rational(4)*a2*a6-a1*a3*a4+a2*a3*a3-a4*a4;
-        c4 = b2*b2-Rational(24)*b4;
+    explicit HeightChart(const Coefficients& coefficients)
+        : WeierstrassInvariants(coefficients), c4(b2*b2-24*b4) {
+        for (int i = 0; i < 5; ++i) a[i] = Rational(coefficients[i]);
     }
 
     Q correction(const Rational& x, const Rational& y, const P& pi, int vd) const {
@@ -124,7 +100,7 @@ struct Curve {
     std::vector<Place> places;
 
     Curve(const Model& model, const LocalModels& local)
-        : affine(model.affine), infinity(model.infinity) {
+        : affine(polynomials(model.affine)), infinity(polynomials(model.infinity)) {
         for (const auto& row : local.fibres) {
             const bool inf = row.place == "inf";
             places.push_back({inf ? polynomial({0, 1}) : decode(std::stoull(row.place), model.q),
@@ -276,8 +252,8 @@ TorsionData complete_torsion(const Model& model, const LocalModels& local) {
         exponent = std::lcm(exponent, order);
         if (exponent > int(points.size())) throw std::runtime_error("torsion exponent exceeds group order");
         result.orders.push_back(order);
-        result.points.push_back(p.identity ? "O" : encode(p.x.n, model.q)+":"+encode(p.x.d, model.q)
-            +":"+encode(p.y.n, model.q)+":"+encode(p.y.d, model.q));
+        result.points.push_back(p.identity ? "O" : polynomial_code(p.x.n, model.q)+":"+polynomial_code(p.x.d, model.q)
+            +":"+polynomial_code(p.y.n, model.q)+":"+polynomial_code(p.y.d, model.q));
     }
     const int first = points.size()/exponent;
     if (points.size() % exponent || exponent % first) throw std::runtime_error("invalid torsion invariant factors");

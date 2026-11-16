@@ -1,6 +1,7 @@
 SetQuitOnError(true);
 AttachSpec("spec");
 import "tests/_support.m": expect_error;
+import "tests/_native_torsion_samples.m": torsion_samples;
 
 // Exact equality with Magma pins completeness, orders, and the group law.
 procedure check_torsion(E, expected)
@@ -26,48 +27,38 @@ end procedure;
 
 // Both characteristics include trivial, cyclic, and characteristic-primary torsion.
 procedure test_fixed_torsion_groups()
-    F<t> := FunctionField(GF(2));
-    check_torsion(EllipticCurve([F | 0, 0, 1, t^6, 0]), []);
-    check_torsion(EllipticCurve([F | 0, 0, 1, t^7, 0]), []);
-    check_torsion(EllipticCurve([F | t, 0, t^6+1, 0, 0]), [3]);
-    F<t> := FunctionField(GF(3));
-    check_torsion(EllipticCurve([F | 0, 0, 0, t^8, t+1]), []);
-    check_torsion(EllipticCurve([F | 0, t^3+t, 0, t^8+1, 0]), [2]);
-    check_torsion(EllipticCurve([F | 0, t^4, 0, 0, 2]), [3]);
-    E := EllipticCurve([F | 0, t^4+1, 0, t^4, 0]);
-    check_torsion(E, [2, 4]);
-    // Completing the square must preserve torsion on unnormalized equations.
-    check_torsion(EllipticCurve([F | 1, t^4, t, t^4+t, -t^2]), [2, 4]);
+    for p in [2, 3] do
+        F<t> := FunctionField(GF(p));
+        for sample in torsion_samples(F) do
+            equation, expected := Explode(sample);
+            check_torsion(EllipticCurve(equation), expected);
+        end for;
+    end for;
 end procedure;
 
 // A denominator of degree one and its reciprocal require the full bound m=1.
 procedure test_torsion_at_the_section_bound()
     F<t> := FunctionField(GF(2));
-    E := EllipticCurve([F | t^2, 0, 1, t^8, t^6]);
-    check_torsion(E, [2]);
+    samples := torsion_samples(F);
+    E := EllipticCurve(samples[4][1]);
     factors, points := FibrationTorsion(E);
     assert E![1/t^2, 1/t^3] in points;
-    E := EllipticCurve([F | 1, 0, t^6, 1, t^6]);
-    check_torsion(E, [2]);
+    E := EllipticCurve(samples[5][1]);
     factors, points := FibrationTorsion(E);
     assert E![t^6, t^9] in points;
 end procedure;
 
 // Rank zero includes both trivial torsion and nonidentity torsion points.
 procedure test_rank_zero_torsion()
-    for pair in [<2, 1346994688>, <3, 75547326549>] do
-        p, key := Explode(pair);
-        R<s, u> := PolynomialRing(GF(p), 2);
+    for p in [2, 3] do
         F<t> := FunctionField(GF(p));
-        W := aInvariantsFromKey(R, key);
-        E := EllipticCurve([F | Evaluate(a, [t, F!1]) : a in W]);
+        samples := torsion_samples(F);
+        E := EllipticCurve(samples[#samples][1]);
         assert Evaluate(LFunction(E), 1/p) ne 0;
-        check_torsion(E, []);
     end for;
     F<t> := FunctionField(GF(2));
-    E := EllipticCurve([F | t^2, 0, 1, 0, 0]);
+    E := EllipticCurve(torsion_samples(F)[6][1]);
     assert Evaluate(LFunction(E), 1/2) ne 0;
-    check_torsion(E, [6]);
 end procedure;
 
 // The K3 proof requires the supported field and an everywhere minimal chart.

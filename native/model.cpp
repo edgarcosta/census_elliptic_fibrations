@@ -1,42 +1,16 @@
 #include "model.hpp"
+#include "weierstrass.hpp"
 
 #include <NTL/lzz_pXFactoring.h>
 #include <NTL/lzz_pEX.h>
 
 #include <algorithm>
-#include <limits>
 #include <stdexcept>
 #include <utility>
 
 namespace census {
 namespace {
 using NTL::zz_pX;
-using Coefficients = std::array<zz_pX, 5>;
-
-struct WeierstrassInvariants {
-    zz_pX b2, b4, b6, b8;
-
-    explicit WeierstrassInvariants(const Coefficients& a) {
-        const auto& [a1, a2, a3, a4, a6] = a;
-        b2 = a1*a1 + 4*a2;
-        b4 = a1*a3 + 2*a4;
-        b6 = a3*a3 + 4*a6;
-        b8 = a1*a1*a6 + 4*a2*a6 - a1*a3*a4 + a2*a3*a3 - a4*a4;
-    }
-
-    zz_pX discriminant() const {
-        return -b2*b2*b8 - 8*b4*b4*b4 - 27*b6*b6 + 9*b2*b4*b6;
-    }
-};
-
-zz_pX polynomial(const std::vector<int>& coefficients) {
-    zz_pX result;
-    for (std::size_t i = 0; i < coefficients.size(); ++i) {
-        NTL::SetCoeff(result, i, coefficients[i]);
-    }
-    return result;
-}
-
 bool form_power(const zz_pX& f, int exponent) {
     for (long i = 0; i <= NTL::deg(f); ++i) {
         if (i % exponent != 0 && !NTL::IsZero(NTL::coeff(f, i))) return false;
@@ -147,16 +121,6 @@ zz_pX quotient(const zz_pX& a, const zz_pX& pi, int n = 1) {
         b = q;
     }
     return b;
-}
-
-int valuation(zz_pX a, const zz_pX& pi) {
-    if (NTL::IsZero(a)) return std::numeric_limits<int>::max();
-    int v = 0;
-    while (NTL::IsZero(a % pi)) {
-        a = quotient(a, pi);
-        ++v;
-    }
-    return v;
 }
 
 void transform(Coefficients& a, const zz_pX& r, const zz_pX& s, const zz_pX& t) {
@@ -369,12 +333,6 @@ Coefficients frobenius_twist(const Coefficients& a, unsigned p) {
     return result;
 }
 
-std::uint64_t place_code(const zz_pX& f, unsigned p) {
-    std::uint64_t n = 0;
-    for (long i = NTL::deg(f); i >= 0; --i) n = n*p + NTL::rep(NTL::coeff(f, i));
-    return n;
-}
-
 void trim(std::vector<int>& coefficients) {
     while (coefficients.size() > 1 && coefficients.back() == 0) coefficients.pop_back();
 }
@@ -400,19 +358,17 @@ Model model_from_key(unsigned q, std::uint64_t key) {
         }
     }
     model.key = 0;
-    Coefficients affine;
-    Coefficients infinity;
     for (int i = 0; i < 5; ++i) {
         model.infinity[i] = model.affine[i];
         std::reverse(model.infinity[i].begin(), model.infinity[i].end());
         if (included[i]) {
             for (int digit : model.infinity[i]) model.key = q*model.key + digit;
         }
-        affine[i] = polynomial(model.affine[i]);
-        infinity[i] = polynomial(model.infinity[i]);
         trim(model.affine[i]);
         trim(model.infinity[i]);
     }
+    const auto affine = polynomials(model.affine);
+    const auto infinity = polynomials(model.infinity);
     model.kind = fibre_kind(affine, q);
     model.minimality = everywhere_minimal(affine, infinity, q)
         ? "everywhere minimal" : "nonminimal somewhere";
@@ -427,11 +383,8 @@ LocalModels local_models(const Model& model) {
         throw std::invalid_argument("local arithmetic requires an everywhere minimal elliptic K3");
     }
     NTL::zz_pPush context(model.q);
-    Coefficients affine, infinity;
-    for (int j = 0; j < 5; ++j) {
-        affine[j] = polynomial(model.affine[j]);
-        infinity[j] = polynomial(model.infinity[j]);
-    }
+    const auto affine = polynomials(model.affine);
+    const auto infinity = polynomials(model.infinity);
     zz_pX delta = WeierstrassInvariants(affine).discriminant();
     if (NTL::IsZero(delta)) throw std::runtime_error("singular generic fibre");
     const int infinity_valuation = 24 - NTL::deg(delta);
@@ -457,7 +410,7 @@ LocalModels local_models(const Model& model) {
     };
     for (long i = 0; i < factors.length(); ++i) {
         const auto& pi = factors[i].a;
-        append(affine, twisted, pi, factors[i].b, std::to_string(place_code(pi, model.q)));
+        append(affine, twisted, pi, factors[i].b, polynomial_code(pi, model.q));
     }
     if (infinity_valuation > 0) {
         // Twist the weight-2i chart before minimization; its weights become 2ip.
