@@ -2,7 +2,7 @@ SetQuitOnError(true);
 SetNthreads(1);
 SetColumns(0);
 AttachSpec("spec");
-import "tests/_native_fixed_models.m": fixed_models;
+
 
 file := Open(keypath, "w");
 Puts(file, "key,cell,prefix");
@@ -27,11 +27,4 @@ Flush(file);
 delete file;
 assert counts eq [1397598, 4134, 680, 38, 7, 11];
 
-file := Open(referencepath, "w");
-Puts(file, FibrationInvariantCSV());
-R<s, t> := PolynomialRing(GF(3), 2);
-for W in fixed_models(R) do
-    Puts(file, FibrationInvariantCSV(FibrationInvariantRow(FibrationKey(W), W)));
-end for;
-Flush(file);
 quit;

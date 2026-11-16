@@ -90,7 +90,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          lfs: ${{ matrix.target == 'tests/native_tables_magma.m' || matrix.target == 'tests/native_full_f2.m' }}
+          lfs: ${{ !startsWith(matrix.target, 'tests/native_') }}
+
+      - name: Fetch trace-table fixtures
+        if: matrix.target == 'tests/native_tables_magma.m'
+        run: git lfs pull --include='tests/native/data/trace_tables/*.txt' --exclude=''
+
+      - name: Fetch published F_2 census
+        if: matrix.target == 'tests/native_full_f2.m'
+        run: git lfs pull --include='tests/native/data/full_f2/census.csv.zip' --exclude=''
 
       - name: Cache magma
         uses: actions/cache@v3

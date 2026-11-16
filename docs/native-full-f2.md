@@ -14,33 +14,32 @@ The other five cell counts are 4,134, 680, 38, 7 and 11.
 
 The published `census.csv.zip` contains 1,249,569 rows. It is stored through
 Git LFS, with the source repository, source commit and both archive and CSV
-hashes in `sources.json`. The key population and Magma references are
-generated during the check; no prototype directory is needed at runtime.
+hashes in `sources.json`. The key population is generated during the check.
 
 ## Coordinate changes
 
-`tests/native/f2_orbit_match.c` uses the orbit search from
-`verify-f2run/scripts/orbit_match.c`. It applies all six matrices in
+`tests/native/f2_orbit_match.c` applies all six matrices in
 GL(2, F_2), together with `x -> x + r`, `y -> y + p*x + w`, where
 `r = p^2 + a1*p`, `deg(p) = 2` and `deg(w) = 6` as homogeneous forms.
 There are 6,144 changes preserving `a2 = 0`. Every published model is
 matched against the generated representatives; raw key equality is not
 required. Matches must be one to one and land in the smooth minimal cell.
 
-The matcher takes four file arguments: representative CSV, published keys,
-match CSV and hit-count binary. The representative CSV has `key,cell,prefix`
+The matcher takes three file arguments: representative CSV, published keys
+and match CSV. The representative CSV has `key,cell,prefix`
 columns, with cell zero denoting smooth minimal models. The match CSV
 records the matrix index and the masks for p and w, as well as missing,
-multiple or wrong-cell matches. The binary contains one uint32 hit count
-per smooth minimal representative in enumeration order.
+multiple or wrong-cell matches.
 
 ## Arithmetic checks and evidence
 
-The public native command computes both compressed records and expanded
-invariants for every smooth minimal key. Batches bound the test's memory;
-they do not add release sharding. Every compressed row must be complete,
-have the requested key and agree with its expanded arithmetic. Unknown
-refinement fields and unresolved Sha lists retain their format meanings.
+The public native command computes expanded invariants once for every
+smooth minimal key. Up to four worker processes run batches of 10,000 keys,
+with each worker checking identities and comparing published values through
+a read-only SQLite connection. Results are written in key order. Every row
+must have the requested key, smooth minimal kind and complete arithmetic.
+`tests/native_records.m` checks compressed records against Magma, including
+the fixed F_3 models.
 
 Every row is checked for its functional equation, conductor degree,
 discriminant degree, Ogg relation and component cycles. Further checks
@@ -54,19 +53,23 @@ All 17 shared columns are compared on every matched row. These include
 a1 orbit class, torsion, the bad-fibre multiset, L-polynomial, sign,
 analytic rank, P2 and zeta sign. The remaining columns are rational and
 geometric Picard numbers, Brauer height, Artin-Tate product and five point
-counts. Fibre positions can move under the base transformation, so comparison
-uses degree, conductor, Tamagawa number and Kodaira symbol. Fixed F_3 models from the shared fixture are
-compared with `FibrationInvariantRow` byte for byte. Native runs use a
+counts. The a1 class matches by construction because coordinate changes
+preserve it; this column does not provide an independent arithmetic check.
+The published a1 text is also checked against its packed key. Fibre
+positions can move under the base transformation, so comparison uses degree,
+conductor, Tamagawa number and Kodaira symbol. Native runs use a
 failing Magma executable to detect a subprocess fallback.
 
 Evidence is written under `artifacts/full-f2/`. `summary.json` records
-coverage and agreement counts. `matches.csv` records every orbit search;
+coverage, agreement counts, worker count and setup and native-loop timings.
+`matches.csv` records every orbit search;
 `unmatched-published.csv` and `unmatched-native.csv` record every unmatched
 row, including an empty file with a header when appropriate.
 `disagreements.csv` records every differing field. The expected outcome is
 zero unmatched published rows and 148,029 unmatched native rows.
 
-CI discovers `tests/native_full_f2.m`, obtains the LFS input and retains
-the summary, correspondence, unmatched rows, disagreements and logs.
+CI runs one job per test file. The `tests/native_full_f2.m` job fetches only
+the census archive through LFS. It retains the summary, correspondence,
+unmatched rows, disagreements and logs.
 The job has a 30-minute limit. The complete F_3 census, Sha refinement,
 generators and release manifests are outside this check.

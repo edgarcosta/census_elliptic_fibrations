@@ -1,6 +1,6 @@
 import "tests/_support.m": shell_quote;
 
-// Checks every F_2 orbit and shared published field, with fixed F_3 controls.
+// Checks all F_2 identities and shared fields; a1 matches by construction.
 procedure test_native_full_f2()
     logpath := "artifacts/full-f2/check.log";
     assert System("mkdir -p artifacts/full-f2") eq 0;

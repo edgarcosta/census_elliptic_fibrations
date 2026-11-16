@@ -54,7 +54,6 @@ static void build_tables(void) {
 #define HSIZE (1u << HBITS)
 static uint32_t *hkey; /* key + 1, 0 = empty; keys < 2^32 - 1 */
 static uint8_t *hcell;
-static uint32_t *hidx;
 
 static uint32_t hpos(uint32_t key) {
     uint32_t h = (uint32_t)(((uint64_t)key * 0x9E3779B97F4A7C15ull) >> (64 - HBITS));
@@ -63,14 +62,13 @@ static uint32_t hpos(uint32_t key) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 5) {
+    if (argc != 4) {
         fprintf(stderr, "usage\n");
         return 2;
     }
     build_tables();
     hkey = calloc(HSIZE, sizeof(uint32_t));
     hcell = calloc(HSIZE, 1);
-    hidx = calloc(HSIZE, sizeof(uint32_t));
     static uint8_t pairset[1 << 10];
     FILE *f = fopen(argv[1], "r");
     char line[256];
@@ -86,13 +84,12 @@ int main(int argc, char **argv) {
         }
         hkey[h] = (uint32_t)key + 1;
         hcell[h] = (uint8_t)cell;
-        hidx[h] = cell == 0 ? nsm++ : 0xFFFFFFFFu;
+        if (cell == 0) nsm++;
         pairset[key >> 22] = 1;
         nall++;
     }
     fclose(f);
     fprintf(stderr, "representatives %u, smooth minimal %u\n", nall, nsm);
-    uint32_t *hits = calloc(nsm, sizeof(uint32_t));
 
     FILE *in = fopen(argv[2], "r");
     FILE *out = fopen(argv[3], "w");
@@ -139,7 +136,6 @@ int main(int argc, char **argv) {
         }
         if (nf == 1) {
             nmatched1++;
-            hits[hidx[hpos(found[0])]]++;
         } else if (nf == 0)
             nzero++;
         else
@@ -154,9 +150,6 @@ int main(int argc, char **argv) {
         fprintf(out, "\n");
     }
     fclose(out);
-    FILE *hb = fopen(argv[4], "wb");
-    fwrite(hits, sizeof(uint32_t), nsm, hb);
-    fclose(hb);
     fprintf(stderr, "rows %ld: one smooth minimal key %ld, none %ld, several %ld\n", row,
             nmatched1, nzero, nmulti);
     return 0;

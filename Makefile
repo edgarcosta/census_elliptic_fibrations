@@ -66,6 +66,6 @@ artifacts/native/f2-orbit-match: tests/native/f2_orbit_match.c
 
 check-native-invariants-f2: check/native_full_f2.m
 
-check-native-invariants: $(NATIVE_CHECKS) check-native-invariants-f2
+check-native-invariants: $(NATIVE_CHECKS)
 
 .PHONY: check-native-invariants check-native-invariants-f2

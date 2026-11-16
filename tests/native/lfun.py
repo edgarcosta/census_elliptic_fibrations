@@ -16,6 +16,17 @@ def integers(text):
     return [] if text == "[]" else list(map(int, text.split()))
 
 
+def check_identities(row):
+    context = (row["q"], row["key"])
+    q, degree, sign = int(row["q"]), int(row["degree"]), int(row["sign"])
+    assert sign in (-1, 1), context
+    coefficients = integers(row["L_polynomial"])
+    assert len(coefficients) == degree + 1 and coefficients[0] == 1, context
+    assert integers(row["lower_L"]) == coefficients[1:1 + degree // 2], context
+    for i in range(degree // 2 + 1):
+        assert coefficients[degree - i] == sign * q ** (degree - 2*i) * coefficients[i], context
+
+
 def compare(reference, output):
     actual = list(csv.DictReader(io.StringIO(output)))
     assert len(actual) == len(reference)
@@ -23,12 +34,9 @@ def compare(reference, output):
         context = (want["q"], want["key"])
         for field, value in want.items():
             assert got[field] == value, (context, field, got.get(field), value)
+        check_identities(got)
         q, degree, sign = int(got["q"]), int(got["degree"]), int(got["sign"])
         coefficients = integers(got["L_polynomial"])
-        assert len(coefficients) == degree + 1 and coefficients[0] == 1, context
-        assert integers(got["lower_L"]) == coefficients[1:1 + degree // 2], context
-        for i in range(degree // 2 + 1):
-            assert coefficients[degree - i] == sign * q ** (degree - 2*i) * coefficients[i], context
         if (q, int(got["key"])) in FORMER_OPEN:
             assert sign == FORMER_OPEN[q, int(got["key"])], context
             assert all(c == 0 for c in coefficients[degree // 2:13]), context
