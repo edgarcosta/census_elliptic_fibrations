@@ -138,17 +138,20 @@ Newton divisions and functional-equation completion use arbitrary precision
 integers, with a check on the middle coefficient when the degree is even.
 The native process invokes no Magma executable and reads no prototype files.
 
-The default `--backend auto` checks CPU support at runtime and selects AVX2
-on supported x86 hosts. `--backend scalar` selects scalar counting;
-`--backend avx2` requires AVX2 and reports an error when it is unavailable.
-AVX2 functions have their own compiler targets; the executable is built
-without a global AVX2 requirement. Vector evaluation works in both fields;
-the F_3 ordinary trace sum also uses vector gathers and exact integer residues.
+The default `--backend auto` checks CPU support at runtime and selects
+AVX-512F, then AVX2, then scalar counting. `--backend scalar` selects scalar
+counting. `--backend avx2` and `--backend avx512` require the named backend
+and report an error when it is unavailable. Each vector function has its own
+compiler target; the executable is built without global AVX2 or AVX-512 flags.
+Vector evaluation works in both fields, in eight lanes for AVX2 and sixteen
+for AVX-512. The F_3 ordinary trace sum uses vector gathers and exact integer
+residues. Both vector backends use scalar tails and fall back to individual
+fibre counts when a supersingular or bad fibre prevents an ordinary sum.
 On other architectures the executable uses scalar counting.
 
 `make census-native-scalar` builds `artifacts/native/census-native-scalar`
-with the AVX2 code excluded. It accepts the same inputs and options,
-with an unavailable-backend error for `--backend avx2`.
+with both vector backends excluded. It accepts the same inputs and options,
+with an unavailable-backend error for `--backend avx2` or `--backend avx512`.
 
 Run `make check/native_lfun.m` for the native comparison. It generates 54
 package reference records, covering the four former-open-sign keys, the
@@ -156,8 +159,8 @@ seven local controls and eight recurrence keys per field, in both charts.
 The sample includes both signs, even and odd degrees, wild conductors,
 good and bad infinity, ordinary curves and everywhere supersingular curves.
 Every full polynomial, lower coefficient and counted Euler sum equals Magma.
-The test compares automatic, scalar, available AVX2, and scalar-only builds
-on identical mixed-field inputs. Coefficient input is checked on the same
+The test compares automatic, scalar, available AVX2 and AVX-512, and
+scalar-only builds on identical mixed-field inputs. Coefficient input is checked on the same
 sample, and unsupported cells retain blank arithmetic fields.
 The existing Magma comparison supplies independent completed `LFunction`
 references for the former-open-sign and wild controls.

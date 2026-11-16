@@ -20,7 +20,7 @@ void print_help(std::ostream& output) {
               "  count       Count points on the ordinary cubic families\n\n"
               "Options:\n"
               "  -h, --help                Show this help\n"
-              "  --backend auto|scalar|avx2  Counting backend (default auto)\n"
+              "  --backend auto|scalar|avx2|avx512  Counting backend (default auto)\n"
               "  --coefficients            Read q a1 a2 a3 a4 a6 as base-q codes\n"
               "  --chart 'a_i(t,1)'        Input chart for invariants (default a_i(t,1))\n\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
