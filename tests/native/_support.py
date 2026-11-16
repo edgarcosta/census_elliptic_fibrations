@@ -1,7 +1,12 @@
 from contextlib import contextmanager
 import os
 from pathlib import Path
+import subprocess
 import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+BINARY = Path(os.environ.get("CENSUS_NATIVE", ROOT / "artifacts/native/census-native"))
 
 
 @contextmanager
@@ -12,3 +17,10 @@ def fake_magma():
         sentinel.write_text(f"#!/bin/sh\n: > '{marker}'\nexit 99\n")
         sentinel.chmod(0o755)
         yield {**os.environ, "PATH": directory, "MAGMA": str(sentinel)}, marker
+
+
+def invoke(text, *options, diagnostic=True, **kwargs):
+    mode = ["--diagnostic"] if diagnostic else []
+    return subprocess.run([BINARY, "invariants", *mode, *options],
+                          input=text if diagnostic else text.encode("ascii"),
+                          capture_output=True, text=diagnostic, cwd=ROOT, **kwargs)

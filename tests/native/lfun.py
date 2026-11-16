@@ -4,19 +4,12 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from _support import fake_magma
+from _support import ROOT, fake_magma, invoke
 
 
-ROOT = Path(__file__).resolve().parents[2]
-BINARY = Path(os.environ.get("CENSUS_NATIVE", ROOT / "artifacts/native/census-native"))
 LFUN_FIELDS = {"degree", "sign", "lower_L", "L_polynomial", "trace_sums"}
 FORMER_OPEN = {(2, 4884480): 1, (2, 11821184): -1,
                (3, 372699133912): -1, (3, 320009441124): 1}
-
-
-def invoke(text, *options, **kwargs):
-    return subprocess.run([BINARY, "invariants", "--diagnostic", *options], input=text,
-                          capture_output=True, text=True, cwd=ROOT, **kwargs)
 
 
 def integers(text):

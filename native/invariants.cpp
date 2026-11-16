@@ -430,14 +430,11 @@ DerivedInvariants derived_invariants(const Model& model, const LocalModels& loca
 }
 
 void write_derived_invariants(std::ostream& output, const DerivedInvariants& r) {
-    const auto list = [&output](const auto& values) {
-        for (std::size_t i = 0; i < values.size(); ++i) output << (i ? " " : "") << values[i];
-    };
     output << r.rank << ',' << r.geometric_rank << ',' << r.picard_number
            << ',' << r.geometric_picard_number << ',';
-    list(r.p2);
+    write_joined(output, r.p2, ' ');
     output << ',' << r.zeta_sign << ',';
-    list(r.point_counts);
+    write_joined(output, r.point_counts, ' ');
     output << ',';
     if (r.brauer_height) output << r.brauer_height;
     else output << "infinity";
@@ -562,22 +559,6 @@ void write_candidate_invariants(std::ostream& output, const DerivedInvariants& d
         output << ',' << candidates.regulators[0] << ',' << candidates.sha[0]
                << ',' << candidates.sha[0] << ',' << data.artin_tate_product/candidates.sha[0];
     } else output << ",,,,";
-}
-
-void write_fibres(std::ostream& output, const std::vector<LocalFibre>& fibres,
-    bool component_cycles) {
-    if (fibres.empty()) output << "[]";
-    for (std::size_t i = 0; i < fibres.size(); ++i) {
-        if (i) output << ';';
-        const auto& f = fibres[i];
-        output << f.place << ':' << f.degree << ':' << f.type << ':' << f.index
-               << ':' << f.discriminant_valuation << ':' << f.conductor << ':'
-               << f.tamagawa << ':' << f.trace;
-        if (component_cycles) {
-            output << ':';
-            write_list(output, f.component_cycles);
-        }
-    }
 }
 
 }

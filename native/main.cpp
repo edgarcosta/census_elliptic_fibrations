@@ -51,10 +51,7 @@ std::uint64_t unsigned_integer(std::string_view value, const char* field) {
 void write_coefficients(const std::array<std::vector<int>, 5>& chart) {
     for (const auto& coefficients : chart) {
         std::cout << ',';
-        for (std::size_t i = 0; i < coefficients.size(); ++i) {
-            if (i != 0) std::cout << ' ';
-            std::cout << coefficients[i];
-        }
+        census::write_joined(std::cout, coefficients, ' ');
     }
 }
 
@@ -148,15 +145,9 @@ bool invariants(std::string_view backend, bool coefficients, bool diagnostic) {
                 std::cout << ',';
                 census::write_list(std::cout, torsion.factors);
                 std::cout << ',';
-                for (std::size_t i = 0; i < torsion.points.size(); ++i) {
-                    if (i) std::cout << ';';
-                    std::cout << torsion.points[i];
-                }
+                census::write_joined(std::cout, torsion.points, ';');
                 std::cout << ',';
-                for (std::size_t i = 0; i < torsion.orders.size(); ++i) {
-                    if (i) std::cout << ' ';
-                    std::cout << torsion.orders[i];
-                }
+                census::write_joined(std::cout, torsion.orders, ' ');
                 std::cout << ',';
                 census::write_list(std::cout, lfun.coefficients, 1, 1+sign.degree/2);
                 std::cout << ',';

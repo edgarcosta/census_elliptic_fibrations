@@ -1,18 +1,7 @@
 import csv
 import io
-from pathlib import Path
-import subprocess
 import sys
-from _support import fake_magma
-
-
-ROOT = Path(__file__).resolve().parents[2]
-BINARY = ROOT / "artifacts/native/census-native"
-
-
-def invoke(text, **kwargs):
-    return subprocess.run([BINARY, "invariants", "--diagnostic"], input=text, capture_output=True,
-                          text=True, cwd=ROOT, **kwargs)
+from _support import fake_magma, invoke
 
 
 def test_magma_comparison(reference):

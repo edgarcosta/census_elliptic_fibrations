@@ -2,14 +2,10 @@ import csv
 import ctypes
 import ctypes.util
 import io
-import os
 from pathlib import Path
 import subprocess
 import sys
-from _support import fake_magma
-
-ROOT = Path(__file__).resolve().parents[2]
-BINARY = Path(os.environ.get("CENSUS_NATIVE", ROOT / "artifacts/native/census-native"))
+from _support import BINARY, ROOT, fake_magma, invoke
 
 
 def decompress(data):
@@ -29,17 +25,12 @@ def decompress(data):
     return target.raw[:size].decode("ascii")
 
 
-def invoke(text, *options, **kwargs):
-    return subprocess.run([BINARY, "invariants", *options], input=text.encode("ascii"),
-                          capture_output=True, cwd=ROOT, **kwargs)
-
-
 def test_equations(reference):
     expected_text = Path(reference).read_text()
     expected = list(csv.DictReader(io.StringIO(expected_text)))
     text = "".join(f"{r['q']} {r['key']}\n" for r in expected)
     with fake_magma() as (env, marker):
-        result = invoke(text, env=env)
+        result = invoke(text, diagnostic=False, env=env)
         assert not marker.exists(), "native command started Magma"
     assert result.returncode == 0, result.stderr
     decoded = decompress(result.stdout)
@@ -55,11 +46,11 @@ def test_equations(reference):
 
 
 def test_execution_errors():
-    invalid = invoke('2 0\n2 bad\n3 0\n')
+    invalid = invoke('2 0\n2 bad\n3 0\n', diagnostic=False)
     assert invalid.returncode != 0 and b'line 2' in invalid.stderr, invalid.stderr
     rows = list(csv.DictReader(io.StringIO(decompress(invalid.stdout))))
     assert len(rows) == 1 and rows[0]['q'] == '2'
-    empty = invoke(' \n\n')
+    empty = invoke(' \n\n', diagnostic=False)
     assert empty.returncode == 0
     assert not list(csv.DictReader(io.StringIO(decompress(empty.stdout))))
     with open('/dev/full', 'wb') as sink:
