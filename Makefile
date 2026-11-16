@@ -60,10 +60,6 @@ artifacts/native/candidates-exact: tests/native/candidates_exact.cpp native/inva
 	@mkdir -p $(@D)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/candidates_exact.cpp native/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)
 
-check-native-invariants: $(NATIVE_CHECKS) $(if $(wildcard tests/native_full_f2.m),check-native-invariants-f2)
+check-native-invariants: $(NATIVE_CHECKS)
 
 .PHONY: check-native-invariants
-
-artifacts/native/records-exact: tests/native/records_exact.cpp $(filter-out native/main.cpp,$(NATIVE_SOURCES)) $(NATIVE_HEADERS)
-	@mkdir -p $(@D)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/records_exact.cpp $(filter-out native/main.cpp,$(NATIVE_SOURCES)) $(NATIVE_LDLIBS) $(LDLIBS)

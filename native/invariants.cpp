@@ -1,4 +1,5 @@
 #include "invariants.hpp"
+#include "format.hpp"
 #include "weierstrass.hpp"
 
 #include <NTL/lzz_pX.h>
@@ -553,17 +554,30 @@ CandidateInvariants admissible_candidates(const DerivedInvariants& data,
 
 void write_candidate_invariants(std::ostream& output, const DerivedInvariants& data,
     const CandidateInvariants& candidates) {
-    const auto list = [&output](const auto& values) {
-        if (values.empty()) output << "[]";
-        for (std::size_t i = 0; i < values.size(); ++i) output << (i ? " " : "") << values[i];
-    };
-    list(candidates.sha);
+    write_list(output, candidates.sha);
     output << ',';
-    list(candidates.regulators);
-    if (candidates.sha.size() == 1) {
-        output << ",constraints," << candidates.regulators[0] << ',' << candidates.sha[0]
+    write_list(output, candidates.regulators);
+    output << ',' << candidates.split_method();
+    if (candidates.split_method() == "constraints") {
+        output << ',' << candidates.regulators[0] << ',' << candidates.sha[0]
                << ',' << candidates.sha[0] << ',' << data.artin_tate_product/candidates.sha[0];
-    } else output << ",unresolved,,,,";
+    } else output << ",,,,";
+}
+
+void write_fibres(std::ostream& output, const std::vector<LocalFibre>& fibres,
+    bool component_cycles) {
+    if (fibres.empty()) output << "[]";
+    for (std::size_t i = 0; i < fibres.size(); ++i) {
+        if (i) output << ';';
+        const auto& f = fibres[i];
+        output << f.place << ':' << f.degree << ':' << f.type << ':' << f.index
+               << ':' << f.discriminant_valuation << ':' << f.conductor << ':'
+               << f.tamagawa << ':' << f.trace;
+        if (component_cycles) {
+            output << ':';
+            write_list(output, f.component_cycles);
+        }
+    }
 }
 
 }

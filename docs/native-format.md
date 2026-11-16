@@ -206,9 +206,6 @@ I/O failures also give a nonzero exit status; failed output can be incomplete.
 
 `make check/native_records.m` compares decompressed public-command output with
 Magma on all six classes, chart exchanges, nontrivial torsion, singletons and
-ambiguous lists. Supplied arithmetic controls share the Magma codec test and
-cover large exact values, multiline quoted diagnostics, partial and error
-statuses, and unknown versus empty lists. A fake Magma executable checks that
-the public computation starts no Magma process. `make check-native-invariants`
-runs the native stage 1 checks and includes `check-native-invariants-f2` when
-its `tests/native_full_f2.m` entry point is present.
+ambiguous lists. A fake Magma executable checks that the public computation
+starts no Magma process. `make check-native-invariants` runs every native
+stage 1 check discovered from `tests/native_*.m`.

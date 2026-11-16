@@ -3,6 +3,7 @@
 #include "lfun.hpp"
 
 #include <iosfwd>
+#include <optional>
 
 namespace census {
 
@@ -32,6 +33,8 @@ void write_derived_invariants(std::ostream& output, const DerivedInvariants& res
 struct CandidateInvariants {
     std::vector<boost::multiprecision::cpp_int> sha;
     std::vector<boost::multiprecision::cpp_rational> regulators;
+
+    std::string_view split_method() const { return sha.size() == 1 ? "constraints" : "unresolved"; }
 };
 
 // Supplied derived values and fibres describe the same elliptic K3 surface.
@@ -40,5 +43,14 @@ CandidateInvariants admissible_candidates(const DerivedInvariants& data,
 
 void write_candidate_invariants(std::ostream& output, const DerivedInvariants& data,
     const CandidateInvariants& candidates);
+
+struct InvariantData {
+    std::optional<LocalModels> local;
+    std::optional<SignData> sign;
+    std::optional<TorsionData> torsion;
+    std::optional<LPolynomial> lfun;
+    std::optional<DerivedInvariants> derived;
+    std::optional<CandidateInvariants> candidates;
+};
 
 }

@@ -8,24 +8,9 @@
 
 namespace census {
 
-struct InvariantRow {
-    unsigned q;
-    std::uint64_t key;
-    std::string kind, minimality, status;
-    std::optional<int> degree, sign;
-    std::optional<std::vector<boost::multiprecision::cpp_int>> lower_l;
-    std::optional<std::vector<LocalFibre>> fibres;
-    std::optional<std::vector<int>> torsion;
-    std::optional<boost::multiprecision::cpp_rational> sha_reg;
-    std::optional<std::vector<boost::multiprecision::cpp_int>> admissible_sha;
-    std::string split_method;
-    std::optional<std::vector<int>> sha2_dimensions;
-    std::string refinement_status, message;
-};
-
-InvariantRow invariant_row(const Model& model, LPolynomialCounter& counter);
 std::string invariant_csv_header();
-std::string invariant_csv(const InvariantRow& row);
+std::string invariant_csv(const Model& model, const InvariantData& data,
+    const std::optional<std::string>& error);
 
 class CompressedRecords {
 public:

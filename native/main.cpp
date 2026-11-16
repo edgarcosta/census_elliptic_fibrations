@@ -2,6 +2,7 @@
 #include "model.hpp"
 #include "invariants.hpp"
 #include "records.hpp"
+#include "format.hpp"
 
 #include <charconv>
 #include <cstdint>
@@ -57,29 +58,15 @@ void write_coefficients(const std::array<std::vector<int>, 5>& chart) {
     }
 }
 
-void write_fibres(const std::vector<census::LocalFibre>& fibres) {
-    if (fibres.empty()) std::cout << "[]";
-    for (std::size_t i = 0; i < fibres.size(); ++i) {
-        const auto& f = fibres[i];
-        if (i != 0) std::cout << ';';
-        std::cout << f.place << ':' << f.degree << ':' << f.type << ':' << f.index
-                  << ':' << f.discriminant_valuation << ':' << f.conductor << ':'
-                  << f.tamagawa << ':' << f.trace << ':';
-        if (f.component_cycles.empty()) std::cout << "[]";
-        for (std::size_t j = 0; j < f.component_cycles.size(); ++j) {
-            if (j != 0) std::cout << ' ';
-            std::cout << f.component_cycles[j];
-        }
-    }
-}
-
-template<class Values>
-void write_list(const Values& values, std::size_t first, std::size_t end) {
-    if (first == end) std::cout << "[]";
-    for (std::size_t i = first; i < end; ++i) {
-        if (i != first) std::cout << ' ';
-        std::cout << values[i];
-    }
+// Completed stages remain available if a later computation throws.
+void compute_invariants(const census::Model& model, census::LPolynomialCounter& counter, census::InvariantData& data) {
+    if (model.status != "partial") return;
+    data.local = census::local_models(model);
+    data.sign = census::functional_equation_sign(*data.local, model.q);
+    data.torsion = census::complete_torsion(model, *data.local);
+    data.lfun = counter.compute(model, *data.local, *data.sign);
+    data.derived = census::derived_invariants(model, *data.local, *data.torsion, *data.lfun);
+    data.candidates = census::admissible_candidates(*data.derived, data.local->fibres);
 }
 
 bool invariants(std::string_view backend, bool coefficients, bool diagnostic) {
@@ -129,25 +116,18 @@ bool invariants(std::string_view backend, bool coefficients, bool diagnostic) {
                 packed = unsigned_integer(key, "key");
             }
             const auto model = census::model_from_key(q, packed);
-            if (records) {
-                const auto row = census::invariant_row(model, counter);
-                records->write(census::invariant_csv(row)+"\n");
-                if (row.status == "error") success = false;
-                continue;
+            census::InvariantData data;
+            std::optional<std::string> error;
+            try {
+                compute_invariants(model, counter, data);
+            } catch (const std::exception& failure) {
+                if (!records) throw;
+                error = failure.what();
             }
-            census::LocalModels local;
-            census::SignData sign{};
-            census::TorsionData torsion;
-            census::LPolynomial lfun;
-            census::DerivedInvariants derived;
-            census::CandidateInvariants candidates;
-            if (model.status == "partial") {
-                local = census::local_models(model);
-                sign = census::functional_equation_sign(local, model.q);
-                torsion = census::complete_torsion(model, local);
-                lfun = counter.compute(model, local, sign);
-                derived = census::derived_invariants(model, local, torsion, lfun);
-                candidates = census::admissible_candidates(derived, local.fibres);
+            if (records) {
+                records->write(census::invariant_csv(model, data, error)+"\n");
+                if (error || (data.candidates && data.candidates->sha.empty())) success = false;
+                continue;
             }
             std::cout << model.q << ',' << model.key << ',' << model.kind << ','
                       << model.minimality << ',' << model.status << ",\""
@@ -156,17 +136,17 @@ bool invariants(std::string_view backend, bool coefficients, bool diagnostic) {
             write_coefficients(model.infinity);
             std::cout << ',';
             if (model.status == "partial") {
-                write_fibres(local.fibres);
+                const auto& local = *data.local;
+                const auto& sign = *data.sign;
+                const auto& torsion = *data.torsion;
+                const auto& lfun = *data.lfun;
+                census::write_fibres(std::cout, local.fibres, true);
                 std::cout << ',';
-                write_fibres(local.twist_fibres);
+                census::write_fibres(std::cout, local.twist_fibres, true);
                 std::cout << ',' << sign.degree << ',' << sign.sign << ',' << sign.height
                           << ',' << sign.twist_height << ',' << sign.tamagawa_exponent;
                 std::cout << ',';
-                if (torsion.factors.empty()) std::cout << "[]";
-                for (std::size_t i = 0; i < torsion.factors.size(); ++i) {
-                    if (i) std::cout << ' ';
-                    std::cout << torsion.factors[i];
-                }
+                census::write_list(std::cout, torsion.factors);
                 std::cout << ',';
                 for (std::size_t i = 0; i < torsion.points.size(); ++i) {
                     if (i) std::cout << ';';
@@ -178,15 +158,15 @@ bool invariants(std::string_view backend, bool coefficients, bool diagnostic) {
                     std::cout << torsion.orders[i];
                 }
                 std::cout << ',';
-                write_list(lfun.coefficients, 1, 1+sign.degree/2);
+                census::write_list(std::cout, lfun.coefficients, 1, 1+sign.degree/2);
                 std::cout << ',';
-                write_list(lfun.coefficients, 0, lfun.coefficients.size());
+                census::write_list(std::cout, lfun.coefficients, 0, lfun.coefficients.size());
                 std::cout << ',';
-                write_list(lfun.trace_sums, 0, lfun.trace_sums.size());
+                census::write_list(std::cout, lfun.trace_sums, 0, lfun.trace_sums.size());
                 std::cout << ',';
-                census::write_derived_invariants(std::cout, derived);
+                census::write_derived_invariants(std::cout, *data.derived);
                 std::cout << ',';
-                census::write_candidate_invariants(std::cout, derived, candidates);
+                census::write_candidate_invariants(std::cout, *data.derived, *data.candidates);
             } else std::cout << std::string(33, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {

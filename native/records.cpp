@@ -1,4 +1,5 @@
 #include "records.hpp"
+#include "format.hpp"
 
 #include <sstream>
 #include <stdexcept>
@@ -19,64 +20,9 @@ std::string quote(std::string_view cell) {
     return result;
 }
 
-template<class Values>
-std::string wire_list(const Values& values) {
-    if (values.empty()) return "[]";
-    std::ostringstream out;
-    for (std::size_t i = 0; i < values.size(); ++i) {
-        if (i) out << ' ';
-        out << values[i];
-    }
-    return out.str();
-}
-
-template<class Values>
-std::string optional_list(const std::optional<Values>& values) {
-    return values ? wire_list(*values) : "";
-}
-
 void check_zstd(std::size_t result) {
     if (ZSTD_isError(result)) throw std::runtime_error(ZSTD_getErrorName(result));
 }
-}
-
-InvariantRow invariant_row(const Model& model, LPolynomialCounter& counter) {
-    InvariantRow row{};
-    row.q = model.q;
-    row.key = model.key;
-    row.kind = model.kind;
-    row.minimality = model.minimality;
-    row.status = model.status;
-    if (model.status == "unsupported") {
-        row.refinement_status = "unsupported";
-        return row;
-    }
-    try {
-        const auto local = local_models(model);
-        row.fibres = local.fibres;
-        const auto sign = functional_equation_sign(local, model.q);
-        row.degree = sign.degree;
-        row.sign = sign.sign;
-        const auto torsion = complete_torsion(model, local);
-        row.torsion = torsion.factors;
-        const auto lfun = counter.compute(model, local, sign);
-        row.lower_l = std::vector<boost::multiprecision::cpp_int>(
-            lfun.coefficients.begin()+1, lfun.coefficients.begin()+1+sign.degree/2);
-        const auto derived = derived_invariants(model, local, torsion, lfun);
-        row.sha_reg = derived.sha_reg;
-        const auto candidates = admissible_candidates(derived, local.fibres);
-        row.admissible_sha = candidates.sha;
-        const bool singleton = candidates.sha.size() == 1;
-        row.split_method = singleton ? "constraints" : "unresolved";
-        row.refinement_status = singleton ? "not_needed" : model.q == 2 ? "unsupported" : "";
-        row.status = candidates.sha.empty() ? "error" : "ok";
-        if (candidates.sha.empty()) row.message = "no admissible Sha order";
-    } catch (const std::exception& error) {
-        row.status = "error";
-        row.refinement_status = "error";
-        row.message = error.what();
-    }
-    return row;
 }
 
 std::string invariant_csv_header() {
@@ -84,34 +30,54 @@ std::string invariant_csv_header() {
            "sha_reg,admissible_sha,split_method,d2,sha2_dimensions,refinement_status,message";
 }
 
-std::string invariant_csv(const InvariantRow& row) {
-    std::string fibres;
-    if (row.fibres) {
-        if (row.fibres->empty()) fibres = "[]";
-        else {
-            std::ostringstream out;
-            for (std::size_t i = 0; i < row.fibres->size(); ++i) {
-                if (i) out << ';';
-                const auto& f = (*row.fibres)[i];
-                out << f.place << ':' << f.degree << ':' << f.type << ':' << f.index
-                    << ':' << f.discriminant_valuation << ':' << f.conductor << ':'
-                    << f.tamagawa << ':' << f.trace;
-            }
-            fibres = out.str();
-        }
-    }
-    std::string rational;
-    if (row.sha_reg) {
+std::string invariant_csv(const Model& model, const InvariantData& data,
+    const std::optional<std::string>& error) {
+    std::array<std::string, 18> cells = {};
+    cells[0] = "1";
+    cells[1] = std::to_string(model.q);
+    cells[2] = std::to_string(model.key);
+    cells[3] = model.kind;
+    cells[4] = model.minimality;
+    cells[5] = model.status;
+    if (model.status == "unsupported") cells[16] = "unsupported";
+    if (data.local) {
         std::ostringstream out;
-        out << numerator(*row.sha_reg) << '/' << denominator(*row.sha_reg);
-        rational = out.str();
+        write_fibres(out, data.local->fibres);
+        cells[9] = out.str();
     }
-    const std::array<std::string, 18> cells = {
-        "1", std::to_string(row.q), std::to_string(row.key), row.kind, row.minimality, row.status,
-        row.degree ? std::to_string(*row.degree) : "", row.sign ? std::to_string(*row.sign) : "",
-        optional_list(row.lower_l), fibres, optional_list(row.torsion), rational,
-        optional_list(row.admissible_sha), row.split_method, "", optional_list(row.sha2_dimensions),
-        row.refinement_status, row.message};
+    if (data.sign) {
+        cells[6] = std::to_string(data.sign->degree);
+        cells[7] = std::to_string(data.sign->sign);
+    }
+    if (data.torsion) {
+        std::ostringstream out;
+        write_list(out, data.torsion->factors);
+        cells[10] = out.str();
+    }
+    if (data.lfun) {
+        std::ostringstream out;
+        write_list(out, data.lfun->coefficients, 1, 1+data.sign->degree/2);
+        cells[8] = out.str();
+    }
+    if (data.derived) {
+        std::ostringstream out;
+        out << numerator(data.derived->sha_reg) << '/' << denominator(data.derived->sha_reg);
+        cells[11] = out.str();
+    }
+    if (data.candidates) {
+        std::ostringstream out;
+        write_list(out, data.candidates->sha);
+        cells[12] = out.str();
+        cells[13] = data.candidates->split_method();
+        cells[16] = cells[13] == "constraints" ? "not_needed" : model.q == 2 ? "unsupported" : "";
+        cells[5] = data.candidates->sha.empty() ? "error" : "ok";
+        if (data.candidates->sha.empty()) cells[17] = "no admissible Sha order";
+    }
+    if (error) {
+        cells[5] = "error";
+        cells[16] = "error";
+        cells[17] = *error;
+    }
     std::string text;
     for (std::size_t i = 0; i < cells.size(); ++i) {
         if (i) text += ',';
