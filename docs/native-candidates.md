@@ -145,7 +145,7 @@ derived values and local fibres for the same elliptic K3. It returns aligned
 Sha and regulator vectors; correct supplied arithmetic remains a precondition.
 FLINT factors the Artin-Tate product. Square-divisor enumeration, correction
 sums, lattice parity and Hermite comparisons use arbitrary-precision integers
-and rationals. The port follows `magma/candidates.m`, SHA-256
+and rationals. The port follows `src/candidates.m`, SHA-256
 `677d5affd1578f3db664d7bd36b3b6bdb3dc262d1c7b7320ae0948d91d9d517c`.
 
 Run `make check/native_candidates.m` for the native comparison. The eight

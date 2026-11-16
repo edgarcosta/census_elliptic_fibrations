@@ -1,5 +1,5 @@
 {
-    magma {
+    src {
         trace_tables.m
         local.m
         lfun.m
@@ -7,8 +7,6 @@
         invariants.m
         candidates.m
         records.m
-    }
-    src {
         declarations.m
         forms.m
         models.m

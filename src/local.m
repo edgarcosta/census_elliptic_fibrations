@@ -1,4 +1,4 @@
-import "../src/models.m": prime_field_key;
+import "models.m": prime_field_key;
 
 LOCAL_DATA_FORMAT := recformat<Place, Degree, Type, Index,
     DiscriminantValuation, Conductor, Tamagawa, Trace, ComponentCycles>;

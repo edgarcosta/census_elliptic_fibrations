@@ -1,4 +1,4 @@
-import "../src/models.m": valid_model;
+import "models.m": valid_model;
 
 INVARIANT_ROW_FORMAT := recformat<Version, Q, Key, Kind, Minimality, Status,
     Degree, Sign, LowerL, Fibres, Torsion, ShaReg, AdmissibleSha, SplitMethod,
