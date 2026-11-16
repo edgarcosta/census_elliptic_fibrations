@@ -11,7 +11,7 @@ BINARY = ROOT / "artifacts/native/census-native"
 
 
 def invoke(text, **kwargs):
-    return subprocess.run([BINARY, "invariants"], input=text, capture_output=True,
+    return subprocess.run([BINARY, "invariants", "--diagnostic"], input=text, capture_output=True,
                           text=True, cwd=ROOT, **kwargs)
 
 

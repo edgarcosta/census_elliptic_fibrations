@@ -14,7 +14,7 @@ CHART = "a_i(t,1)"
 
 def invoke(text, *options):
     return subprocess.run(
-        [BINARY, "invariants", *options], input=text,
+        [BINARY, "invariants", "--diagnostic", *options], input=text,
         capture_output=True, text=True, cwd=ROOT,
     )
 

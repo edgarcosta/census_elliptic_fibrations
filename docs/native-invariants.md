@@ -117,7 +117,7 @@ dependencies. Paths are relative to the prototype root `artifacts/mw/`.
 
 ## Native command
 
-`census-native invariants` derives these fields from the same in-memory
+`census-native invariants --diagnostic` derives these fields from the same in-memory
 L-polynomial, local records, and complete torsion used by its diagnostic CSV.
 Build and input instructions are in [Native records](native-format.md).
 All polynomial coefficients, products and counts use arbitrary-precision

@@ -2,7 +2,7 @@ MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
-NATIVE_LDLIBS = -lntl -lflint -lgmp
+NATIVE_LDLIBS = -lntl -lflint -lgmp -lzstd
 NATIVE_SCALAR_BINARY := artifacts/native/census-native-scalar
 NATIVE_BINARY := artifacts/native/census-native
 NATIVE_SOURCES := $(wildcard native/*.cpp)
@@ -59,3 +59,11 @@ artifacts/native/derived-exact: tests/native/derived_exact.cpp native/invariants
 artifacts/native/candidates-exact: tests/native/candidates_exact.cpp native/invariants.cpp $(NATIVE_HEADERS)
 	@mkdir -p $(@D)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/candidates_exact.cpp native/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)
+
+check-native-invariants: $(NATIVE_CHECKS) $(if $(wildcard tests/native_full_f2.m),check-native-invariants-f2)
+
+.PHONY: check-native-invariants
+
+artifacts/native/records-exact: tests/native/records_exact.cpp $(filter-out native/main.cpp,$(NATIVE_SOURCES)) $(NATIVE_HEADERS)
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 -Inative $(LDFLAGS) -o $@ tests/native/records_exact.cpp $(filter-out native/main.cpp,$(NATIVE_SOURCES)) $(NATIVE_LDLIBS) $(LDLIBS)

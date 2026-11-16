@@ -4,6 +4,8 @@ AttachSpec("spec");
 import "tests/_support.m": expect_error;
 import "tests/_native_model_samples.m": model_samples;
 
+codec_output := assigned codecpath select codecpath else "";
+
 // Literal CSV pins field order, canonical rationals and the two empty meanings.
 procedure test_exact_record_codec()
     row := FibrationInvariantRow(2^64-1, 3, "smooth", "everywhere minimal");
@@ -24,6 +26,7 @@ procedure test_exact_record_codec()
         cat "\"trace, \"\"pending\"\"\nretry\"";
     text := FibrationInvariantCSV(row);
     assert text eq expected;
+    if codec_output ne "" then Write(codec_output, text); end if;
     copy := FibrationInvariantRow(text);
     assert copy`Key eq 2^64-1 and copy`LowerL eq row`LowerL;
     assert copy`Fibres eq row`Fibres and copy`Torsion eq [2, 4];
@@ -41,6 +44,7 @@ procedure test_exact_record_codec()
     row`AdmissibleSha := [];
     row`Status := "error";
     row`RefinementStatus := "error";
+    if codec_output ne "" then Write(codec_output, FibrationInvariantCSV(row)); end if;
     copy := FibrationInvariantRow(FibrationInvariantCSV(row));
     assert copy`LowerL eq [] and #copy`Fibres eq 0 and copy`Torsion eq [];
     assert copy`ShaReg eq 3 and copy`AdmissibleSha eq [];
@@ -155,6 +159,13 @@ procedure test_record_rejections()
     expect_error(procedure() copy := FibrationInvariantRow("\"unterminated"); end procedure,
         "CSV");
 end procedure;
+
+if assigned codecpath then
+    SetColumns(0);
+    file := Open(codecpath, "w");
+    delete file;
+    Write(codecpath, FibrationInvariantCSV());
+end if;
 
 test_exact_record_codec();
 test_six_cell_records();

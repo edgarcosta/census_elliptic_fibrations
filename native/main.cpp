@@ -1,6 +1,7 @@
 #include "lfun.hpp"
 #include "model.hpp"
 #include "invariants.hpp"
+#include "records.hpp"
 
 #include <charconv>
 #include <cstdint>
@@ -21,13 +22,14 @@ void print_help(std::ostream& output) {
               "Options:\n"
               "  -h, --help                Show this help\n"
               "  --backend auto|scalar|avx2  Counting backend (default auto)\n"
+              "  --diagnostic              Emit expanded uncompressed comparison CSV\n"
               "  --coefficients            Read q a1 a2 a3 a4 a6 as base-q codes\n"
               "  --chart 'a_i(t,1)'        Input chart for invariants (default a_i(t,1))\n\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels, local fibres, signed L, torsion, derived invariants and candidates.\n"
+              "Output: version 1 ASCII CSV compressed with zstd level 9.\n"
               "Coefficient input uses a2=0 over F_2 and a1=a3=0 over F_3.\n"
               "The key and sign are derived from the equation; no sign is supplied.\n"
-              "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
+              "Smooth everywhere minimal rows receive K3 arithmetic; other cells are unsupported.\n";
     output << "\ncount [--table-cache DIRECTORY] reads p degree parameter rows.\n"
               "Parameter is an exponent 0 <= e < p^degree-1, or zero for parameter 0.\n"
               "The parameter at exponent e is alpha^e for the retained field polynomial.\n"
@@ -80,9 +82,15 @@ void write_list(const Values& values, std::size_t first, std::size_t end) {
     }
 }
 
-void invariants(std::string_view backend, bool coefficients) {
+bool invariants(std::string_view backend, bool coefficients, bool diagnostic) {
     census::LPolynomialCounter counter(backend);
-    std::cout << "q,key,kind,minimality,status,chart,a1,a2,a3,a4,a6,"
+    std::unique_ptr<census::CompressedRecords> records;
+    bool success = true;
+    if (!diagnostic) {
+        records = std::make_unique<census::CompressedRecords>(std::cout);
+        records->write(census::invariant_csv_header()+"\n");
+    }
+    if (diagnostic) std::cout << "q,key,kind,minimality,status,chart,a1,a2,a3,a4,a6,"
                  "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6,"
                  "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent,"
                  "torsion,torsion_points,torsion_orders,lower_L,L_polynomial,trace_sums,"
@@ -121,6 +129,12 @@ void invariants(std::string_view backend, bool coefficients) {
                 packed = unsigned_integer(key, "key");
             }
             const auto model = census::model_from_key(q, packed);
+            if (records) {
+                const auto row = census::invariant_row(model, counter);
+                records->write(census::invariant_csv(row)+"\n");
+                if (row.status == "error") success = false;
+                continue;
+            }
             census::LocalModels local;
             census::SignData sign{};
             census::TorsionData torsion;
@@ -176,12 +190,15 @@ void invariants(std::string_view backend, bool coefficients) {
             } else std::cout << std::string(33, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {
+            if (records) records->finish();
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());
         }
     }
+    if (records) records->finish();
     if (std::cin.bad()) throw std::runtime_error("could not read standard input");
     std::cout.flush();
     if (!std::cout) throw std::runtime_error("could not write standard output");
+    return success;
 }
 
 void count(const std::filesystem::path& cache) {
@@ -248,16 +265,17 @@ int main(int argc, char* argv[]) {
         try {
             std::string_view backend = "auto";
             bool coefficients = false;
+            bool diagnostic = false;
             for (int i = 2; i < argc; ++i) {
                 const std::string_view option(argv[i]);
                 if (option == "--coefficients") coefficients = true;
+                else if (option == "--diagnostic") diagnostic = true;
                 else if (option == "--backend" && i+1 < argc) backend = argv[++i];
                 else if (option == "--chart" && i+1 < argc
                          && std::string_view(argv[i+1]) == census::model_chart) ++i;
                 else throw std::invalid_argument("invariants requires chart 'a_i(t,1)' and valid options");
             }
-            invariants(backend, coefficients);
-            return 0;
+            return invariants(backend, coefficients, diagnostic) ? 0 : 1;
         } catch (const std::exception& error) {
             std::cerr << error.what() << '\n';
             return 1;

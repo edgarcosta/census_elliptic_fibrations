@@ -15,7 +15,7 @@ FORMER_OPEN = {(2, 4884480): 1, (2, 11821184): -1,
 
 
 def invoke(text, *options, **kwargs):
-    return subprocess.run([BINARY, "invariants", *options], input=text,
+    return subprocess.run([BINARY, "invariants", "--diagnostic", *options], input=text,
                           capture_output=True, text=True, cwd=ROOT, **kwargs)
 
 
@@ -64,11 +64,11 @@ def test_magma_comparison(reference):
         assert avx2.stdout == scalar.stdout
     if "CENSUS_NATIVE" not in os.environ:
         scalar_binary = ROOT / "artifacts/native/census-native-scalar"
-        result = subprocess.run([scalar_binary, "invariants"], input=text,
+        result = subprocess.run([scalar_binary, "invariants", "--diagnostic"], input=text,
                                 capture_output=True, text=True, cwd=ROOT)
         assert result.returncode == 0, result.stderr
         assert result.stdout == scalar.stdout
-        unavailable = subprocess.run([scalar_binary, "invariants", "--backend", "avx2"],
+        unavailable = subprocess.run([scalar_binary, "invariants", "--diagnostic", "--backend", "avx2"],
                                      input=text, capture_output=True, text=True, cwd=ROOT)
         assert unavailable.returncode != 0 and "AVX2 backend is unavailable" in unavailable.stderr
     return rows

@@ -122,7 +122,7 @@ These sources are provenance, not runtime dependencies.
 
 ## Native command
 
-`census-native invariants` applies these constraints to its in-memory derived
+`census-native invariants --diagnostic` applies these constraints to its in-memory derived
 values and local fibres. Its diagnostic CSV includes these columns:
 
 | Column | Value |

@@ -44,7 +44,7 @@ def test_equations(reference):
     assert len(expected) == 16
     text = "".join(f"{r['q']} {r['key']}\n" for r in expected)
     with fake_magma() as (env, marker):
-        result = subprocess.run([BINARY, "invariants"], input=text, text=True,
+        result = subprocess.run([BINARY, "invariants", "--diagnostic"], input=text, text=True,
                                 capture_output=True, env=env, cwd=ROOT)
         assert not marker.exists(), "native command started Magma"
     assert result.returncode == 0, result.stderr
@@ -80,7 +80,7 @@ def test_supplied(reference):
 
 
 def test_unsupported():
-    result = subprocess.run([BINARY, "invariants"], input="2 0\n3 0\n2 1\n3 1\n",
+    result = subprocess.run([BINARY, "invariants", "--diagnostic"], input="2 0\n3 0\n2 1\n3 1\n",
                             text=True, capture_output=True, check=True)
     for row in csv.DictReader(io.StringIO(result.stdout)):
         assert row["status"] == "unsupported"

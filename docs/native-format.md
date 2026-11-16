@@ -8,7 +8,7 @@ equations. Thanks for helping check these records against the Magma package.
 Build with `make census-native`, then pass one decimal `q key` pair per line:
 
 ```sh
-printf '2 1346371584\n3 951893735796\n' | artifacts/native/census-native invariants
+printf '2 1346371584\n3 951893735796\n' | artifacts/native/census-native invariants --diagnostic
 ```
 
 The command also emits the [exact derived K3 fields](native-invariants.md#native-command)
@@ -22,7 +22,8 @@ error on standard error. Earlier valid rows may already have been written.
 
 The input chart is `a_i(t,1)`. You can state it explicitly with
 `invariants --chart 'a_i(t,1)'`; any other chart argument is rejected.
-The output is uncompressed CSV beginning with these model columns:
+The default output is the compressed stage 1 CSV described below.
+Use `--diagnostic` for expanded, uncompressed CSV beginning with these model columns:
 
 | Column | Meaning |
 | --- | --- |
@@ -42,9 +43,9 @@ The five degrees are `2,4,6,8,12`. The two charts satisfy
 
 Supported rows also contain [local records and signs](native-local.md#native-local-data-and-sign),
 [signed L-polynomials](native-lfun.md#native-command) and [complete torsion](native-torsion.md#native-torsion).
-Their status remains `partial` while the remaining invariants are pending.
-Unsupported rows have empty arithmetic columns. The stage 1 Magma reference
-format is described below; connecting it to the native writer is a separate step.
+Unsupported rows have empty arithmetic columns. The diagnostic view retains
+`partial` status for its supported rows; the default records use the stage 1
+status meanings below.
 
 The computations follow `src/models.m`, `src/classification.m`,
 `src/minimality.m` and `src/forms.m`. `make check/native_model.m` compares
@@ -57,8 +58,8 @@ required.
 
 ## Stage 1 invariant rows
 
-The Magma reference codec constructs and encodes the lean inputs to the native
-invariants writer. Attach `spec` from the repository root to use these intrinsics:
+The native invariants writer and Magma reference codec encode the same lean
+arithmetic records. Attach `spec` from the repository root to use these intrinsics:
 
 ```text
 row := FibrationInvariantRow(key, W);
@@ -83,7 +84,7 @@ empty Magma sequence or list. The encoder checks the wire types and stage 1
 status rules. It does not certify caller-supplied arithmetic or key provenance.
 
 The string overload is a reference codec for one row. Release-file reading,
-manifest validation, sidecar validation, zstd compression, sharding, and resumption belong
+manifest validation, sidecar validation, sharding, and resumption belong
 to stage 3. No prototype path is an installed dependency.
 
 ### Wire format
@@ -181,3 +182,33 @@ reconstructed L with Magma's independent `LFunction`. The test is discovered by 
 `make check` and the CI matrix, whose jobs have a 30-minute limit.
 Test inputs are source-level equations and arithmetic controls, not census data
 files.
+
+### Compressed native output
+
+`census-native invariants` reads one `q key` pair per line and writes a single
+zstd frame at level 9 to standard output. `--coefficients` accepts the coefficient
+codes described above. Both fields can occur in one stream. For example:
+
+```sh
+printf '2 1077936128\n3 320009441124\n' | artifacts/native/census-native invariants > rows.csv.zst
+zstdcat rows.csv.zst
+```
+
+The frame has a content checksum and begins with the column header, followed
+by one record per input. Arithmetic uses shared in-memory local data, torsion
+and L-polynomials. Production execution requires no Magma process.
+
+A computation failure emits an `error` record containing known fields and an
+ASCII diagnostic, continues with later inputs, and gives a nonzero exit status.
+Malformed input stops at that line and reports its line number on standard
+error. The preceding records form a complete compressed frame. Output or input
+I/O failures also give a nonzero exit status; failed output can be incomplete.
+
+`make check/native_records.m` compares decompressed public-command output with
+Magma on all six classes, chart exchanges, nontrivial torsion, singletons and
+ambiguous lists. Supplied arithmetic controls share the Magma codec test and
+cover large exact values, multiline quoted diagnostics, partial and error
+statuses, and unknown versus empty lists. A fake Magma executable checks that
+the public computation starts no Magma process. `make check-native-invariants`
+runs the native stage 1 checks and includes `check-native-invariants-f2` when
+its `tests/native_full_f2.m` entry point is present.

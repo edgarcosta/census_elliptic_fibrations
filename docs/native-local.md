@@ -69,7 +69,7 @@ root. The fixed equations are test source; no census data file is added.
 `make census-native` builds the native command. From the repository root, run:
 
 ```sh
-printf '2 4884480\n3 372699133912\n' | artifacts/native/census-native invariants
+printf '2 4884480\n3 372699133912\n' | artifacts/native/census-native invariants --diagnostic
 ```
 
 Each input row is a prime q and census key in the `a_i(t,1)` chart.
@@ -100,7 +100,7 @@ Each closed-place Tamagawa number contributes once, without a degree exponent.
 The native executable uses NTL and GMP and starts no Magma process.
 Local failures report the input line and place and exit with nonzero status.
 
-Run `make check/native_local.m` for comparisons through `census-native invariants`.
+Run `make check/native_local.m` for comparisons through `census-native invariants --diagnostic`.
 The test generates 422 Magma reference rows from fixed equations and keys,
 including reciprocal charts and 100 distinct recurrence keys per characteristic.
 It compares every local and twist field, component cycles, conductor degree,

@@ -68,11 +68,11 @@ below. The test confirms rank zero by evaluating a fresh L-polynomial at
 
 ## Native torsion
 
-`census-native invariants` computes complete torsion for each supported key.
+`census-native invariants --diagnostic` computes complete torsion for each supported key.
 Build with `make census-native`, then run from the repository root:
 
 ```sh
-printf '2 2151677952\n' | artifacts/native/census-native invariants
+printf '2 2151677952\n' | artifacts/native/census-native invariants --diagnostic
 ```
 
 The input and cell labels follow the [model format](native-format.md).

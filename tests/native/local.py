@@ -14,7 +14,7 @@ LOCAL_FIELDS = {"fibres", "twist_fibres", "degree", "sign", "height",
 
 def invoke(text, **kwargs):
     return subprocess.run(
-        [BINARY, "invariants"], input=text, capture_output=True, text=True,
+        [BINARY, "invariants", "--diagnostic"], input=text, capture_output=True, text=True,
         cwd=ROOT, **kwargs,
     )
 

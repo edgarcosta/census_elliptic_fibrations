@@ -109,7 +109,7 @@ These hashes identify reference inputs, not installed dependencies.
 
 ## Native command
 
-Build with `make census-native` and run `artifacts/native/census-native invariants`.
+Build with `make census-native` and run `artifacts/native/census-native invariants --diagnostic`.
 Each input line is a field size and census key, for example `2 4884480`.
 The diagnostic CSV includes `degree`, `sign`, `lower_L`, `L_polynomial`
 and `trace_sums`, alongside the model, local data, and torsion columns.
