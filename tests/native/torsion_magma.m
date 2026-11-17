@@ -36,6 +36,27 @@ procedure test_fixed_torsion_groups()
     end for;
 end procedure;
 
+// Explicit multiples of (0,t^2), good reduction and the 3-division polynomial give C5.
+procedure test_five_torsion_points()
+    F<t> := FunctionField(GF(3));
+    a := [F | 0, 1+t^4, 0, t^2-t^4, t^4];
+    coordinates := [[F | 0, t^2], [F | t^2, 2*t^4],
+        [F | t^2, t^4], [F | 0, 2*t^2]];
+    weights := [2, 4, 6, 8, 12];
+    for reciprocal in [false, true] do
+        equation := reciprocal select [F | t^weights[i]*Evaluate(a[i], 1/t)
+            : i in [1..5]] else a;
+        E := EllipticCurve(equation);
+        factors, points := FibrationTorsion(E);
+        expected := [E!0] cat [E!(reciprocal select
+            [t^4*Evaluate(P[1], 1/t), t^6*Evaluate(P[2], 1/t)] else P)
+            : P in coordinates];
+        assert factors eq [5] and Seqset(points) eq Seqset(expected);
+        assert #points eq 5;
+        assert [Order(P) : P in expected] eq [1, 5, 5, 5, 5];
+    end for;
+end procedure;
+
 // A denominator of degree one and its reciprocal require the full bound m=1.
 procedure test_torsion_at_the_section_bound()
     F<t> := FunctionField(GF(2));
@@ -81,6 +102,7 @@ procedure test_torsion_domain()
 end procedure;
 
 test_fixed_torsion_groups();
+test_five_torsion_points();
 test_torsion_at_the_section_bound();
 test_rank_zero_torsion();
 test_torsion_domain();

@@ -7,7 +7,7 @@ from _support import fake_magma, invoke
 def test_magma_comparison(reference):
     with open(reference, newline="") as source:
         expected = list(csv.DictReader(source))
-    assert len(expected) == 26, len(expected)
+    assert len(expected) == 28, len(expected)
     text = "".join(f"{r['q']} {r['key']}\n" for r in expected)
     with fake_magma() as (env, marker):
         result = invoke(text, env=env)

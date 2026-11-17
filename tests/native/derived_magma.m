@@ -111,6 +111,26 @@ procedure test_fixed_derived_invariants()
         1, Infinity(), 2, false);
 end procedure;
 
+// Direct F_3/F_9 counts give L=1-9*T^2; the two split I10 fibres give the BSD products.
+procedure test_five_torsion_arithmetic()
+    F<t> := FunctionField(GF(3));
+    a := [F | 0, 1+t^4, 0, t^2-t^4, t^4];
+    weights := [2, 4, 6, 8, 12];
+    P<T> := PolynomialRing(Integers());
+    for equation in [a, [F | t^weights[i]*Evaluate(a[i], 1/t) : i in [1..5]]] do
+        E := EllipticCurve(equation);
+        L := FibrationLPolynomial(E);
+        assert L`Polynomial eq 1-9*T^2;
+        result := FibrationInvariants(E);
+        assert result`Rank eq 1;
+        assert result`ShaRegulatorProduct eq 3/2;
+        assert result`ArtinTateProduct eq 6;
+        assert result`P2 eq (1-3*T)^20*(1-9*T^2);
+        sha, regulators := FibrationCandidates(E);
+        assert sha eq [1] and regulators eq [3/2];
+    end for;
+end procedure;
+
 // Constant-field extension preserves finite formal height and normalizes v_q(q)=1.
 procedure test_height_over_a_nonprime_field()
     E, extended, rows, L := gf4_fixture();
@@ -156,6 +176,7 @@ procedure test_supplied_data_domain()
 end procedure;
 
 test_fixed_derived_invariants();
+test_five_torsion_arithmetic();
 test_known_derived_invariants();
 test_height_over_a_nonprime_field();
 test_large_exact_integers();

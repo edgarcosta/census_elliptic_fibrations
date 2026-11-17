@@ -12,7 +12,8 @@ function torsion_samples(F)
         <[F | 0, t^3+t, 0, t^8+1, 0], [2]>,
         <[F | 0, t^4, 0, 0, 2], [3]>,
         <[F | 0, t^4+1, 0, t^4, 0], [2, 4]>,
-        <[F | 1, t^4, t, t^4+t, -t^2], [2, 4]>];
+        <[F | 1, t^4, t, t^4+t, -t^2], [2, 4]>,
+        <[F | 0, 1+t^4, 0, t^2-t^4, t^4], [5]>];
     R<s, u> := PolynomialRing(GF(p), 2);
     key := p eq 2 select 1346994688 else 75547326549;
     Append(~samples, <[F | Evaluate(a, [t, F!1])

@@ -50,7 +50,7 @@ def check_identities(row):
 def test_magma_comparison(reference):
     with open(reference, newline="") as source:
         expected = list(csv.DictReader(source))
-    assert len(expected) == 28, len(expected)
+    assert len(expected) == 30, len(expected)
     text = "".join(f"{r['q']} {r['key']}\n" for r in expected)
     with fake_magma() as (env, marker):
         result = invoke(text, env=env)

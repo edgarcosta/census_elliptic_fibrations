@@ -98,6 +98,26 @@ procedure test_split_and_nonsplit_fibres()
     check_charts(E);
 end procedure;
 
+// Tate residue quadratics and discriminant valuations distinguish split I* branches.
+procedure test_positive_index_star_fibres()
+    F<t> := FunctionField(GF(3));
+    for sample in [<t^4, 1, 4, [1, 1, 1, 1, 1]>,
+        <2*t^4, 1, 2, [1, 1, 1, 2]>, <2*t^5, 2, 4, [1 : i in [1..6]]>] do
+        a6, n, c, cycles := Explode(sample);
+        E := EllipticCurve([F | 0, t, 0, t^8, a6]);
+        rows := [r : r in FibrationLocalData(E) | r`Place cmpeq 3];
+        assert #rows eq 1;
+        assert local_tuple(rows[1]) eq <3, 1, "I*", n, n+6, 2, c, 0, cycles>;
+        rows := [r : r in FibrationLocalData(E : FrobeniusTwist := true)
+            | r`Place cmpeq 3];
+        assert #rows eq 1;
+        twisted_cycles := c eq 4 select [1 : i in [1..3*n+4]]
+            else [1 : i in [1..3*n+2]] cat [2];
+        assert local_tuple(rows[1]) eq <3, 1, "I*", 3*n, 3*n+6, 2, c, 0, twisted_cycles>;
+        check_charts(E);
+    end for;
+end procedure;
+
 // The saved infinity controls require minimization after raising a_i to p.
 procedure test_wild_frobenius_twists()
     F<t> := FunctionField(GF(2));
@@ -158,6 +178,20 @@ procedure test_local_domain()
         assert IsEmpty(FibrationLocalData(E));
         assert IsEmpty(FibrationLocalData(E : FrobeniusTwist := true));
     end for;
+    F<t> := FunctionField(GF(3));
+    E := EllipticCurve([F | 0, t, 0, t^8, t^4]);
+    // Scaling x by t^2 and y by t^3 recovers the polynomial equation.
+    rational := EllipticCurve([F | 0, 1/t, 0, t^4, 1/t^2]);
+    for twist in [false, true] do
+        rows := FibrationLocalData(rational : FrobeniusTwist := twist);
+        expected := FibrationLocalData(E : FrobeniusTwist := twist);
+        assert [local_tuple(r) : r in rows] eq [local_tuple(r) : r in expected];
+        at_zero := [r : r in rows | r`Place cmpeq 3];
+        assert #at_zero eq 1;
+        n := twist select 3 else 1;
+        assert local_tuple(at_zero[1]) eq <3, 1, "I*", n, n+6, 2, 4, 0,
+            [1 : i in [1..n+4]]>;
+    end for;
     F<t> := FunctionField(GF(4));
     E := EllipticCurve([F | 0, 0, 1, t, 0]);
     expect_error(procedure() rows := FibrationLocalData(E); end procedure,
@@ -165,6 +199,7 @@ procedure test_local_domain()
 end procedure;
 
 test_split_and_nonsplit_fibres();
+test_positive_index_star_fibres();
 test_wild_frobenius_twists();
 test_k3_discriminant_degrees();
 test_local_domain();
