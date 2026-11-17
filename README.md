@@ -135,7 +135,7 @@ The examples include counts over both fields and a bounded representative
 calculation. The CI matrix runs these same files.
 CI also checks the printed census numbers in this README, `docs/interface.md`
 and `docs/mathematics.md`; it does not execute Markdown code blocks.
-The tests need Magma, Python 3 (`python3`), Git LFS, a POSIX shell,
+The tests need Magma, Python 3.11 or later (`python3`), Git LFS, a POSIX shell,
 and standard shell utilities. If Git LFS was installed after cloning, run
 `git lfs pull` to download the fixtures before testing.
 The native tests also need `make`, a C++17 compiler, and development packages
