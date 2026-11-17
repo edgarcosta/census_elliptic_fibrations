@@ -15,7 +15,7 @@ for p in [2, 3] do
     models := [sample[2] : sample in model_samples(R)] cat fixed_models(R);
     for sample in candidate_samples(F) do
         Append(~models, [R | &+[R | Coefficient(Numerator(sample[1][i]), j)
-            *s^j*u^(2*[1,2,3,4,6][i]-j)
+            *s^j*u^(2*[1, 2, 3, 4, 6][i]-j)
             : j in [0..Degree(Numerator(sample[1][i]))]] : i in [1..5]]);
     end for;
     for W in models do

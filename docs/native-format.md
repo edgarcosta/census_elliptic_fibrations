@@ -61,7 +61,7 @@ required.
 The native invariants writer and Magma reference codec encode the same lean
 arithmetic records. Attach `spec` from the repository root to use these intrinsics:
 
-```text
+```c++
 row := FibrationInvariantRow(key, W);
 header := FibrationInvariantCSV();
 text := FibrationInvariantCSV(row);

@@ -83,7 +83,7 @@ procedure test_known_derived_invariants()
     check_known_invariants(EllipticCurve([F | t^2, 0, t, 0, 0]), 20, 22);
     // j=t^24/(1+t^6)=(t^12/(1+t^3))^2 has total degree 24.
     check_known_invariants(EllipticCurve(torsion_samples(F)[6][1]), 24, 22);
-    R<s,u> := PolynomialRing(GF(2), 2);
+    R<s, u> := PolynomialRing(GF(2), 2);
     W := fixed_models(R)[2];
     // Picard number below the formal-height bound.
     check_known_invariants(EllipticCurve([F | Evaluate(a, [t, F!1]) : a in W]), 18, 18);

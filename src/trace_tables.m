@@ -2,15 +2,15 @@ TRACE_TABLE_FORMAT := recformat<Polynomial, Field, Generator, Ordinary, NodalTra
 
 function trace_polynomial(p, d)
     polys2 := [
-        [1,1], [1,1,1], [1,1,0,1], [1,1,0,0,1], [1,0,1,0,0,1],
-        [1,1,0,1,1,0,1], [1,1,0,0,0,0,0,1], [1,0,1,1,1,0,0,0,1],
-        [1,0,0,0,1,0,0,0,0,1], [1,1,1,1,0,1,1,0,0,0,1],
-        [1,0,1,0,0,0,0,0,0,0,0,1], [1,1,0,1,0,1,1,1,0,0,0,0,1]];
+        [1, 1], [1, 1, 1], [1, 1, 0, 1], [1, 1, 0, 0, 1], [1, 0, 1, 0, 0, 1],
+        [1, 1, 0, 1, 1, 0, 1], [1, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], [1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1],
+        [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1]];
     polys3 := [
-        [1,1], [2,2,1], [1,2,0,1], [2,0,0,2,1], [1,2,0,0,0,1],
-        [2,2,1,0,2,0,1], [1,0,2,0,0,0,0,1], [2,2,2,0,1,2,0,0,1],
-        [1,1,2,2,0,0,0,0,0,1], [2,1,0,0,2,2,2,0,0,0,1],
-        [1,0,2,0,0,0,0,0,0,0,0,1], [2,0,1,0,1,1,1,0,0,0,0,0,1]];
+        [1, 1], [2, 2, 1], [1, 2, 0, 1], [2, 0, 0, 2, 1], [1, 2, 0, 0, 0, 1],
+        [2, 2, 1, 0, 2, 0, 1], [1, 0, 2, 0, 0, 0, 0, 1], [2, 2, 2, 0, 1, 2, 0, 0, 1],
+        [1, 1, 2, 2, 0, 0, 0, 0, 0, 1], [2, 1, 0, 0, 2, 2, 2, 0, 0, 0, 1],
+        [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1], [2, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1]];
     P := PolynomialRing(GF(p));
     return P!(p eq 2 select polys2[d] else polys3[d]);
 end function;
@@ -104,7 +104,7 @@ end function;
 intrinsic FibrationTraceTable(p::RngIntElt, d::RngIntElt) -> Rec
 {The exact ordinary trace table over GF(p^d), for p in [2,3] and 1 <= d <= 12.
 The record retains Polynomial, Field, Generator, Ordinary and NodalTrace.
-Ordinary[e+1] is the trace at parameter Generator^e; zero has NodalTrace.}
+Ordinary[e+1] is the trace at parameter Generator^e; zero has NodalTrace}
     require p in [2, 3] and d ge 1 and d le 12:
         "p must be 2 or 3 and degree must be between 1 and 12";
     f := trace_polynomial(p, d);
