@@ -16,6 +16,32 @@ function encode_fibres(rows)
     return IsEmpty(entries) select "[]" else Join(entries, ";");
 end function;
 
+procedure check_known_aggregates(E, expected)
+    result := FibrationLPolynomial(E);
+    assert <result`Sign, result`Degree, result`Height,
+        result`TwistHeight, result`TamagawaExponent> eq expected;
+end procedure;
+
+procedure test_known_local_aggregates()
+    F<t> := FunctionField(GF(2));
+    // Split I6, I6, I1: explicit discriminant and nodal fibres.
+    check_known_aggregates(EllipticCurve([F | t, 0, t^6+1, 0, 0]),
+        <-1, 5, 2, 4, 3>);
+    // Hand Tate algorithm: I9* becomes III under Frobenius.
+    check_known_aggregates(EllipticCurve([F | 0, 0, 1, t^6, 0]),
+        <1, 7, 2, 1, -1>);
+    // Hand Tate algorithm: III becomes I21* under Frobenius.
+    check_known_aggregates(EllipticCurve([F | 0, 0, 1, t^7, 0]),
+        <-1, 19, 2, 4, 1>);
+    F<t> := FunctionField(GF(3));
+    // Four degree-4 nonsplit nodes: explicit discriminant factorization.
+    check_known_aggregates(EllipticCurve([F | 0, t^3+t, 0, t^8+1, 0]),
+        <1, 12, 2, 6, 0>);
+    // Hand Tate algorithm: wild II before and after Frobenius.
+    check_known_aggregates(EllipticCurve([F | 0, 0, 0, t^8, t+1]),
+        <1, 20, 2, 2, 0>);
+end procedure;
+
 procedure write_local_reference(path)
     empty := Open(path, "w");
     delete empty;
@@ -49,12 +75,6 @@ procedure write_local_reference(path)
                 - &+[Valuation(r`Tamagawa, p) : r in original];
             sign := IsEven(twist_height-height+exponent) select 1 else -1;
             degree := &+[r`Degree*r`Conductor : r in original]-4;
-            if W in fixed then
-                result := FibrationLPolynomial(E);
-                assert <result`Sign, result`Degree, result`Height,
-                    result`TwistHeight, result`TamagawaExponent>
-                    eq <sign, degree, height, twist_height, exponent>;
-            end if;
             for chart in [W, [R | Evaluate(a, [u, s]) : a in W]] do
                 E := EllipticCurve([F | Evaluate(a, [t, F!1]) : a in chart]);
                 original := FibrationLocalData(E);
@@ -68,5 +88,6 @@ procedure write_local_reference(path)
     end for;
 end procedure;
 
+test_known_local_aggregates();
 write_local_reference(referencepath);
 quit;

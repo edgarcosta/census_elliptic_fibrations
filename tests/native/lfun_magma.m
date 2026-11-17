@@ -43,7 +43,8 @@ function independent_reference(E)
     return L;
 end function;
 
-// Independent equality catches a wrong sign, Euler trace or conductor degree.
+// Built-in LFunction shares Magma's local-fibre routines with the package.
+// Direct fibre counts and hand reductions certify the known examples.
 procedure check_polynomial(E, expected_sign, rank_zero, open_sign)
     result := FibrationLPolynomial(E);
     reference := independent_reference(E);
@@ -63,7 +64,7 @@ procedure check_polynomial(E, expected_sign, rank_zero, open_sign)
     if open_sign then
         assert &and[Coefficient(reference, i) eq 0 : i in [D div 2..12]];
     end if;
-    // Newton sums from the independent polynomial pin every counted extension.
+    // Newton sums from the built-in cross-check pin every counted extension.
     for n in [1..#result`TraceSums] do
         assert n*c[n+1] eq &+[result`TraceSums[j]*c[n-j+1] : j in [1..n]];
     end for;

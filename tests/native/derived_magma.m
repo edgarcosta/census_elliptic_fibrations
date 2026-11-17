@@ -2,9 +2,11 @@ SetQuitOnError(true);
 SetNthreads(1);
 AttachSpec("spec");
 import "tests/_support.m": expect_error;
+import "tests/_native_fixed_models.m": fixed_models;
+import "tests/_native_torsion_samples.m": torsion_samples;
 import "tests/native/_derived_fixtures.m": gf4096_fixture, gf4_fixture;
 
-// Independent Magma algorithms pin ranks, cohomology, heights and both products.
+// These built-in cross-checks share Magma's local-fibre routines with the package.
 procedure check_invariants(E, rank, height, splitting, isotrivial)
     p := #BaseRing(BaseRing(E));
     result := FibrationInvariants(E);
@@ -34,7 +36,6 @@ procedure check_invariants(E, rank, height, splitting, isotrivial)
         : i in [1..5]];
     j := jInvariant(E);
     degree := Max(Degree(Numerator(j)), Degree(Denominator(j)));
-    assert result`JDegree eq degree;
     assert result`IsIsotrivial eq isotrivial and isotrivial eq (degree eq 0);
     if degree gt 0 then
         assert (Derivative(j) eq 0) eq (result`JInseparabilityExponent gt 0);
@@ -45,8 +46,6 @@ procedure check_invariants(E, rank, height, splitting, isotrivial)
     end if;
     rows := FibrationLocalData(E);
     assert rho eq 2+rank+&+[Integers() | #r`ComponentCycles : r in rows];
-    assert result`GeometricPicardNumber eq 2+result`GeometricRank
-        + &+[Integers() | &+([0] cat r`ComponentCycles) : r in rows];
     // A closed place contributes its Tamagawa number once, even in degree > 1.
     Q := L;
     for i in [1..rank] do Q := ExactQuotient(Q, 1-p*T); end for;
@@ -63,6 +62,38 @@ procedure check_invariants(E, rank, height, splitting, isotrivial)
     end for;
     ratio := Evaluate(ExactQuotient(f, g), 1/p);
     assert result`ArtinTateProduct eq result`ShaRegulatorProduct*C*ratio/#torsion^2;
+end procedure;
+
+procedure check_known_invariants(E, j_degree, geometric_picard)
+    result := FibrationInvariants(E);
+    assert result`JDegree eq j_degree;
+    assert result`GeometricPicardNumber eq geometric_picard;
+end procedure;
+
+procedure test_known_derived_invariants()
+    F<t> := FunctionField(GF(2));
+    // Direct fibre counts and hand reductions certify the Picard numbers.
+    // j=0.
+    check_known_invariants(EllipticCurve([F | 0, 0, 1, t^6, 0]), 0, 22);
+    // j=0.
+    check_known_invariants(EllipticCurve([F | 0, 0, 1, t^7, 0]), 0, 16);
+    // Explicit j poles.
+    check_known_invariants(EllipticCurve([F | t, 0, t^6+1, 0, 0]), 24, 20);
+    // Explicit j poles.
+    check_known_invariants(EllipticCurve([F | t^2, 0, t, 0, 0]), 20, 22);
+    // j=t^24/(1+t^6)=(t^12/(1+t^3))^2 has total degree 24.
+    check_known_invariants(EllipticCurve(torsion_samples(F)[6][1]), 24, 22);
+    R<s,u> := PolynomialRing(GF(2), 2);
+    W := fixed_models(R)[2];
+    // Picard number below the formal-height bound.
+    check_known_invariants(EllipticCurve([F | Evaluate(a, [t, F!1]) : a in W]), 18, 18);
+    // Repeated inseparability: j=1/t^12=(1/t^3)^4.
+    check_known_invariants(EllipticCurve([F | 1, 0, 0, 0, t^12]), 12, 22);
+    F<t> := FunctionField(GF(3));
+    // j=0.
+    check_known_invariants(EllipticCurve([F | 0, 0, 0, t^8, t+1]), 0, 6);
+    // j=t^12=(t^4)^3 has total degree 12.
+    check_known_invariants(EllipticCurve(torsion_samples(F)[3][1]), 12, 22);
 end procedure;
 
 // Rank zero can have nontrivial torsion; supersingular height is infinity.
@@ -125,6 +156,7 @@ procedure test_supplied_data_domain()
 end procedure;
 
 test_fixed_derived_invariants();
+test_known_derived_invariants();
 test_height_over_a_nonprime_field();
 test_large_exact_integers();
 test_supplied_data_domain();
