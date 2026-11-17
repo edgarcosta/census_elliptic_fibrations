@@ -144,6 +144,8 @@ packages, plus the `zstd` command-line tool. See the
 settings.
 If Git LFS was installed after cloning, run
 `git lfs pull` to download the fixtures before testing.
+The stage 1 test also needs Linux, `taskset` (util-linux), and CPU affinity
+allowing two distinct physical cores.
 
 To run one file with the runner's `filename` parameter:
 
