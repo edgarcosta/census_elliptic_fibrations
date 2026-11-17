@@ -31,7 +31,9 @@ python3 production/stage1.py verify --q 3 --output results/stage1-f3 --expected-
 
 Add `--cpus 0,2,4,6` with the actual allowed CPU list for a four-worker pilot.
 The full run reads `stage1-pilot/pilot.json` beside its output directory;
-`--pilot-data PATH` selects another measurement file. A successful pilot at the
+`--pilot-data PATH` selects another measurement file.
+When using both fields, keep each field's pilot and run outputs under a separate
+parent, such as `results/f2/` and `results/f3/`. A successful pilot at the
 same producer identity is required for a full launch. It compares fixed native
 rows with Magma and independent `LFunction` values, interrupts and resumes a
 prefix, compares recovered files, and rejects corrupt and stale receipts.
