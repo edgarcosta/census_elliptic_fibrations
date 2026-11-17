@@ -62,7 +62,7 @@ procedure test_representative_files()
         assert n eq 314;
         lines := Split(Read(stem cat ".csv"), "\n");
         assert #lines eq 5;
-        assert "1,1,3,2," eq lines[2][1..8] and "1,1,3,1," eq lines[4][1..8];
+        assert "1,1,3,2,4,0,8,1," eq lines[2][1..16] and "1,1,3,1,4,0,8,0," eq lines[4][1..16];
         assert "minimalities=everywhere minimal|nonminimal somewhere\n" in Read(stem cat "_0001.stats");
         remove_outputs(stem, [1, 2]);
         expect_error(procedure() x := WriteFibrationRepresentativeKeys(R, stem : PrefixIndices := [1], Minimalities := ["unknown"]); end procedure, "Minimalities must contain distinct values");
@@ -78,3 +78,43 @@ procedure test_representative_files()
 end procedure;
 
 test_representative_files();
+
+// Burnside's six substitutions give (3^13+3*3^7+2*3^5)/6 orbits of B.
+procedure test_large_high_key_file()
+    R<s, t> := PolynomialRing(GF(3), 2);
+    prefixes := FibrationPrefixes(R);
+    index := Index(prefixes, <t^4, R!0>);
+    assert index gt 0;
+    stem, handle := TemporaryFile();
+    delete handle;
+    Remove(stem);
+    try
+        n := WriteFibrationRepresentativeKeys(R, stem : PrefixIndices := [index]);
+        assert n eq 266895;
+        suffix := IntegerToString(10000+index)[2..5];
+        F := Open(Sprintf("%o_%o.bin", stem, suffix), "rb");
+        bytes := ReadBytes(F);
+        delete F;
+        assert #bytes eq 2135160;
+        keys := {&+[bytes[8*(i-1)+j+1]*256^j : j in [0..7]] : i in [1..n]};
+        assert #keys eq n;
+        assert &and[key ge 3^22 and key lt 3^22+3^13 : key in keys];
+        assert 3^22 in keys;
+        metadata := Read(Sprintf("%o_%o.stats", stem, suffix));
+        assert "prefix_form_1_key=1\n" in metadata;
+        assert "prefix_form_2_key=0\n" in metadata;
+        assert "number_of_keys=266895\n" in metadata;
+        rows := Split(Read(stem cat ".csv"), "\n");
+        assert #rows eq 7;
+        for row in rows[2..7] do
+            assert Split(row, ",")[1..8] eq
+                ["1", "1", "3", IntegerToString(index), "4", "1", "8", "0"];
+        end for;
+    catch e
+        remove_outputs(stem, [index]);
+        error e;
+    end try;
+    remove_outputs(stem, [index]);
+end procedure;
+
+test_large_high_key_file();
