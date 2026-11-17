@@ -202,11 +202,17 @@ def test_publication_recovery(base):
     call('run', 3, output, '--prefixes', '1,2')
     path = output / 'prefixes/0002/receipt.json'
     original = json.loads(path.read_text())
+    log = path.with_name('native.log')
+    with log.open('ab') as stream:
+        stream.write(b'published attempt diagnostic\n')
+    original_log = log.read_bytes()
     path.unlink()
     call('verify', 3, output, '--prefixes', '1,2', ok=False)
     call('run', 3, output, '--prefixes', '1,2')
     assert path.exists(), 'resume skipped a published directory without its receipt'
     assert json.loads(path.read_text())['files'] == original['files']
+    assert any(p.read_bytes() == original_log for p in (output / 'failed').glob('*/native.log')), \
+        'resume deleted the unreceipted publication log'
     call('verify', 3, output, '--prefixes', '1,2')
 
 

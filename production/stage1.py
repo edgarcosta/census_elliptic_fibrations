@@ -314,14 +314,15 @@ def process_prefix(args, entry, producer, cpu):
         return
     scratch_root = args.output / 'scratch'
     scratch = scratch_root / f'prefix-{index:04d}'
-    if scratch.exists():
-        failed = args.output / 'failed'
-        failed.mkdir(exist_ok=True)
-        archived = failed / f'prefix-{index:04d}-{time.time_ns()}'
-        os.replace(scratch, archived)
-        sync_dir(failed)
-        sync_dir(scratch_root)
-        print(f'stage1: retained incomplete attempt at {archived}', file=sys.stderr)
+    for incomplete in (scratch, final):
+        if incomplete.exists():
+            failed = args.output / 'failed'
+            failed.mkdir(exist_ok=True)
+            archived = failed / f'prefix-{index:04d}-{time.time_ns()}'
+            os.replace(incomplete, archived)
+            sync_dir(failed)
+            sync_dir(incomplete.parent)
+            print(f'stage1: retained incomplete attempt at {archived}', file=sys.stderr)
     scratch.mkdir()
     print(f'stage1: starting prefix {index:04d} ({entry["count"]} keys)', file=sys.stderr, flush=True)
     started = time.monotonic()
@@ -343,8 +344,6 @@ def process_prefix(args, entry, producer, cpu):
             with path.open('rb') as stream:
                 os.fsync(stream.fileno())
     sync_dir(scratch)
-    if final.exists():
-        shutil.rmtree(final)
     os.replace(scratch, final)
     sync_dir(final.parent)
     save(final / 'receipt.json', data)
