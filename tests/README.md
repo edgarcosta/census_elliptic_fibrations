@@ -35,3 +35,5 @@ and saved files. `published_counts.m` checks the printed census numbers;
 `runner.m` checks shell exit status for successful and failing assertions.
 Underscore-prefixed files provide shared helpers. See the
 [root README](../README.md#tests-and-examples) for test commands and prerequisites.
+
+CI runs each test file as its own job with a 30-minute limit.
