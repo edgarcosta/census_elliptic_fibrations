@@ -25,7 +25,8 @@ $(NATIVE_BINARY): $(NATIVE_SOURCES) $(NATIVE_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $(NATIVE_SOURCES) $(NATIVE_LDLIBS) $(LDLIBS)
 
 NATIVE_CHECKS := $(filter check/native_%,$(CHECK_FILES))
-$(NATIVE_CHECKS) $(NATIVE_CHECKS:check/%=debug/%): census-native
+NATIVE_PROGRAM_CHECKS := $(addprefix check/,$(notdir $(filter tests/native/% tests/compare/%,$(TEST_PATHS))))
+$(NATIVE_PROGRAM_CHECKS) $(NATIVE_PROGRAM_CHECKS:check/%=debug/%): census-native
 
 define test_rule
 check/$(notdir $(1)): $(1)

@@ -55,3 +55,20 @@ commands and prerequisites.
 Native tests also need the [native build prerequisites](../native/README.md).
 
 CI runs each test file as its own job with a 30-minute limit.
+
+## Production driver
+
+`compare/run_stage1.m` exercises `production/stage1.py` through its public commands on
+empty and nonempty smooth prefixes in both fields. It compares ordered key streams
+with public Magma listings and sampled arithmetic records with Magma. It checks
+one and multiple workers, interruption and resume, missing-receipt recovery
+after directory publication, and locking. Failure cases cover memory rejection,
+corrupt metadata, stale identity, truncated frames, and failed native processes.
+Tests require failed logs to survive retry and worker errors to name the cause.
+They also stop during startup revalidation and reject changed full counts before
+key enumeration. Low free disk space is not simulated.
+A changed key with a matching updated digest must still be rejected.
+Temporary output stays under `artifacts/` and is removed after success or failure.
+These tests do not enumerate all F_3 representatives or measure EPYC throughput. A reported
+buffer size is not a memory measurement. Counting and listing use the same
+package mathematics.
