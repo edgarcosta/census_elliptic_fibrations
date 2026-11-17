@@ -157,6 +157,26 @@ def test_worker_error(base):
     assert not (output / 'summary.json').exists()
 
 
+def test_failed_count_logs(base):
+    wrapper = base / 'fail-count-magma'
+    magma = shutil.which(os.environ.get('MAGMA', 'magma'))
+    wrapper.write_text('#!/usr/bin/env python3\nimport subprocess,sys\n'
+                       f'if "-V" in sys.argv: sys.exit(subprocess.run([{magma!r}, "-V"]).returncode)\n'
+                       'print("count stdout diagnostic")\n'
+                       'print("count stderr diagnostic", file=sys.stderr)\n'
+                       'sys.exit(7)\n')
+    wrapper.chmod(0o755)
+    for command in ('run', 'verify'):
+        output = base / command
+        result = call(command, 3, output, '--prefixes', '1', '--magma', wrapper, ok=False)
+        assert 'producer failed (7); see ' in result.stderr, result.stderr
+        log = Path(result.stderr.rsplit('; see ', 1)[1].strip())
+        assert log.is_relative_to(output), result.stderr
+        assert log.exists(), f'failed count log was deleted: {log}'
+        assert 'count stderr diagnostic' in log.read_text()
+        assert 'count stdout diagnostic' in log.with_suffix('.stdout.log').read_text()
+
+
 def test_failed_logs(base):
     marker = base / 'failed-once'
     wrapper = base / 'fail-once'
@@ -374,7 +394,7 @@ def test_commands(base):
 if __name__ == '__main__':
     with tempfile.TemporaryDirectory(prefix='stage1-', dir=ROOT / 'artifacts') as directory:
         base = Path(directory)
-        for test in (test_revalidation_stop, test_changed_full_count, test_worker_error,
+        for test in (test_failed_count_logs, test_revalidation_stop, test_changed_full_count, test_worker_error,
                      test_failed_logs, test_publication_recovery, test_magma_version, test_magma_spec,
                      test_commands):
             output = base / test.__name__
