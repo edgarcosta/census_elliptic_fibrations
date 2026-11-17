@@ -35,7 +35,7 @@ characteristics through degree 12 with the saved
 [prototype data](../tests/native/data/trace_tables/README.md).
 The independent check counts all affine pairs (x, y) at every parameter,
 including zero, in degrees 1 through 4. It uses finite-field arithmetic without
-character or transform tables. Each test run emits a SHA-256 hash covering the
+character or transform tables. Each test run computes a SHA-256 hash covering the
 characteristic, degree, polynomial, and complete ordinary table in the fixture
 format. These hashes are checked against the retained fixture hashes.
 

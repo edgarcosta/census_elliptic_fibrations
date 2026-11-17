@@ -21,7 +21,7 @@ procedure test_native_derived()
         error if System(command) ne 0, Read(logpath);
     catch e
         Remove(referencepath);
-        Remove(referencepath cat ".exact");
+        if FileExists(referencepath cat ".exact") then Remove(referencepath cat ".exact"); end if;
         Remove(logpath);
         error e;
     end try;

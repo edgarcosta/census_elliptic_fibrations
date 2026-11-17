@@ -22,7 +22,7 @@ procedure test_native_candidates()
         error if System(command) ne 0, Read(logpath);
     catch e
         Remove(referencepath);
-        Remove(referencepath cat ".supplied");
+        if FileExists(referencepath cat ".supplied") then Remove(referencepath cat ".supplied"); end if;
         Remove(resultpath);
         Remove(logpath);
         error e;
