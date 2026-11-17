@@ -1,4 +1,4 @@
-import "tests/_support.m": shell_quote;
+import "tests/_support.m": expect_error, shell_quote;
 
 procedure test_runner_exit_status()
     magma := GetEnv("MAGMA");
@@ -27,3 +27,17 @@ procedure test_runner_exit_status()
 end procedure;
 
 test_runner_exit_status();
+
+// A traceback can contain the expected text as an argument to expect_error.
+procedure test_expected_error_message()
+    raised := false;
+    try
+        expect_error(procedure() x := 1 div 0; end procedure,
+            "expected error");
+    catch e
+        raised := true;
+    end try;
+    assert raised;
+end procedure;
+
+test_expected_error_message();

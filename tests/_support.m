@@ -3,7 +3,7 @@ procedure expect_error(action, message)
     try
         action();
     catch e
-        assert message in Sprint(e);
+        assert message in Sprint(e`Object);
         raised := true;
     end try;
     assert raised;
