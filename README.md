@@ -154,6 +154,7 @@ the debugger on an error.
 
 ## Documentation
 
+- [Contributing](CONTRIBUTING.md): implementation, test, data and writing conventions.
 - [Interface](docs/interface.md): intrinsics, selections, and certificates.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
