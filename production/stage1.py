@@ -444,8 +444,9 @@ def run(args):
     with locked(args.output), Monitor() as monitor:
         for name in ('scratch', 'prefixes'):
             (args.output / name).mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix='count-', dir=args.output / 'scratch') as temporary:
-            table = counts(args, indices, Path(temporary), cpus[0])
+        temporary = Path(tempfile.mkdtemp(prefix='count-', dir=args.output / 'scratch'))
+        table = counts(args, indices, temporary, cpus[0])
+        shutil.rmtree(temporary)
         if args.command != 'verify':
             budget(args, producer, args.prefixes is not None, max(e['count'] for e in table))
         manifest = args.output / 'manifest.json'
