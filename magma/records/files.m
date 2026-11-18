@@ -1,6 +1,6 @@
-import "models.m": valid_ring, prime_field_key, prefix_degrees;
-import "forms.m": coefficients;
-import "census.m": prefixes, selection_error, selections, selected_representative_keys;
+import "../models/models.m": valid_ring, prime_field_key, prefix_degrees;
+import "../models/forms.m": coefficients;
+import "../enumeration/census.m": prefixes, selection_error, selections, selected_representative_keys;
 
 function output_paths(stem, indices)
     return [stem cat ".csv"] cat &cat[[Sprintf("%o_%o.bin", stem, IntegerToString(10000+i)[2..5]),

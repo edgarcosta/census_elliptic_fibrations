@@ -1,4 +1,4 @@
-import "src/engine.m": orbit_fibre, affine_matrix, fibre_counts, fibre_representatives;
+import "magma/enumeration/engine.m": orbit_fibre, affine_matrix, fibre_counts, fibre_representatives;
 
 // Arbitrary affine groups exceed the public census domain; brute force checks
 // the engine's invariant unions and shift quotient without using its counters.

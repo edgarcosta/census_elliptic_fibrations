@@ -11,7 +11,7 @@ to the repository conventions.
 - [docs/interface.md](docs/interface.md) - public calls, selections, and certificates.
 - [docs/mathematics.md](docs/mathematics.md) - equivalence, counting, and classification.
 - [docs/keys.md](docs/keys.md) - coefficient encodings and representative files.
-- [src/README.md](src/README.md) and [spec](spec) - package modules and attachment.
+- [magma/README.md](magma/README.md) and [spec](spec) - package modules and attachment.
 - [tests/README.md](tests/README.md) - independent checks and their limits;
   fixture READMEs under `tests/data/` record provenance and reproduction.
 - [.github/workflows/tests.yml](.github/workflows/tests.yml) and

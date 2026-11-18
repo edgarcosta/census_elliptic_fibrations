@@ -3,7 +3,7 @@
 Thank you for helping develop and check the census. These conventions keep
 the mathematics, its implementations and the published data consistent.
 
-Read the README for installation and test commands, `src/README.md` for the
+Read the README for installation and test commands, `magma/README.md` for the
 package layout, and the relevant guide under `docs/` before changing behavior.
 Keep details in their owning documents and update them with the implementation.
 `tests/README.md` describes the independent checks and their limits.

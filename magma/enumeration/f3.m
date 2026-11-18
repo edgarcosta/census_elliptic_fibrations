@@ -1,8 +1,8 @@
-import "forms.m": binary_basis, coefficients, form_from_vector, form_action;
-import "models.m": weierstrass_change, prefix_key_map, ambient_space, ambient_vector;
+import "../models/forms.m": binary_basis, coefficients, form_from_vector, form_action;
+import "../models/models.m": weierstrass_change, prefix_key_map, ambient_space, ambient_vector;
 import "engine.m": orbit_representatives, affine_matrix, orbit_fibre;
-import "minimality.m": nonminimal_locus;
-import "classification.m": generic_loci;
+import "../models/minimality.m": nonminimal_locus;
+import "../models/classification.m": generic_loci;
 
 function f3_prefixes(R)
     k := BaseRing(R);

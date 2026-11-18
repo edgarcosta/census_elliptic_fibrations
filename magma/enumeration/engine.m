@@ -1,4 +1,4 @@
-import "models.m": prime_field_key, prime_field_keys;
+import "../models/models.m": prime_field_key, prime_field_keys;
 
 function orbit_representatives(G)
     // The vector of least key in each orbit of G on its natural module,

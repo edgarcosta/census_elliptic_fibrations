@@ -1,4 +1,4 @@
-import "src/models.m": weierstrass_change, checked_model;
+import "magma/models/models.m": weierstrass_change, checked_model;
 import "tests/_weierstrass_change.m": equation_change;
 
 // Direct equation identities isolate substitution errors, including singular equations unavailable to EllipticCurve.
