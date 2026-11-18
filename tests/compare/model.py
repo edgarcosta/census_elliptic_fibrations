@@ -21,7 +21,9 @@ def test_magma_comparison(reference):
             assert got[field] == value, (context, field, got[field], value)
         supported = want["kind"] == "smooth" and want["minimality"] == "everywhere minimal"
         assert got["status"] == ("partial" if supported else "unsupported"), context
-        assert set(got) == set(want) | {"status"}, got
+        assert set(got) == set(want) | {"torsion", "torsion_points", "status"}, got
+        if not supported:
+            assert got["torsion"] == got["torsion_points"] == "", context
     for p in ("2", "3"):
         cells = {(row["kind"], row["minimality"]) for row in actual if row["q"] == p}
         assert len(cells) == 6, cells
