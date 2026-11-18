@@ -37,6 +37,8 @@ invocations, build ordering before native tests, and the guard against duplicate
 test basenames.
 `compare/native_model.m` compares native coefficients, both charts, six-cell
 labels and rejected input with Magma. The key tests pin monomials independently.
+`trace_tables.m` checks all table digests and independent low-degree traces;
+`compare/native_tables.m` checks native digests and interleaved requests.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, and `tests/compare/`,

@@ -11,6 +11,7 @@ classification, and file routines.
 - `models/minimality.m`: local congruences, nonminimal loci, bad-place certificates and `IsEverywhereMinimal`.
 - `models/classification.m`: generic-fibre kinds, singular/nonregular loci and `FibrationProperties`.
 - `enumeration/census.m`: public prefix, orbit-count, equation-count and representative intrinsics with selections.
+- `lfunction/trace_tables.m`: exact ordinary trace tables through `FibrationTraceTable`.
 - `records/files.m`: binary representative files, CSV summaries and completion metadata through `WriteFibrationRepresentativeKeys`.
 
 See the [root README](../README.md) for installation and test commands,
