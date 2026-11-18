@@ -16,6 +16,7 @@ procedure test_key_encoding_f3()
     expect_error(procedure() x := aInvariantsFromKey(R, -1); end procedure, "key is outside");
     expect_error(procedure() x := aInvariantsFromKey(R, 3^27); end procedure, "key is outside");
     expect_error(procedure() x := FibrationKey([R | s, 0, 0, 0, 0]); end procedure, "five homogeneous coefficients");
+    expect_error(procedure() x := FibrationKey([R | s^2+1, 0, 0, 0, 0]); end procedure, "five homogeneous coefficients");
     expect_error(procedure() x := FibrationKey([R | 0, 0, 0]); end procedure, "five homogeneous coefficients");
     expect_error(procedure() x := FibrationKey([0, 0, 0, 0, 0]); end procedure, "five homogeneous coefficients");
     S := PolynomialRing(GF(3^2), 2);

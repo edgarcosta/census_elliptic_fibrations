@@ -19,3 +19,16 @@ procedure test_minimality_certificates_f3()
 end procedure;
 
 test_minimality_certificates_f3();
+
+// Scaling x = pi^2*X, y = pi^3*Y gives a nodal model minimal away from pi.
+procedure test_singular_quadratic_place_f3()
+    R<s, t> := PolynomialRing(GF(3), 2);
+    pi := s^2+t^2;
+    W := [R | 0, pi^2, 0, 0, 0];
+    ok, certificate := IsEverywhereMinimal(W);
+    assert not ok and certificate eq <"finite", [R | pi]>;
+    kind, minimality := FibrationProperties(W);
+    assert kind eq "nonregular" and minimality eq "nonminimal somewhere";
+end procedure;
+
+test_singular_quadratic_place_f3();
