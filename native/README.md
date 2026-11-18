@@ -2,7 +2,8 @@
 
 Thanks for helping develop and check the native command. Its entry point is
 `main.cpp`. Key decoding, classification, and local reduction are in
-`models/`; exact trace tables and the twist sign are in `lfunction/`.
+`models/`; exact trace tables, the twist sign and signed L-polynomials are in
+`lfunction/`.
 Complete bounded torsion is in `invariants/`.
 The [model guide](../docs/native/models.md) describes its input and output.
 
@@ -75,6 +76,26 @@ make check/native_torsion_magma.m check/native_torsion.m
 The CSV appends `torsion`, `torsion_points`, and `torsion_orders` to the
 local and sign columns. Unsupported census cells have empty torsion fields.
 
+## Signed L-polynomials
+
+The [L-polynomial guide](../docs/native/lfunction.md) describes the
+coefficient encoding, the counting backends and the Magma comparisons.
+From the repository root:
+
+```sh
+make census-native census-native-scalar
+printf '2 4884480\n3 372699133912\n' | artifacts/native/census-native invariants --diagnostic
+printf '2 0 0 1 64 0\n' | artifacts/native/census-native invariants --coefficients --backend scalar
+make check/native_lfun_magma.m check/native_lfun.m
+```
+
+The CSV appends `lower_L`, `L_polynomial`, and `trace_sums` to the torsion
+columns. Unsupported census cells have empty L-polynomial fields.
+`--backend auto|scalar|avx2` selects the point-counting backend, and
+`artifacts/native/census-native-scalar` is built without the AVX2 code.
+`--coefficients` reads base-q coefficient codes `q a1 a2 a3 a4 a6` instead
+of `q key`.
+
 ## Compiler and library paths
 
 The Makefile accepts `CXX`, `CPPFLAGS`, `CXXFLAGS`, `LDFLAGS`, `LDLIBS`, and
@@ -95,5 +116,5 @@ and `LIBRARY_PATH` adds library search directories at link time. On Linux,
 runs. These variables take colon-separated paths. Set them in the calling
 shell when using a local library installation.
 
-After changing build flags or paths, remove `artifacts/native/census-native`
-or use `make -B census-native` to force a rebuild.
+After changing build flags or paths, remove the binaries in `artifacts/native/`
+or use `make -B census-native census-native-scalar` to force a rebuild.

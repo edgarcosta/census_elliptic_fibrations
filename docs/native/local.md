@@ -47,7 +47,8 @@ p is the characteristic. Tate reduction then minimizes at every bad place,
 including infinity. This is the Frobenius twist of the curve over the function
 field: powers of t also change. Its discriminant divisor need not have degree
 24, even when the original curve is a smooth minimal K3 model. This intrinsic
-does not compute a functional-equation sign.
+does not compute a functional-equation sign; `FibrationLPolynomial` does, as
+described in the [L-polynomial guide](lfunction.md).
 
 The fixed Magma controls in `tests/native_local_magma.m` compare
 reciprocal charts, pin split and nonsplit multiplicative traces and cycles,
@@ -103,7 +104,8 @@ The test generates 428 Magma reference rows from fixed equations and keys,
 including reciprocal charts and 100 distinct recurrence keys per characteristic.
 It compares every local and twist field, component cycles, L-polynomial degree,
 height, Tamagawa exponent and sign. Five explicit equations have literal
-aggregate expectations from their discriminant factorizations and Tate reductions.
+aggregate expectations from their discriminant factorizations and Tate reductions;
+these are checked against the `FibrationLPolynomial` record.
 Each characteristic must have at least 100 distinct keys and every Kodaira
 family among the original and twist fibres, including `I_n*` with n > 0.
 The sample also covers split and nonsplit fibres, nonrational closed places,

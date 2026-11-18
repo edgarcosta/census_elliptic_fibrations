@@ -39,7 +39,7 @@ The five degrees are `2,4,6,8,12`. The two charts satisfy
 The fibre coordinates change by `x_infinity=u^4*x`, `y_infinity=u^6*y`.
 The `partial` status records eligibility for arithmetic; these rows contain
 the decoded coefficients, classification, [local fibre and sign data](local.md),
-and [complete torsion](torsion.md).
+[complete torsion](torsion.md), and [signed L-polynomials](lfunction.md).
 
 ## Classification and minimality
 

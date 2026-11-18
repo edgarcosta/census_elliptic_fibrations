@@ -17,16 +17,9 @@ function encode_fibres(rows)
 end function;
 
 procedure check_known_aggregates(E, expected)
-    p := Characteristic(BaseRing(E));
-    original := FibrationLocalData(E);
-    twisted := FibrationLocalData(E : FrobeniusTwist := true);
-    height := &+[r`Degree*r`DiscriminantValuation : r in original] div 12;
-    twist_height := &+[r`Degree*r`DiscriminantValuation : r in twisted] div 12;
-    exponent := &+[Valuation(r`Tamagawa, p) : r in twisted]
-        - &+[Valuation(r`Tamagawa, p) : r in original];
-    sign := IsEven(twist_height-height+exponent) select 1 else -1;
-    degree := &+[r`Degree*r`Conductor : r in original]-4;
-    assert <sign, degree, height, twist_height, exponent> eq expected;
+    result := FibrationLPolynomial(E);
+    assert <result`Sign, result`Degree, result`Height,
+        result`TwistHeight, result`TamagawaExponent> eq expected;
 end procedure;
 
 procedure test_known_local_aggregates()

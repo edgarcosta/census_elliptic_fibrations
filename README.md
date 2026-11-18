@@ -162,6 +162,7 @@ the debugger on an error.
 - [Native models](docs/native/models.md): key decoding, both charts and six-cell classification.
 - [Complete torsion](docs/native/torsion.md): bounded torsion search, point orders and the K3 height proof.
 - [Native local records](docs/native/local.md): minimized Tate data, wild conductors, Frobenius twists, component cycles and the twist sign.
+- [Signed L-polynomials](docs/native/lfunction.md): exact coefficients, lower-half encoding, scalar and AVX2 counting, and independent Magma comparisons.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 
 Author: Edgar Costa

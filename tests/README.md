@@ -58,6 +58,15 @@ The F_3 samples include C4, C2 x C2 and C2 x C6.
 Both characteristics, trivial torsion, characteristic-primary torsion,
 and denominators of degree one are included. The native test also rejects
 a Magma subprocess and checks empty torsion fields for unsupported cells.
+`native_lfun_magma.m` compares complete signed L-polynomials with Magma's
+`LFunction`, run in a separate process, for four keys whose signs the
+prototype counter left open, wild and twist controls and unnormalized
+equations, each in both charts.
+`compare/native_lfun.m` compares native polynomials, lower coefficients and
+trace sums with fresh Magma results on 60 rows in both characteristics and
+charts. It runs the automatic, scalar, AVX2 when available, and scalar-only
+builds on the same input, checks coefficient input, rejects a Magma
+subprocess, and checks empty L-polynomial fields for unsupported cells.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, `tests/compare/`, and `examples/`,
