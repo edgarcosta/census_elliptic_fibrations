@@ -264,9 +264,6 @@ def test_commands(base):
 
 
 def test_parallel(base):
-    if not shutil.which('parallel'):
-        print('STAGE1_SKIP: GNU parallel is not installed')
-        return
     output = base / 'parallel'
     marker = base / 'failed-once'
     wrapper = base / 'controlled-native'
