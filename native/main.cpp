@@ -1,5 +1,6 @@
 #include "models/model.hpp"
 #include "lfunction/lfun.hpp"
+#include "invariants/invariants.hpp"
 
 #include <charconv>
 #include <cstdint>
@@ -15,14 +16,14 @@ void print_help(std::ostream& output) {
     output << "Usage: census-native <command>\n\n"
               "Commands:\n"
               "  help        Show this help\n"
-              "  invariants  Compute model, local fibre and sign data from q/key rows\n"
+              "  invariants  Compute model, local fibre, sign and torsion data from q/key rows\n"
               "  count       Count points on the ordinary cubic families\n\n"
               "Options:\n"
               "  -h, --help                Show this help\n"
               "  --diagnostic              Emit diagnostic comparison CSV (default)\n"
               "  --chart 'a_i(t,1)'        Input chart for invariants (default a_i(t,1))\n\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels, local fibres and twist sign.\n"
+              "Output: CSV with both charts, cell labels, local fibres, twist sign and torsion.\n"
               "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
     output << "\ncount reads p degree parameter rows.\n"
               "Parameter is an exponent 0 <= e < p^degree-1, or zero for parameter 0.\n"
@@ -66,10 +67,19 @@ void write_fibres(const std::vector<census::LocalFibre>& fibres) {
     }
 }
 
+template<typename T>
+void write_joined(const std::vector<T>& values, char separator) {
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i) std::cout << separator;
+        std::cout << values[i];
+    }
+}
+
 void invariants() {
     std::cout << "q,key,kind,minimality,status,chart,a1,a2,a3,a4,a6,"
                  "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6,"
-                 "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent\n";
+                 "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent,"
+                 "torsion,torsion_points,torsion_orders\n";
     std::string line;
     std::size_t line_number = 0;
     while (std::getline(std::cin, line)) {
@@ -86,9 +96,11 @@ void invariants() {
             const auto model = census::model_from_key(q, unsigned_integer(key, "key"));
             census::LocalModels local;
             census::SignData sign{};
+            census::TorsionData torsion;
             if (model.status == "partial") {
                 local = census::local_models(model);
                 sign = census::functional_equation_sign(local, model.q);
+                torsion = census::complete_torsion(model, local);
             }
             std::cout << model.q << ',' << model.key << ',' << model.kind << ','
                       << model.minimality << ',' << model.status << ",\""
@@ -102,7 +114,14 @@ void invariants() {
                 write_fibres(local.twist_fibres);
                 std::cout << ',' << sign.degree << ',' << sign.sign << ',' << sign.height
                           << ',' << sign.twist_height << ',' << sign.tamagawa_exponent;
-            } else std::cout << std::string(6, ',');
+                std::cout << ',';
+                if (torsion.factors.empty()) std::cout << "[]";
+                write_joined(torsion.factors, ' ');
+                std::cout << ',';
+                write_joined(torsion.points, ';');
+                std::cout << ',';
+                write_joined(torsion.orders, ' ');
+            } else std::cout << std::string(9, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());

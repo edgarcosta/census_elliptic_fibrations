@@ -3,6 +3,7 @@
 Thanks for helping develop and check the native command. Its entry point is
 `main.cpp`. Key decoding, classification, and local reduction are in
 `models/`; exact trace tables and the twist sign are in `lfunction/`.
+Complete bounded torsion is in `invariants/`.
 The [model guide](../docs/native/models.md) describes its input and output.
 
 From the repository root, build and run it with:
@@ -60,6 +61,19 @@ make check/native_local_magma.m check/native_local.m
 The CSV appends local and twist fibres, L-polynomial degree, sign, heights
 and the Tamagawa valuation difference to the model columns.
 Unsupported census cells have empty local and sign fields.
+
+## Complete torsion
+
+The [torsion guide](../docs/native/torsion.md) describes the group factors,
+point encodings, and complete K3 search bound. From the repository root:
+
+```sh
+printf '2 2151677952\n' | artifacts/native/census-native invariants --diagnostic
+make check/native_torsion_magma.m check/native_torsion.m
+```
+
+The CSV appends `torsion`, `torsion_points`, and `torsion_orders` to the
+local and sign columns. Unsupported census cells have empty torsion fields.
 
 ## Compiler and library paths
 

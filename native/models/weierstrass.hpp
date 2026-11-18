@@ -41,6 +41,7 @@ inline Coefficients polynomials(const std::array<std::vector<int>, 5>& coefficie
     return result;
 }
 
+// Height corrections triple valuations, including the value for a zero polynomial.
 inline constexpr int infinite_valuation = 1000000;
 
 inline int valuation(NTL::zz_pX f, const NTL::zz_pX& pi) {

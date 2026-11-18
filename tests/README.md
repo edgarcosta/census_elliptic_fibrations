@@ -50,6 +50,14 @@ positive-index `I*` fibres, wild conductors and minimized Frobenius twists.
 in both charts and characteristics, including every Kodaira family.
 Five explicit equations supply literal aggregate controls; the native test
 also checks that no Magma subprocess is started.
+`native_torsion_magma.m` checks fixed expected groups and coordinates,
+distinct points, the identity first, and rejected models.
+`compare/native_torsion.m` compares native results on 17 equations, each
+in both charts, with `FibrationTorsion`, which calls Magma's `TorsionSubgroup`.
+The F_3 samples include C4, C2 x C2 and C2 x C6.
+Both characteristics, trivial torsion, characteristic-primary torsion,
+and denominators of degree one are included. The native test also rejects
+a Magma subprocess and checks empty torsion fields for unsupported cells.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, `tests/compare/`, and `examples/`,

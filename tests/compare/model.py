@@ -33,7 +33,7 @@ def test_magma_comparison(reference):
         assert got["chart"] == CHART, context
         supported = want["kind"] == "smooth" and want["minimality"] == "everywhere minimal"
         assert got["status"] == ("partial" if supported else "unsupported"), context
-        assert set(got) == set(want) | LOCAL_FIELDS | {"chart", "status"}, got
+        assert set(got) == set(want) | LOCAL_FIELDS | {"torsion", "torsion_points", "torsion_orders", "chart", "status"}, got
     for p in ("2", "3"):
         cells = {(row["kind"], row["minimality"]) for row in actual if row["q"] == p}
         assert len(cells) == 6, cells
