@@ -35,10 +35,12 @@ and saved files. `published_counts.m` checks the printed census numbers;
 `native/native_build.m` checks the native build, help aliases, rejected
 invocations, build ordering before native tests, and the guard against duplicate
 test basenames.
+`compare/native_model.m` compares native coefficients, both charts, six-cell
+labels and rejected input with Magma. The key tests pin monomials independently.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
-entries in `tests/` and `tests/native/`, excluding the runner
-and helpers. See the [root README](../README.md#tests) for test
+entries in `tests/`, `tests/native/`, and `tests/compare/`,
+excluding the runner and helpers. See the [root README](../README.md#tests) for test
 commands and prerequisites.
 
 Native tests also need the [native build prerequisites](../native/README.md).

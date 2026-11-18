@@ -136,8 +136,9 @@ CI also checks the printed census numbers in this README, `docs/interface.md`
 and `docs/mathematics.md`; it does not execute Markdown code blocks.
 The tests need Magma, Python 3 (`python3`), a POSIX shell,
 and standard shell utilities. The Makefile needs GNU Make 4.2 or later.
-Native tests also need a C++17 compiler; see the
-[native build guide](native/README.md) for commands and compiler settings.
+Native tests also need a C++17 compiler and NTL and GMP development
+packages. See the [native build guide](native/README.md) for package names,
+commands and compiler settings.
 
 To run one file with the runner's `filename` parameter:
 
@@ -153,6 +154,7 @@ the debugger on an error.
 - [Contributing](CONTRIBUTING.md): implementation, test, data and writing conventions.
 - [Interface](docs/interface.md): intrinsics, selections, and certificates.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
+- [Native models](docs/native/models.md): key decoding, both charts and six-cell classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 
 Author: Edgar Costa

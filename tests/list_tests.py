@@ -6,7 +6,7 @@ import sys
 
 paths = sorted(
     path.as_posix()
-    for directory in ("tests", "tests/native")
+    for directory in ("tests", "tests/native", "tests/compare")
     for path in Path(directory).glob("*.m")
     if path.is_file() and not path.name.startswith("_")
     and path != Path("tests/run_tests.m")

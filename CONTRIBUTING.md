@@ -41,10 +41,11 @@ error handling and process exit to that runner.
 
 ## Tests and data
 
-Tests live in `tests/`, native tests in `tests/native/`, shared helpers in
-`tests/support/`, and fixtures in `tests/fixtures/`.
+Tests live in `tests/`, native-only tests in `tests/native/`, comparisons
+with Magma in `tests/compare/`, shared helpers in `tests/support/`, and
+fixtures in `tests/fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py`,
-which lists `.m` entries in `tests/` and `tests/native/`,
+which lists `.m` entries in `tests/`, `tests/native/`, and `tests/compare/`,
 excluding the runner and underscore-prefixed helpers.
 
 Test census mathematics or real failures. Use independent formulas,

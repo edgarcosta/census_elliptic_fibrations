@@ -5,6 +5,19 @@ procedure test_key_encoding_f2()
     R<s, t> := PolynomialRing(GF(2), 2);
     assert aInvariantsFromKey(R, 2^31+2^28+2^21+2^12) eq [R | s^2, 0, s^6, s^8, s^12];
     assert aInvariantsFromKey(R, 2^29+2^22+2^13+1) eq [R | t^2, 0, t^6, t^8, t^12];
+    P<z> := PolynomialRing(GF(2));
+    degrees := [2, 4, 6, 8, 12];
+    indices := [1, 3, 4, 5];
+    for i in indices do
+        for j in [0..degrees[i]] do
+            W := [R | 0, 0, 0, 0, 0];
+            W[i] := (2-1)*s^(degrees[i]-j)*t^j;
+            key := (2-1)*2^(&+([0] cat [degrees[k]+1 : k in indices | k gt i])+degrees[i]-j);
+            assert aInvariantsFromKey(R, key) eq W;
+            assert Evaluate(W[i], [z, P!1]) eq (2-1)*z^(degrees[i]-j);
+            assert Evaluate(W[i], [P!1, z]) eq (2-1)*z^j;
+        end for;
+    end for;
     keys := [0, 1] cat &cat[[2^d-1, 2^d] : d in [13, 22, 29, 32]];
     Prune(~keys);
     assert #keys gt 0;
