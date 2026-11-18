@@ -162,3 +162,17 @@ shell when using a local library installation.
 
 After changing build flags or paths, remove the binaries in `artifacts/native/`
 or use `make -B census-native census-native-scalar` to force a rebuild.
+
+## Complete F_2 comparison
+
+The [verification guide](../docs/native/verification.md) describes the complete
+F_2 population, coordinate-orbit matching, identities, and published columns.
+This check also needs Python 3.11 or later. From the repository root:
+
+```sh
+git lfs pull --include='tests/fixtures/full_f2/census.csv.zip' --exclude=''
+make check-native-invariants-f2
+```
+
+The comparison writes its summary, matches, missing rows, disagreements, and
+logs under `artifacts/full-f2/`. CI retains those files with a 30-minute limit.

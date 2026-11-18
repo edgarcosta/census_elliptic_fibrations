@@ -16,6 +16,8 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          lfs: false
 
       - name: Guard against duplicate test basenames
         run: python3 tests/list_tests.py > /dev/null
@@ -88,11 +90,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          lfs: ${{ matrix.target == 'tests/published_f2.m' || matrix.target == 'tests/archive_fixtures.m' || matrix.target == 'tests/archive_invariants.m' }}
+          lfs: false
+
+      - name: Fetch published F_2 sample
+        if: matrix.target == 'tests/published_f2.m'
+        run: git lfs pull --include='tests/fixtures/published-f2/sample.csv' --exclude=''
+
+      - name: Fetch archived orbit summaries
+        if: matrix.target == 'tests/archive_fixtures.m' || matrix.target == 'tests/archive_invariants.m'
+        run: git lfs pull --include='tests/fixtures/oldcode-archive/summaries.tsv' --exclude=''
 
       - name: Fetch trace-table fixtures
         if: matrix.target == 'tests/native_tables_magma.m'
         run: git lfs pull --include='tests/fixtures/trace_tables/*.txt' --exclude=''
+
+      - name: Fetch published F_2 census
+        if: matrix.target == 'tests/compare/native_full_f2.m'
+        run: git lfs pull --include='tests/fixtures/full_f2/census.csv.zip' --exclude=''
 
       - name: Cache magma
         uses: actions/cache@v3
@@ -133,3 +147,15 @@ jobs:
           export MAGMA="$PWD/artifacts/magma-install/magma/magma"
           export MAGMA_TEMP_DIR="$PWD/artifacts/test-tmp"
           "$MAGMA" -bn filename:=${{matrix.target}} tests/run_tests.m
+
+      - name: Save full F_2 comparison evidence
+        if: always() && matrix.target == 'tests/compare/native_full_f2.m'
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-full-f2
+          path: |
+            artifacts/full-f2/summary.json
+            artifacts/full-f2/unmatched-*.csv
+            artifacts/full-f2/disagreements.csv
+            artifacts/full-f2/matches.csv
+            artifacts/full-f2/*.log

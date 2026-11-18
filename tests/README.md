@@ -89,6 +89,11 @@ reconstructed L-polynomials with Magma's independent `LFunction`.
 fresh Magma records in both characteristics and charts. It checks all six
 cells, nontrivial torsion, singletons, ambiguous lists, malformed input,
 empty input, output failure, and that no Magma subprocess is started.
+`compare/native_full_f2.m` generates all six F_2 cells and checks identities
+on all 1,397,598 smooth minimal rows. It compares the 17 shared columns on
+all 1,249,569 published rows after matching coordinate orbits. The a1 class
+matches by construction. See the [comparison guide](../docs/native/verification.md)
+for provenance, coverage limits, and evidence files.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, `tests/compare/`, and `examples/`,
