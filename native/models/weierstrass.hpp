@@ -1,8 +1,10 @@
 #pragma once
 
 #include <NTL/lzz_pX.h>
+#include <cstdint>
 
 #include <array>
+#include <string>
 #include <vector>
 
 namespace census {
@@ -37,6 +39,21 @@ inline Coefficients polynomials(const std::array<std::vector<int>, 5>& coefficie
     Coefficients result;
     for (int i = 0; i < 5; ++i) result[i] = polynomial(coefficients[i]);
     return result;
+}
+
+inline constexpr int infinite_valuation = 1000000;
+
+inline int valuation(NTL::zz_pX f, const NTL::zz_pX& pi) {
+    if (NTL::IsZero(f)) return infinite_valuation;
+    int value = 0;
+    while (NTL::IsZero(f % pi)) { f /= pi; ++value; }
+    return value;
+}
+
+inline std::string polynomial_code(const NTL::zz_pX& f, unsigned q) {
+    std::uint64_t n = 0;
+    for (long i = NTL::deg(f); i >= 0; --i) n = n*q + NTL::rep(NTL::coeff(f, i));
+    return std::to_string(n);
 }
 
 }

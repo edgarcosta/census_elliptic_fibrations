@@ -156,6 +156,7 @@ the debugger on an error.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
 - [Exact trace tables](docs/native/tables.md): ordinary point counts and their exact recovery certificate.
 - [Native models](docs/native/models.md): key decoding, both charts and six-cell classification.
+- [Native local records](docs/native/local.md): minimized Tate data, wild conductors, Frobenius twists, component cycles and the twist sign.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 
 Author: Edgar Costa

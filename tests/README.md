@@ -39,6 +39,8 @@ test basenames.
 labels and rejected input with Magma. The key tests pin monomials independently.
 `trace_tables.m` checks all table digests and independent low-degree traces;
 `compare/native_tables.m` checks native digests and interleaved requests.
+`native_local_magma.m` checks reciprocal charts, wild fibres and twist controls.
+The model comparison also checks local records and signs.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, and `tests/compare/`,

@@ -33,7 +33,7 @@ The five degrees are `2,4,6,8,12`. The two charts satisfy
 `a_i(1,u) = u^(2i)*a_i(1/u,1)`, with `u=1/t`.
 The fibre coordinates change by `x_infinity=u^4*x`, `y_infinity=u^6*y`.
 The `partial` status records eligibility for arithmetic; these rows contain
-the decoded coefficients and classification.
+the decoded coefficients, classification, and [local fibre and sign data](local.md).
 
 ## Classification and minimality
 
