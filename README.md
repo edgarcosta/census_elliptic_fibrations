@@ -138,6 +138,8 @@ CI also checks the printed census numbers in this README, `docs/interface.md`
 and `docs/mathematics.md`; it does not execute Markdown code blocks.
 The tests need Magma, Python 3 (`python3`), Git LFS, a POSIX shell,
 and standard shell utilities. The Makefile needs GNU Make 4.2 or later.
+Native tests also need a C++17 compiler; see the
+[native build guide](native/README.md) for commands and compiler settings.
 If Git LFS was installed after cloning, run
 `git lfs pull` to download the fixtures before testing.
 

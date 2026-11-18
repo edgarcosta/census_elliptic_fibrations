@@ -33,9 +33,15 @@ The remaining tests check classification fixtures, counts and selections,
 coefficient encodings, coordinate substitutions, affine loci, minimality,
 and saved files. `published_counts.m` checks the printed census numbers;
 `runner.m` checks shell exit status for successful and failing assertions.
+`native/native_build.m` checks the native build, help aliases, rejected
+invocations, build ordering before native tests, and the guard against duplicate
+test basenames.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
-entries in `tests/` and `examples/`, excluding the runner and helpers. See the
-[root README](../README.md#tests-and-examples) for test commands and prerequisites.
+entries in `tests/`, `tests/native/`, and `examples/`, excluding the runner
+and helpers. See the [root README](../README.md#tests-and-examples) for test
+commands and prerequisites.
+
+Native tests also need the [native build prerequisites](../native/README.md).
 
 CI runs each test file as its own job with a 30-minute limit.
