@@ -5,7 +5,8 @@ Thanks for helping develop and check the native command. Its entry point is
 `models/`; exact trace tables, the twist sign and signed L-polynomials are in
 `lfunction/`.
 Complete bounded torsion, derived invariants, and Sha/regulator candidates
-are in `invariants/`. Shared CSV output helpers are in `records/`.
+are in `invariants/`. The exact CSV codec, zstd writer, and shared output
+helpers are in `records/`.
 The [model guide](../docs/native/models.md) describes its input and output.
 
 From the repository root, build and run it with:
@@ -15,9 +16,10 @@ make census-native
 artifacts/native/census-native --help
 ```
 
-The build needs GNU Make 4.2 or later, a C++17 compiler, NTL, FLINT, and GMP.
+The build needs GNU Make 4.2 or later, a C++17 compiler, NTL, FLINT, GMP, and zstd.
 On Debian or Ubuntu, install `g++`, `make`, `python3`, `libntl-dev`,
-`libflint-dev`, and `libgmp-dev` for the build and its checks.
+`libflint-dev`, `libgmp-dev`, `libzstd-dev`, and `zstd` for the build
+and its checks. The `zstd` package also provides `zstdcat` for inspecting output.
 
 `help`, `--help`, and `-h` print help to standard output and exit with status
 0. Missing commands, unknown commands, and extra help arguments print usage
@@ -86,7 +88,7 @@ From the repository root:
 ```sh
 make census-native census-native-scalar
 printf '2 4884480\n3 372699133912\n' | artifacts/native/census-native invariants --diagnostic
-printf '2 0 0 1 64 0\n' | artifacts/native/census-native invariants --coefficients --backend scalar
+printf '2 0 0 1 64 0\n' | artifacts/native/census-native invariants --diagnostic --coefficients --backend scalar
 make check/native_lfun_magma.m check/native_lfun.m
 ```
 
@@ -117,12 +119,33 @@ regulator, Brauer order, and absolute base-field NS discriminant.
 An unresolved split leaves those four individual fields blank.
 Unsupported census cells have empty derived and candidate fields.
 
+## Compressed invariant records
+
+The [record guide](../docs/native/records.md) defines the exact CSV schema,
+status meanings, and Magma codec. The default output is one zstd frame at
+level 9 with a checksum. From the repository root:
+
+```sh
+printf '2 1077936128\n3 320009441124\n' | artifacts/native/census-native invariants > artifacts/rows.csv.zst
+zstdcat artifacts/rows.csv.zst
+make check/native_records_magma.m check/native_records.m
+make check-native-invariants
+```
+
+The frame begins with the 18-column header. Unknown arithmetic stays empty;
+known empty lists use `[]`. Every admissible Sha order is retained.
+`--diagnostic` selects the expanded, uncompressed CSV used above.
+Malformed input ends the stream after its preceding records, with a
+line-numbered error. A computation failure retains completed arithmetic
+in an `error` row and continues; either failure gives a nonzero exit status.
+The native computation starts no Magma process.
+
 ## Compiler and library paths
 
 The Makefile accepts `CXX`, `CPPFLAGS`, `CXXFLAGS`, `LDFLAGS`, `LDLIBS`, and
 `NATIVE_LDLIBS` as command-line overrides. `CXXFLAGS` defaults to
 `-O2 -Wall -Wextra -Wpedantic`; the build adds `-std=c++17`.
-`NATIVE_LDLIBS` defaults to `-lntl -lflint -lgmpxx -lgmp`.
+`NATIVE_LDLIBS` defaults to `-lntl -lflint -lgmpxx -lgmp -lzstd`.
 
 For headers or libraries installed outside the compiler's default paths,
 pass include and library search paths explicitly:

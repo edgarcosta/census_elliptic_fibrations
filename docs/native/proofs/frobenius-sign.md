@@ -88,7 +88,7 @@ factor log(q)^r in the logarithmic regulator. This specializes the
 normalization in [Ulmer, Curves and Jacobians over function fields,
 "Heights" and "The refined BSD conjecture"](https://arxiv.org/html/1203.5573).
 In particular, for the K3 curve (BSD) gives
-#Sha(E)*Reg(E) = q*B(E)*t_E^2/C(E), with the rational height pairing above.
+#Sha(E)*Reg(E) = q*B(E)*t_E^2/C(E), as in the invariant records.
 
 The needed finiteness is unconditional for these entries. The Tate
 conjecture holds for X by [Madapusi Pera, Theorem 1](https://arxiv.org/html/1301.6326)

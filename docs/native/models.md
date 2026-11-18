@@ -19,7 +19,9 @@ Earlier valid rows may already have been written.
 
 The input chart is `a_i(t,1)`. You can state it explicitly with
 `invariants --chart 'a_i(t,1)'`; any other chart argument is rejected.
-The output is uncompressed CSV. `--diagnostic` selects the same CSV. Its model columns are:
+The default output is [compressed invariant CSV](records.md).
+`--diagnostic` selects expanded, uncompressed comparison CSV. Its model
+columns are:
 
 | Column | Meaning |
 | --- | --- |

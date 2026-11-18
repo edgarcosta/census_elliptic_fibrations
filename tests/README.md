@@ -80,6 +80,15 @@ rank-12 constant extension.
 `compare/native_candidates.m` checks 16 equation rows in both charts and
 192 supplied controls against Magma. Both native comparisons reject a
 Magma subprocess and check blank fields for unsupported cells.
+`native_records_magma.m` checks literal CSV bytes, quoted messages, exact
+integers above 2^53, rational reduction, unknown and empty lists, and rejected
+records. Computed rows cover all six cells in both characteristics,
+nontrivial torsion, singletons, and ambiguous lists. Fixed curves also compare
+reconstructed L-polynomials with Magma's independent `LFunction`.
+`compare/native_records.m` compares decompressed output byte for byte with
+fresh Magma records in both characteristics and charts. It checks all six
+cells, nontrivial torsion, singletons, ambiguous lists, malformed input,
+empty input, output failure, and that no Magma subprocess is started.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, `tests/compare/`, and `examples/`,

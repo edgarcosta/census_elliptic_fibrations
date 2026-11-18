@@ -17,6 +17,7 @@ intrinsics and their private orbit, classification, and file routines.
 - `invariants/torsion.m`: complete torsion factors and point sets through `FibrationTorsion`.
 - `invariants/invariants.m`: exact ranks, cohomology, formal height and BSD/Artin-Tate products through `FibrationInvariants`.
 - `invariants/candidates.m`: admissible Sha orders and corresponding regulators through `FibrationCandidates`.
+- `records/records.m`: exact invariant rows and versioned CSV through `FibrationInvariantRow` and `FibrationInvariantCSV`.
 - `records/files.m`: binary representative files, CSV summaries and completion metadata through `WriteFibrationRepresentativeKeys`.
 
 From Magma in the repository root, attach the package:

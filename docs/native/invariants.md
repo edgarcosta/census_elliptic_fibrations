@@ -137,9 +137,10 @@ denominator. Infinite formal height is written `infinity`.
 | `sha_reg` | `ShaRegulatorProduct` |
 
 Lists use ascending polynomial coefficients or increasing extension degree.
-Booleans are `true` or `false`. Supported rows retain `partial` status;
+Booleans are `true` or `false`. Supported diagnostic rows retain `partial` status;
 unsupported cells have blank derived fields. Invalid keys stop the command
-with its existing line-numbered diagnostic.
+with a line-numbered diagnostic. The default [compressed records](records.md)
+retain completed arithmetic when a later computation fails.
 
 The [candidate columns](candidates.md#native-command) preserve every
 admissible Sha order and matching regulator. Individual values are emitted

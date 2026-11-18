@@ -19,6 +19,8 @@ def fake_magma():
         yield {**os.environ, "PATH": directory, "MAGMA": str(sentinel)}, marker
 
 
-def invoke(text, *options, **kwargs):
-    return subprocess.run([BINARY, "invariants", "--diagnostic", *options],
-                          input=text, capture_output=True, text=True, cwd=ROOT, **kwargs)
+def invoke(text, *options, diagnostic=True, **kwargs):
+    mode = ["--diagnostic"] if diagnostic else []
+    return subprocess.run([BINARY, "invariants", *mode, *options],
+                          input=text if diagnostic else text.encode("ascii"),
+                          capture_output=True, text=diagnostic, cwd=ROOT, **kwargs)
