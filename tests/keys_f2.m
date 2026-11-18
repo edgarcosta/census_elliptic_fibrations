@@ -25,3 +25,123 @@ procedure test_key_encoding_f2()
 end procedure;
 
 test_key_encoding_f2();
+
+// Pins both charts and weighted coefficients without normalization or minimization.
+// Built-in forms share these inputs to check overload registration and dispatch.
+procedure test_model_conversions_f2()
+    R<s, t> := PolynomialRing(GF(2), 2);
+    F<u> := FunctionField(GF(2));
+    // Rank-one function fields can have multivariate polynomial numerators.
+    G := FunctionField(GF(2), 1);
+    fixtures := [
+        <[F | 1, 1, 0, 0, 1],
+         [R | t^2, t^4, 0, 0, t^12],
+         [F | u^2, u^4, 0, 0, u^12]>,
+        <[F | u^2+u+1, u^4+u, u^6+u^2+1, u^8+u^3, u^12+u+1],
+         [R | s^2+s*t+t^2, s^4+s*t^3, s^6+s^2*t^4+t^6,
+                s^8+s^3*t^5, s^12+s*t^11+t^12],
+         [F | 1+u+u^2, 1+u^3, 1+u^4+u^6, 1+u^5, 1+u^11+u^12]>];
+    assert #fixtures gt 0;
+    for fixture in fixtures do
+        A, W, reciprocal := Explode(fixture);
+        E := EllipticCurve(A);
+        assert aInvariants(E) eq A;
+        assert aInvariants(E, R) eq W;
+        assert aInvariants(EllipticCurve(W, F)) eq A;
+        assert aInvariants(EllipticCurve(W, G), R) eq W;
+        Einf := EllipticCurve(W, F : Infinity := true);
+        assert aInvariants(Einf) eq reciprocal;
+        assert aInvariants(EllipticCurve(reciprocal)) eq reciprocal;
+    end for;
+    assert aInvariants(EllipticCurve(fixtures[1][3]), R)
+        eq [R | s^2, s^4, 0, 0, s^12];
+end procedure;
+
+test_model_conversions_f2();
+
+procedure test_conversion_degree_bounds_f2()
+    R := PolynomialRing(GF(2), 2);
+    F<u> := FunctionField(GF(2));
+    degrees := [2, 4, 6, 8, 12];
+    for i in [1..5] do
+        A := [F | 1, 1, 0, 0, 1];
+        A[i] := u^(degrees[i]+1);
+        E := EllipticCurve(A);
+        expect_error(procedure() x := aInvariants(E, R); end procedure,
+            "coefficients must be polynomials of degrees at most 2,4,6,8,12");
+    end for;
+end procedure;
+
+test_conversion_degree_bounds_f2();
+
+procedure test_conversion_poles_f2()
+    R := PolynomialRing(GF(2), 2);
+    F<u> := FunctionField(GF(2));
+    for i in [1..5] do
+        A := [F | 1, 1, 0, 0, 1];
+        A[i] := 1/u;
+        E := EllipticCurve(A);
+        expect_error(procedure() x := aInvariants(E, R); end procedure,
+            "coefficients must be polynomials of degrees at most 2,4,6,8,12");
+    end for;
+end procedure;
+
+test_conversion_poles_f2();
+
+procedure test_conversion_model_shape_f2()
+    R<s, t> := PolynomialRing(GF(2), 2);
+    F := FunctionField(GF(2));
+    for a6 in [s, s^12+s] do
+        W := [R | t^2, t^4, 0, 0, t^12];
+        W[5] := a6;
+        expect_error(procedure() E := EllipticCurve(W, F); end procedure,
+            "five homogeneous coefficients");
+    end for;
+    expect_error(procedure() E := EllipticCurve([R | 0, 0, 0], F);
+        end procedure, "five homogeneous coefficients");
+    expect_error(procedure() E := EllipticCurve([0, 0, 0, 0, 0], F);
+        end procedure, "five homogeneous coefficients");
+    S := PolynomialRing(GF(2), 3);
+    expect_error(procedure() E := EllipticCurve([S | 0, 0, 0, 0, 0], F);
+        end procedure, "five homogeneous coefficients");
+    E := EllipticCurve([F | 1, 1, 0, 0, 1]);
+    expect_error(procedure() W := aInvariants(E, S); end procedure,
+        "binary polynomial ring");
+end procedure;
+
+test_conversion_model_shape_f2();
+
+procedure test_conversion_constant_fields_f2()
+    R<s, t> := PolynomialRing(GF(2), 2);
+    H := FunctionField(GF(2^2));
+    S<v, w> := PolynomialRing(GF(2^2), 2);
+    W := [R | t^2, t^4, 0, 0, t^12];
+    E := EllipticCurve([H | 1, 1, 0, 0, 1]);
+    expect_error(procedure() C := EllipticCurve(W, H); end procedure,
+        "same constant field");
+    expect_error(procedure() A := aInvariants(E, R); end procedure,
+        "same constant field");
+    V := [S | Evaluate(a, [v, w]) : a in W];
+    expect_error(procedure() C := EllipticCurve(V, H); end procedure,
+        "five homogeneous coefficients");
+    expect_error(procedure() A := aInvariants(E, S); end procedure,
+        "binary polynomial ring");
+end procedure;
+
+test_conversion_constant_fields_f2();
+
+procedure test_conversion_singular_models_f2()
+    R<s, t> := PolynomialRing(GF(2), 2);
+    F := FunctionField(GF(2));
+    models := [[R | 0, 0, 0, 0, s*t^11], [R | 0, 0, 0, 0, 0],
+        [R | t^2, 0, 0, 0, 0],
+        // Normalization gives discriminant 1+1 = 0 in the finite chart.
+        [R | t^2, t^4, t^6, 0, t^12]];
+    assert #models gt 0;
+    for W in models do
+        expect_error(procedure() E := EllipticCurve(W, F); end procedure,
+            "W must have nonzero discriminant");
+    end for;
+end procedure;
+
+test_conversion_singular_models_f2();
