@@ -118,8 +118,8 @@ be rejected. Preparation rejects stale
 identity even when GNU parallel has logged all jobs as successful; final
 verification rejects damaged output that the job log would skip.
 The pilot checks fixed native candidate lists against Magma and independent
-L-values, and enumerates one largest prefix. GNU parallel checks are skipped
-when it is not installed. Temporary output stays under `artifacts/` and is
-removed after success or failure. These tests do not simulate low free disk,
+L-values, and enumerates one largest prefix. GNU parallel is required for
+these checks. Temporary output stays under `artifacts/` and is removed after
+success or failure. These tests do not simulate low free disk,
 enumerate all F_3 representatives or measure EPYC throughput and memory.
 Counting and listing use the same package mathematics.

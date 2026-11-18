@@ -114,6 +114,6 @@ use the command's exit status to judge its result.
 
 Run `make check/run_stage1.m` for the command checks and the native suite for
 arithmetic controls. The command checks cover GNU parallel failure, cancellation
-and resume when it is installed. They do not simulate low free disk space or
+and resume; GNU parallel is required. They do not simulate low free disk space or
 measure EPYC resource peaks. Monitor free space, including failed attempts,
 and use ordinary host tools to measure memory and choose the job count.

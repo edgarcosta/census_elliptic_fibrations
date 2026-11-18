@@ -303,9 +303,6 @@ def test_commands(base):
 
 
 def test_parallel(base):
-    if not shutil.which('parallel'):
-        print('STAGE1_SKIP: GNU parallel is not installed')
-        return
     output = base / 'parallel'
     marker = base / 'failed-once'
     held = base / 'held'
@@ -357,7 +354,6 @@ def test_parallel(base):
     call('verify', 3, output, '--prefixes', '1,2,3', '--native', wrapper, ok=False)
     wrapper.write_text(wrapper.read_text() + '\n')
     call('prepare', 3, output, '--prefixes', '1,2,3', '--native', wrapper, ok=False)
-    print('STAGE1_PARALLEL_OK: failure, cancellation and resume')
 
 
 if __name__ == '__main__':
@@ -369,4 +365,3 @@ if __name__ == '__main__':
             output = base / test.__name__
             output.mkdir()
             test(output)
-    print('STAGE1_OK: both fields, exact streams, recovery, failures and pilot')
