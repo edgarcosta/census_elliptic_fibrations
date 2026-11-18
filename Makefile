@@ -2,7 +2,7 @@ MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
-NATIVE_LDLIBS =
+NATIVE_LDLIBS = -lntl -lgmp
 NATIVE_BINARY := artifacts/native/census-native
 
 TEST_PATHS := $(shell python3 tests/list_tests.py)
@@ -17,9 +17,12 @@ all: check
 
 census-native: $(NATIVE_BINARY)
 
-$(NATIVE_BINARY): native/main.cpp
+NATIVE_SOURCES := native/main.cpp $(wildcard native/*/*.cpp)
+NATIVE_HEADERS := $(wildcard native/*/*.hpp)
+
+$(NATIVE_BINARY): $(NATIVE_SOURCES) $(NATIVE_HEADERS)
 	@mkdir -p $(@D)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $< $(NATIVE_LDLIBS) $(LDLIBS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $(NATIVE_SOURCES) $(NATIVE_LDLIBS) $(LDLIBS)
 
 NATIVE_CHECKS := $(filter check/native_%,$(CHECK_FILES))
 $(NATIVE_CHECKS) $(NATIVE_CHECKS:check/%=debug/%): census-native
