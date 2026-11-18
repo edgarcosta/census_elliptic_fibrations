@@ -11,6 +11,8 @@
     lfunction/trace_tables.m
     lfunction/lfun.m
     invariants/torsion.m
+    invariants/invariants.m
+    invariants/candidates.m
     records/files.m
     enumeration/census.m
 }

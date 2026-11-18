@@ -1,0 +1,174 @@
+import "tests/support/_support.m": expect_error;
+import "tests/support/_native_candidate_samples.m": candidate_samples;
+
+reference_output := assigned referencepath select referencepath else "";
+
+function wire(values)
+    return IsEmpty(values) select "[]" else Join([Sprint(v) : v in values], " ");
+end function;
+
+// Optional reference output reuses every mathematical assertion below;
+// candidates_reference.m sets referencepath before loading this file.
+function candidates(data, fibres)
+    sha, regulators := FibrationCandidates(data, fibres);
+    if reference_output ne "" then
+        rows := [Join([r`Type, Sprint(r`Index), Sprint(r`Tamagawa), Sprint(r`Degree)], ":")
+            : r in fibres];
+        fprintf reference_output, "%o,%o,%o,%o,%o,%o,%o\n", data`Rank, data`PicardNumber,
+            data`ArtinTateProduct, data`ShaRegulatorProduct,
+            IsEmpty(rows) select "[]" else Join(rows, ";"), wire(sha), wire(regulators);
+    end if;
+    return sha, regulators;
+end function;
+
+if assigned referencepath then
+    file := Open(referencepath, "w");
+    delete file;
+    fprintf referencepath, "rank,picard_number,artin_tate_product,sha_reg,fibres,admissible_sha,admissible_regulators\n";
+end if;
+
+// The Python prototypes supply literal lists, including the Hermite exclusions.
+procedure check_candidates(E, expected)
+    data := FibrationInvariants(E);
+    sha, regulators := candidates(data, FibrationLocalData(E));
+    assert sha eq expected;
+    assert #sha eq #regulators and #sha gt 0;
+    assert sha eq Sort(Setseq(Seqset(sha)));
+    for i in [1..#sha] do
+        assert sha[i] gt 0 and IsSquare(sha[i]);
+        assert regulators[i] gt 0;
+        assert sha[i]*regulators[i] eq data`ShaRegulatorProduct;
+    end for;
+end procedure;
+
+// Actual K3 equations retain both rank-one and higher-rank ambiguity.
+procedure test_fixed_candidates()
+    for p in [2, 3] do
+        F<t> := FunctionField(GF(p));
+        for sample in candidate_samples(F) do
+            check_candidates(EllipticCurve(sample[1]), sample[2]);
+        end for;
+    end for;
+    F<t> := FunctionField(GF(2));
+    sha, regulators := FibrationCandidates(EllipticCurve([F | 0, 0, 1, t^7, 0]));
+    assert sha eq [1, 4] and regulators eq [Rationals() | 14, 7/2];
+    sha, regulators := FibrationCandidates(EllipticCurve([F | t^2, 0, 1, 0, 0]));
+    assert sha eq [1] and regulators eq [Rationals() | 1];
+    F<t> := FunctionField(GF(3));
+    sha, regulators := FibrationCandidates(EllipticCurve([F | 0, t^4+1, 0, t^4, 0]));
+    assert regulators eq [Rationals() | 3/4];
+end procedure;
+
+// Supplied arithmetic controls pin every rational-component correction family.
+procedure test_rational_component_corrections()
+    D := recformat<Rank, PicardNumber, ArtinTateProduct, ShaRegulatorProduct>;
+    F := recformat<Type, Index, Tamagawa, Degree>;
+    cases := [
+        <"I", 1, 1, 1, [Rationals() | 4]>,
+        <"I", 4, 4, 1, [Rationals() | 4, 13/4, 3]>,
+        <"I", 4, 2, 1, [Rationals() | 4, 3]>,
+        <"I", 3, 1, 1, [Rationals() | 4]>,
+        <"I*", 0, 1, 1, [Rationals() | 4]>,
+        <"I*", 0, 2, 1, [Rationals() | 4, 3]>,
+        <"I*", 0, 4, 1, [Rationals() | 4, 3]>,
+        <"I*", 9, 2, 1, [Rationals() | 4, 3]>,
+        <"I*", 9, 4, 1, [Rationals() | 4, 3, 11/4, 3/4]>,
+        <"II", 0, 1, 1, [Rationals() | 4]>,
+        <"II*", 0, 1, 1, [Rationals() | 4]>,
+        <"III", 0, 2, 1, [Rationals() | 4, 7/2]>,
+        <"III", 0, 2, 3, [Rationals() | 4, 5/2]>,
+        <"IV", 0, 1, 1, [Rationals() | 4]>,
+        <"IV", 0, 3, 1, [Rationals() | 4, 10/3]>,
+        <"IV*", 0, 1, 1, [Rationals() | 4]>,
+        <"IV*", 0, 3, 1, [Rationals() | 4, 8/3]>,
+        <"III*", 0, 2, 1, [Rationals() | 4, 5/2]>];
+    heights := [Rationals() | 4, 7/2, 10/3, 13/4, 3, 11/4, 8/3, 5/2, 3/4];
+    for c in cases do
+        rows := [rec<F | Type := c[1], Index := c[2], Tamagawa := c[3], Degree := c[4]>];
+        for h in heights do
+            data := rec<D | Rank := 1, PicardNumber := 2,
+                ArtinTateProduct := 1, ShaRegulatorProduct := h>;
+            sha, regulators := candidates(data, rows);
+            assert sha eq (h in c[5] select [Integers() | 1] else [Integers() |]);
+            assert regulators eq (h in c[5] select [Rationals() | h] else [Rationals() |]);
+        end for;
+    end for;
+end procedure;
+
+// Large square divisors must be enumerated exactly without a square-root scan.
+procedure test_large_exact_candidates()
+    D := recformat<Rank, PicardNumber, ArtinTateProduct, ShaRegulatorProduct>;
+    data := rec<D | Rank := 1, PicardNumber := 3,
+        ArtinTateProduct := 4*9^20, ShaRegulatorProduct := 4*9^20>;
+    sha, regulators := candidates(data, []);
+    assert sha eq [9^i : i in [0..20]];
+    assert regulators eq [Rationals() | 4*9^(20-i) : i in [0..20]];
+    assert sha[#sha] gt 2^53;
+    assert &and[sha[i]*regulators[i] eq 4*9^20 : i in [1..#sha]];
+    data`Rank := 0;
+    data`PicardNumber := 2;
+    data`ShaRegulatorProduct := 9^20;
+    sha, regulators := candidates(data, []);
+    assert sha eq [9^20] and regulators eq [Rationals() | 1];
+    data`ShaRegulatorProduct := 2;
+    sha, regulators := candidates(data, []);
+    assert IsEmpty(sha) and IsEmpty(regulators);
+end procedure;
+
+// The rank-12 constant extension retains every candidate from Hermite's bound.
+procedure test_constant_extension_candidates()
+    F<t> := FunctionField(GF(3));
+    E := EllipticCurve([F | 0, 0, 0, 1, t^7]);
+    P<T> := PolynomialRing(Rationals());
+    L := P!LFunction(E);
+    extended := ReciprocalPolynomial(WeilPolynomialOverFieldExtension(
+        ReciprocalPolynomial(L), 6));
+    assert extended eq (1-729*T)^12;
+    fibres := FibrationLocalData(E);
+    assert #fibres eq 1;
+    assert fibres[1]`Type eq "II*" and fibres[1]`Tamagawa eq 1;
+    assert fibres[1]`Place cmpeq "inf" and fibres[1]`Degree eq 1;
+    assert fibres[1]`ComponentCycles eq [1 : i in [1..8]];
+    F<t> := FunctionField(GF(729));
+    E := EllipticCurve([F | 0, 0, 0, 1, t^7]);
+    information := LocalInformation(E);
+    assert #information eq 1 and Sprint(information[1][5]) eq "II*";
+    assert information[1][4] eq 1 and information[1][2] eq 24;
+    assert Degree(information[1][1]) eq 1 and not IsFinite(information[1][1]);
+    // The II* components stay rational; zero corrections rule out torsion.
+    data := FibrationInvariants(E, extended, fibres, []);
+    assert data`Rank eq 12 and data`PicardNumber eq 22;
+    assert data`ArtinTateProduct eq 729 and data`ShaRegulatorProduct eq 729;
+    sha, regulators := candidates(data, fibres);
+    assert sha eq [1, 9, 81, 729];
+    assert regulators eq [Rationals() | 729, 81, 9, 1];
+    assert &and[sha[i]*regulators[i] eq 729 : i in [1..#sha]];
+end procedure;
+
+// Above the tabulated Hermite ranks, the conservative bound retains valid pairs.
+procedure test_high_rank_hermite_bound()
+    D := recformat<Rank, PicardNumber, ArtinTateProduct, ShaRegulatorProduct>;
+    for r in [3..20] do
+        data := rec<D | Rank := r, PicardNumber := r+2,
+            ArtinTateProduct := 4^r, ShaRegulatorProduct := 4^r>;
+        sha, regulators := candidates(data, []);
+        assert 1 in sha;
+        assert &and[sha[i]*regulators[i] eq 4^r : i in [1..#sha]];
+        if r eq 3 then assert sha eq [1]; end if;
+        if r in [4, 5] then assert sha eq [1, 4]; end if;
+        if r eq 6 then
+            assert sha eq [1, 4, 16, 64];
+            assert regulators eq [Rationals() | 4096, 1024, 256, 64];
+        end if;
+    end for;
+    data := rec<D | Rank := 21, PicardNumber := 22,
+        ArtinTateProduct := 1, ShaRegulatorProduct := 1>;
+    expect_error(procedure() sha, regulators := candidates(data, []);
+        end procedure, "rank must be between 0 and 20");
+end procedure;
+
+test_fixed_candidates();
+test_rational_component_corrections();
+test_large_exact_candidates();
+test_constant_extension_candidates();
+test_high_rank_hermite_bound();

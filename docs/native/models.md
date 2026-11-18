@@ -37,9 +37,10 @@ To change charts, reverse a list padded to its homogeneous degree plus one.
 The five degrees are `2,4,6,8,12`. The two charts satisfy
 `a_i(1,u) = u^(2i)*a_i(1/u,1)`, with `u=1/t`.
 The fibre coordinates change by `x_infinity=u^4*x`, `y_infinity=u^6*y`.
-The `partial` status records eligibility for arithmetic; these rows contain
+The `partial` status records eligibility for arithmetic. These rows contain
 the decoded coefficients, classification, [local fibre and sign data](local.md),
-[complete torsion](torsion.md), and [signed L-polynomials](lfunction.md).
+[complete torsion](torsion.md), [signed L-polynomials](lfunction.md),
+[derived invariants](invariants.md), and [Sha/regulator candidates](candidates.md).
 
 ## Classification and minimality
 

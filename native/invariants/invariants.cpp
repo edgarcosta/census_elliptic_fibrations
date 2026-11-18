@@ -1,11 +1,18 @@
 #include "invariants.hpp"
+#include "../records/format.hpp"
 #include "../models/weierstrass.hpp"
 
 #include <NTL/lzz_pX.h>
+#include <flint/fmpq.h>
+#include <flint/fmpz.h>
+#include <flint/fmpz_poly.h>
+#include <flint/fmpz_factor.h>
 #include <gmpxx.h>
 
 #include <algorithm>
 #include <numeric>
+#include <ostream>
+#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -260,6 +267,324 @@ TorsionData complete_torsion(const Model& model, const LocalModels& local) {
     if (first > 1) result.factors.push_back(first);
     if (exponent > 1) result.factors.push_back(exponent);
     return result;
+}
+
+namespace {
+using Z = mpz_class;
+using Poly = std::vector<Z>;
+
+struct IntegerPolynomial {
+    fmpz_poly_t value;
+
+    explicit IntegerPolynomial(const Poly& coefficients = {}) {
+        fmpz_poly_init2(value, coefficients.size());
+        for (std::size_t i = 0; i < coefficients.size(); ++i) fmpz_set_mpz(value->coeffs+i, coefficients[i].get_mpz_t());
+        _fmpz_poly_set_length(value, coefficients.size());
+        _fmpz_poly_normalise(value);
+    }
+    ~IntegerPolynomial() { fmpz_poly_clear(value); }
+    IntegerPolynomial(const IntegerPolynomial&) = delete;
+    IntegerPolynomial& operator=(const IntegerPolynomial&) = delete;
+
+    Poly coefficients() const {
+        Poly result(fmpz_poly_length(value));
+        for (std::size_t i = 0; i < result.size(); ++i) {
+            fmpz_get_mpz(result[i].get_mpz_t(), value->coeffs+i);
+        }
+        return result;
+    }
+};
+
+Z integer_power(const Z& base, int exponent) {
+    Z value;
+    mpz_pow_ui(value.get_mpz_t(), base.get_mpz_t(), exponent);
+    return value;
+}
+
+void multiply_binomial(Poly& a, int n, const Z& q) {
+    IntegerPolynomial product(a), factor;
+    fmpz_poly_set_coeff_si(factor.value, 0, 1);
+    fmpz_t scale;
+    fmpz_init(scale);
+    fmpz_set_mpz(scale, q.get_mpz_t());
+    fmpz_pow_ui(scale, scale, n);
+    fmpz_neg(scale, scale);
+    fmpz_poly_set_coeff_fmpz(factor.value, n, scale);
+    fmpz_clear(scale);
+    fmpz_poly_mul(product.value, product.value, factor.value);
+    a = product.coefficients();
+}
+
+Q evaluate_inverse(const IntegerPolynomial& polynomial, const Z& q) {
+    const Q inverse = Q(1)/q;
+    fmpq_t point, value;
+    fmpq_init(point);
+    fmpq_init(value);
+    fmpq_set_mpq(point, inverse.get_mpq_t());
+    fmpz_poly_evaluate_fmpq(value, polynomial.value, point);
+    Q result;
+    fmpq_get_mpq(result.get_mpq_t(), value);
+    fmpq_clear(value);
+    fmpq_clear(point);
+    return result;
+}
+
+void include_order(Z& degree, int n) {
+    mpz_lcm_ui(degree.get_mpz_t(), degree.get_mpz_t(), n);
+}
+
+const std::vector<std::pair<int, Poly>>& cyclotomic_factors() {
+    static const auto factors = [] {
+        std::vector<std::pair<int, Poly>> result;
+        // phi(n) >= sqrt(n/2); a factor of an L-polynomial has degree <= 20.
+        fmpz_poly_t f;
+        fmpz_poly_init(f);
+        for (int n = 1; n <= 2*20*20; ++n) {
+            fmpz_poly_cyclotomic(f, n);
+            const int degree = fmpz_poly_degree(f);
+            if (degree > 20) continue;
+            Poly c(degree+1);
+            for (int i = 0; i <= degree; ++i) c[i] = fmpz_poly_get_coeff_si(f, i);
+            if (c[0] < 0) for (auto& value : c) value = -value;
+            result.emplace_back(n, std::move(c));
+        }
+        fmpz_poly_clear(f);
+        return result;
+    }();
+    return factors;
+}
+}
+
+DerivedInvariants derived_invariants(const Model& model, const LocalModels& local,
+    const TorsionData& torsion, const LPolynomial& lfun, int constant_degree) {
+    if (model.status != "partial" || constant_degree < 1) {
+        throw std::invalid_argument("derived invariants require an elliptic K3 and positive constant degree");
+    }
+    const Poly& L = lfun.coefficients;
+    if (L.empty() || L[0] != 1 || L.size() > 21) throw std::invalid_argument("invalid K3 L-polynomial");
+    const Z q = integer_power(model.q, constant_degree);
+    DerivedInvariants result;
+    result.p2 = L;
+    multiply_binomial(result.p2, 1, q);
+    multiply_binomial(result.p2, 1, q);
+    int cycle_count = 0, cycle_sum = 0;
+    Z tamagawa = 1, torsion_order = 1;
+    for (int n : torsion.factors) torsion_order *= n;
+    for (const auto& f : local.fibres) {
+        tamagawa *= f.tamagawa;
+        for (int n : f.component_cycles) {
+            multiply_binomial(result.p2, n, q);
+            ++cycle_count;
+            cycle_sum += n;
+            include_order(result.ns_splitting_degree, n);
+        }
+    }
+    if (result.p2.size() != 23) throw std::invalid_argument("L and component cycles must give P2 of degree 22");
+    const IntegerPolynomial linear(Poly{1, -q});
+    IntegerPolynomial quotient(L), divided;
+    while (fmpz_poly_divides(divided.value, quotient.value, linear.value)) {
+        fmpz_poly_swap(quotient.value, divided.value);
+        ++result.rank;
+    }
+    result.picard_number = 2+result.rank+cycle_count;
+    IntegerPolynomial remainder(L);
+    for (const auto& [order, coefficients] : cyclotomic_factors()) {
+        if (slong(coefficients.size()) > fmpz_poly_length(remainder.value)) continue;
+        Poly scaled_coefficients = coefficients;
+        Z scale = 1;
+        for (auto& c : scaled_coefficients) { c *= scale; scale *= q; }
+        const IntegerPolynomial scaled(scaled_coefficients);
+        while (fmpz_poly_divides(divided.value, remainder.value, scaled.value)) {
+            fmpz_poly_swap(remainder.value, divided.value);
+            result.geometric_rank += int(coefficients.size())-1;
+            include_order(result.ns_splitting_degree, order);
+        }
+    }
+    result.geometric_picard_number = 2+result.geometric_rank+cycle_sum;
+    Q slope = 1;
+    for (std::size_t i = 1; i < L.size(); ++i) {
+        if (L[i] == 0) continue;
+        Z c = L[i];
+        int v = 0;
+        while (c % model.q == 0) { c /= model.q; ++v; }
+        slope = std::min(slope, Q(Q(v)/(constant_degree*i)));
+    }
+    if (slope < 1) {
+        const Q height = 1/(1-slope);
+        if (height.get_den() != 1 || height < 1 || height > 10) throw std::runtime_error("invalid formal Brauer height");
+        result.brauer_height = height.get_num().get_si();
+    }
+    IntegerPolynomial algebraic_quotient(result.p2);
+    for (int i = 0; i < result.picard_number; ++i) {
+        if (!fmpz_poly_divides(divided.value, algebraic_quotient.value, linear.value)) throw std::runtime_error("Picard multiplicity mismatch");
+        fmpz_poly_swap(algebraic_quotient.value, divided.value);
+    }
+    const Q artin_tate = q*evaluate_inverse(algebraic_quotient, q);
+    if (artin_tate.get_den() != 1 || artin_tate <= 0) throw std::runtime_error("invalid Artin-Tate product");
+    result.artin_tate_product = artin_tate.get_num();
+    result.sha_reg = q*evaluate_inverse(quotient, q)*torsion_order*torsion_order/tamagawa;
+    const Z leading_scale = integer_power(q, 22);
+    if (result.p2.back() != leading_scale && result.p2.back() != -leading_scale) {
+        throw std::runtime_error("invalid cohomology determinant");
+    }
+    result.zeta_sign = result.p2.back() == leading_scale ? 1 : -1;
+    IntegerPolynomial characteristic(result.p2), power_sums;
+    fmpz_poly_reverse(characteristic.value, characteristic.value, result.p2.size());
+    fmpz_poly_power_sums(power_sums.value, characteristic.value, 6);
+    const Poly traces = power_sums.coefficients();
+    for (int n = 1; n <= 5; ++n) {
+        result.point_counts.push_back(1+integer_power(q, 2*n)+(n < int(traces.size()) ? traces[n] : Z(0)));
+    }
+    NTL::zz_pPush context(model.q);
+    const WeierstrassInvariants w(polynomials(model.affine));
+    P numerator = NTL::power(w.b2*w.b2-24*w.b4, 3), denominator = w.discriminant();
+    const P common = NTL::GCD(numerator, denominator);
+    numerator /= common;
+    denominator /= common;
+    result.j_degree = std::max(NTL::deg(numerator), NTL::deg(denominator));
+    if (result.j_degree > 0) {
+        int common_exponent = 0;
+        for (const auto& f : {numerator, denominator}) {
+            for (int i = 1; i <= NTL::deg(f); ++i) {
+                if (!NTL::IsZero(NTL::coeff(f, i))) common_exponent = std::gcd(common_exponent, i);
+            }
+        }
+        while (common_exponent % model.q == 0) {
+            ++result.j_inseparability_exponent;
+            common_exponent /= model.q;
+        }
+    }
+    return result;
+}
+
+void write_derived_invariants(std::ostream& output, const DerivedInvariants& r) {
+    output << r.rank << ',' << r.geometric_rank << ',' << r.picard_number
+           << ',' << r.geometric_picard_number << ',';
+    write_joined(output, r.p2, ' ');
+    output << ',' << r.zeta_sign << ',';
+    write_joined(output, r.point_counts, ' ');
+    output << ',';
+    if (r.brauer_height) output << r.brauer_height;
+    else output << "infinity";
+    output << ',' << r.artin_tate_product << ',' << r.ns_splitting_degree
+           << ',' << r.j_degree << ',' << r.j_inseparability_exponent << ','
+           << (r.j_degree == 0 ? "true" : "false") << ',' << r.sha_reg.get_num();
+    if (r.sha_reg.get_den() != 1) output << '/' << r.sha_reg.get_den();
+}
+
+namespace {
+std::vector<Z> square_divisors(const Z& value) {
+    fmpz_t n;
+    fmpz_init(n);
+    fmpz_set_mpz(n, value.get_mpz_t());
+    fmpz_factor_t factors;
+    fmpz_factor_init(factors);
+    fmpz_factor(factors, n);
+    std::vector<Z> squares{1};
+    for (slong i = 0; i < factors->num; ++i) {
+        Z prime;
+        fmpz_get_mpz(prime.get_mpz_t(), factors->p+i);
+        const std::size_t count = squares.size();
+        Z power = 1;
+        for (ulong j = 1; j <= factors->exp[i]/2; ++j) {
+            power *= prime*prime;
+            for (std::size_t k = 0; k < count; ++k) squares.push_back(squares[k]*power);
+        }
+    }
+    fmpz_factor_clear(factors);
+    fmpz_clear(n);
+    std::sort(squares.begin(), squares.end());
+    return squares;
+}
+
+std::set<Q> rational_corrections(const LocalFibre& f) {
+    std::set<Q> values{0};
+    if (f.type == "I") {
+        if (f.tamagawa == f.index) {
+            for (int i = 0; i < f.index; ++i) values.insert(fraction(i*(f.index-i), f.index));
+        } else if (f.index % 2 == 0) values.insert(fraction(f.index, 4));
+    } else if (f.type == "I*") {
+        if (f.tamagawa == 2 || f.tamagawa == 4) values.insert(1);
+        if (f.tamagawa == 4) values.insert(1+fraction(f.index, 4));
+    } else if (f.type == "III") values.insert(fraction(1, 2));
+    else if (f.type == "III*") values.insert(fraction(3, 2));
+    else if (f.type == "IV" && f.tamagawa == 3) values.insert(fraction(2, 3));
+    else if (f.type == "IV*" && f.tamagawa == 3) values.insert(fraction(4, 3));
+    std::set<Q> weighted;
+    for (const auto& c : values) weighted.insert(f.degree*c);
+    return weighted;
+}
+
+Z rational_floor(const Q& value) {
+    Z result;
+    mpz_fdiv_q(result.get_mpz_t(), value.get_num_mpz_t(), value.get_den_mpz_t());
+    return result;
+}
+
+Q rational_power(const Q& value, int exponent) {
+    return Q(integer_power(value.get_num(), exponent))/integer_power(value.get_den(), exponent);
+}
+}
+
+CandidateInvariants admissible_candidates(const DerivedInvariants& data,
+    const std::vector<LocalFibre>& fibres) {
+    if (data.rank < 0 || data.rank > 20 || data.picard_number < 2 || data.picard_number > 22
+        || data.artin_tate_product <= 0 || data.sha_reg <= 0) {
+        throw std::invalid_argument("candidates require K3 ranks and positive exact products");
+    }
+    std::set<Q> corrections{0};
+    if (data.rank > 0) {
+        for (const auto& f : fibres) {
+            std::set<Q> sums;
+            const auto local = rational_corrections(f);
+            for (const auto& a : corrections) for (const auto& b : local) sums.insert(a+b);
+            corrections = std::move(sums);
+        }
+    }
+    Q lower_bound = 0;
+    if (data.rank > 1) {
+        Q minimum = 4;
+        for (const auto& c : corrections) {
+            const Z intersections = std::max(Z(0), Z(rational_floor((c-4)/2)+1));
+            minimum = std::min(minimum, Q(4+2*intersections-c));
+        }
+        const Q gamma_powers[] = {1, fraction(4, 3), 2, 4, 8};
+        const Q gamma = data.rank <= 5 ? gamma_powers[data.rank-1]
+            : rational_power(fraction(4, 3), data.rank*(data.rank-1)/2);
+        lower_bound = rational_power(minimum, data.rank)/gamma;
+    }
+    CandidateInvariants result;
+    for (const auto& s : square_divisors(data.artin_tate_product)) {
+        const Z discriminant = data.artin_tate_product/s;
+        const bool parity = data.picard_number % 2 ? discriminant % 2 == 0
+            : discriminant % 4 == 0 || discriminant % 4 == (data.picard_number % 4 == 0 ? 3 : 1);
+        if (!parity) continue;
+        const Q regulator = data.sha_reg/s;
+        if (data.rank == 0) {
+            if (regulator != 1) continue;
+        } else if (data.rank == 1) {
+            const bool height = std::any_of(corrections.begin(), corrections.end(), [&](const Q& c) {
+                const Q intersections = (regulator+c-4)/2;
+                return intersections >= 0 && intersections.get_den() == 1;
+            });
+            if (!height) continue;
+        } else if (regulator < lower_bound) continue;
+        result.sha.push_back(s);
+        result.regulators.push_back(regulator);
+    }
+    return result;
+}
+
+void write_candidate_invariants(std::ostream& output, const DerivedInvariants& data,
+    const CandidateInvariants& candidates) {
+    write_list(output, candidates.sha);
+    output << ',';
+    write_list(output, candidates.regulators);
+    output << ',' << candidates.split_method();
+    if (candidates.split_method() == "constraints") {
+        output << ',' << candidates.regulators[0] << ',' << candidates.sha[0]
+               << ',' << candidates.sha[0] << ',' << data.artin_tate_product/candidates.sha[0];
+    } else output << ",,,,";
 }
 
 }

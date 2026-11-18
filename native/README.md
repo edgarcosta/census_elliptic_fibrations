@@ -4,7 +4,8 @@ Thanks for helping develop and check the native command. Its entry point is
 `main.cpp`. Key decoding, classification, and local reduction are in
 `models/`; exact trace tables, the twist sign and signed L-polynomials are in
 `lfunction/`.
-Complete bounded torsion is in `invariants/`.
+Complete bounded torsion, derived invariants, and Sha/regulator candidates
+are in `invariants/`. Shared CSV output helpers are in `records/`.
 The [model guide](../docs/native/models.md) describes its input and output.
 
 From the repository root, build and run it with:
@@ -14,9 +15,9 @@ make census-native
 artifacts/native/census-native --help
 ```
 
-The build needs GNU Make 4.2 or later, a C++17 compiler, NTL and GMP.
-On Debian or Ubuntu, install `g++`, `make`, `python3`, `libntl-dev` and
-`libgmp-dev` for the build and its checks.
+The build needs GNU Make 4.2 or later, a C++17 compiler, NTL, FLINT, and GMP.
+On Debian or Ubuntu, install `g++`, `make`, `python3`, `libntl-dev`,
+`libflint-dev`, and `libgmp-dev` for the build and its checks.
 
 `help`, `--help`, and `-h` print help to standard output and exit with status
 0. Missing commands, unknown commands, and extra help arguments print usage
@@ -96,12 +97,32 @@ columns. Unsupported census cells have empty L-polynomial fields.
 `--coefficients` reads base-q coefficient codes `q a1 a2 a3 a4 a6` instead
 of `q key`.
 
+## Derived invariants and candidates
+
+The [invariant guide](../docs/native/invariants.md) gives the exact K3
+formulas, field meanings, and supplied-data interfaces. The
+[candidate guide](../docs/native/candidates.md) gives the necessary
+constraints on Sha orders and regulators. From the repository root:
+
+```sh
+make census-native
+printf '2 4884480\n3 372699133912\n' | artifacts/native/census-native invariants --diagnostic
+make check/native_derived_magma.m check/native_derived.m
+make check/native_candidates_magma.m check/native_candidates.m
+```
+
+The CSV appends derived fields and aligned candidate lists to the
+L-polynomial columns. A singleton supplies the individual Sha order,
+regulator, Brauer order, and absolute base-field NS discriminant.
+An unresolved split leaves those four individual fields blank.
+Unsupported census cells have empty derived and candidate fields.
+
 ## Compiler and library paths
 
 The Makefile accepts `CXX`, `CPPFLAGS`, `CXXFLAGS`, `LDFLAGS`, `LDLIBS`, and
 `NATIVE_LDLIBS` as command-line overrides. `CXXFLAGS` defaults to
 `-O2 -Wall -Wextra -Wpedantic`; the build adds `-std=c++17`.
-`NATIVE_LDLIBS` defaults to `-lntl -lgmpxx -lgmp`.
+`NATIVE_LDLIBS` defaults to `-lntl -lflint -lgmpxx -lgmp`.
 
 For headers or libraries installed outside the compiler's default paths,
 pass include and library search paths explicitly:

@@ -67,6 +67,19 @@ trace sums with fresh Magma results on 60 rows in both characteristics and
 charts. It runs the automatic, scalar, AVX2 when available, and scalar-only
 builds on the same input, checks coefficient input, rejects a Magma
 subprocess, and checks empty L-polynomial fields for unsupported cells.
+`native_derived_magma.m` checks derived invariants against Magma's
+`LFunction`, analytic information, Frobenius on the trivial lattice,
+Artin-Tate formula, Newton polygon and zeta series. Nine fixed equations
+include five-torsion; supplied GF(4) and GF(4096) data check formal height
+and integers above 2^53. `compare/native_derived.m` compares every field
+on 36 rows in both charts and characteristics, plus those constant fields.
+`native_candidates_magma.m` checks singleton and ambiguous lists on eight
+fixed equations. Supplied data cover every rational-component correction
+family, lattice parity, ranks through 20, large square orders, and a
+rank-12 constant extension.
+`compare/native_candidates.m` checks 16 equation rows in both charts and
+192 supplied controls against Magma. Both native comparisons reject a
+Magma subprocess and check blank fields for unsupported cells.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, `tests/compare/`, and `examples/`,

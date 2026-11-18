@@ -15,6 +15,8 @@ intrinsics and their private orbit, classification, and file routines.
 - `lfunction/trace_tables.m`: exact ordinary trace tables through `FibrationTraceTable`.
 - `lfunction/lfun.m`: signed L-polynomials from fibre traces and the functional equation through `FibrationLPolynomial`.
 - `invariants/torsion.m`: complete torsion factors and point sets through `FibrationTorsion`.
+- `invariants/invariants.m`: exact ranks, cohomology, formal height and BSD/Artin-Tate products through `FibrationInvariants`.
+- `invariants/candidates.m`: admissible Sha orders and corresponding regulators through `FibrationCandidates`.
 - `records/files.m`: binary representative files, CSV summaries and completion metadata through `WriteFibrationRepresentativeKeys`.
 
 From Magma in the repository root, attach the package:

@@ -2,7 +2,7 @@ MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
-NATIVE_LDLIBS = -lntl -lgmpxx -lgmp
+NATIVE_LDLIBS = -lntl -lflint -lgmpxx -lgmp
 NATIVE_SCALAR_BINARY := artifacts/native/census-native-scalar
 NATIVE_BINARY := artifacts/native/census-native
 
@@ -50,3 +50,11 @@ check-no-dups:
 	@python3 tests/list_tests.py > /dev/null
 
 .PHONY: all check check-no-dups census-native census-native-scalar
+
+artifacts/native/derived-exact: tests/native/derived_exact.cpp native/invariants/invariants.cpp $(NATIVE_HEADERS)
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ tests/native/derived_exact.cpp native/invariants/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)
+
+artifacts/native/candidates-exact: tests/native/candidates_exact.cpp native/invariants/invariants.cpp $(NATIVE_HEADERS)
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ tests/native/candidates_exact.cpp native/invariants/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)
