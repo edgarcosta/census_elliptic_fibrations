@@ -45,6 +45,7 @@ The model comparison also checks local records and signs.
 `compare/native_lfun.m` compares package results across counting backends.
 `native_derived_magma.m` checks nonprime-field controls; derived and candidate
 comparisons check the command and supplied candidate engine.
+The record tests compare compressed bytes and exercise codec validation.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, and `tests/compare/`,

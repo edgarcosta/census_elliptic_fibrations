@@ -14,5 +14,6 @@
     invariants/invariants.m
     invariants/candidates.m
     records/files.m
+    records/records.m
     enumeration/census.m
 }

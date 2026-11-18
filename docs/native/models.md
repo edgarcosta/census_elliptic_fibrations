@@ -14,8 +14,9 @@ exit status and a line-numbered error on standard error.
 Earlier valid rows may already have been written.
 
 The input chart is `a_i(t,1)`.
-The output is uncompressed CSV. `--diagnostic` selects the same model
-columns:
+The default output is [compressed invariant CSV](records.md).
+`--diagnostic` selects expanded, uncompressed comparison CSV. Its model
+columns are:
 
 | Column | Meaning |
 | --- | --- |
