@@ -144,8 +144,8 @@ packages, plus the `zstd` command-line tool. See the
 settings.
 If Git LFS was installed after cloning, run
 `git lfs pull` to download the fixtures before testing.
-The stage 1 test also needs Linux, `taskset` (util-linux), and CPU affinity
-allowing two distinct physical cores.
+The stage 1 test also needs Linux. It checks GNU parallel scheduling when
+`parallel` is installed.
 
 To run one file with the runner's `filename` parameter:
 

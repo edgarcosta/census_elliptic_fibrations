@@ -109,16 +109,17 @@ CI runs each test file as its own job with a 30-minute limit.
 `compare/run_stage1.m` exercises `production/stage1.py` through its public commands on
 empty and nonempty smooth prefixes in both fields. It compares ordered key streams
 with public Magma listings and sampled arithmetic records with Magma. It checks
-one and multiple workers, interruption and resume, missing-receipt recovery
-after directory publication, and locking. Failure cases cover memory rejection,
-corrupt metadata, stale identity, truncated frames, and failed native processes.
-Tests require failed logs to survive retry and worker errors to name the cause.
-They also stop during startup revalidation and reject changed full counts before
-key enumeration or pilot budgeting. Low free disk space is not simulated.
-A changed key with a matching updated digest must still be rejected. The pilot
-also checks fixed native candidate lists against Magma and independent L-values.
-Temporary output stays under `artifacts/` and is removed after success or failure.
-The pilot also enumerates one largest prefix to measure memory. These tests do
-not enumerate all F_3 representatives or measure EPYC throughput. A reported
-buffer size is not a memory measurement. Counting and listing use the same
-package mathematics.
+one-prefix calls, GNU parallel failure/cancellation/resume, missing-receipt
+recovery after directory publication, and per-prefix locking. Failure cases
+cover corrupt metadata, stale identity, truncated frames and failed native
+processes. Failed logs must survive retry. Changed full counts are checked
+through the public commands. A changed key with an updated digest must still
+be rejected. Preparation rejects stale
+identity even when GNU parallel has logged all jobs as successful; final
+verification rejects damaged output that the job log would skip.
+The pilot checks fixed native candidate lists against Magma and independent
+L-values, and enumerates one largest prefix. GNU parallel checks are skipped
+when it is not installed. Temporary output stays under `artifacts/` and is
+removed after success or failure. These tests do not simulate low free disk,
+enumerate all F_3 representatives or measure EPYC throughput and memory.
+Counting and listing use the same package mathematics.
