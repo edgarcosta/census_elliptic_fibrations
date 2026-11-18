@@ -39,6 +39,11 @@ test basenames.
 `compare/native_model.m` compares native coefficients, both charts, six-cell
 labels and invalid input with Magma on 293 rows. `native_model_magma.m`
 checks fixed keys, chart gluing, the six cells and encoding bounds.
+`native_tables_magma.m` checks all 24 ordinary tables against retained
+fixtures and hashes, with `TraceOfFrobenius` checks through degree 4.
+`compare/native_tables.m` compares all native entries with fresh Magma
+results, using `TraceOfFrobenius` through degree 4. Both checks cover characteristics 2 and 3
+through extension degree 12.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, `tests/compare/`, and `examples/`,

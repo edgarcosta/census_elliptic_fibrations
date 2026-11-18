@@ -1,7 +1,8 @@
 # Native command
 
 Thanks for helping develop and check the native command. Its entry point is
-`main.cpp`, with key decoding and classification in `models/`.
+`main.cpp`, with key decoding and classification in `models/` and exact
+trace tables in `lfunction/`.
 The [model guide](../docs/native/models.md) describes its input and output.
 
 From the repository root, build and run it with:
@@ -35,6 +36,16 @@ magma -bn filename:=tests/native/native_build.m tests/run_tests.m
 
 These checks also need Magma and Python 3. `make check` runs them with the
 [package tests and examples](../README.md#tests-and-examples).
+
+## Trace tables and point counts
+
+The [table guide](../docs/native/tables.md) describes the equations, field
+conventions and independent checks. From the repository root:
+
+```sh
+printf '3 2 0\n3 2 zero\n' | artifacts/native/census-native count
+make check/native_tables_magma.m check/native_tables.m
+```
 
 ## Compiler and library paths
 

@@ -88,7 +88,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          lfs: true
+          lfs: ${{ matrix.target == 'tests/published_f2.m' || matrix.target == 'tests/archive_fixtures.m' || matrix.target == 'tests/archive_invariants.m' }}
+
+      - name: Fetch trace-table fixtures
+        if: matrix.target == 'tests/native_tables_magma.m'
+        run: git lfs pull --include='tests/fixtures/trace_tables/*.txt' --exclude=''
 
       - name: Cache magma
         uses: actions/cache@v3

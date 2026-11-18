@@ -158,6 +158,7 @@ the debugger on an error.
 - [Contributing](CONTRIBUTING.md): implementation, test, data and writing conventions.
 - [Interface](docs/interface.md): intrinsics, selections, and certificates.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
+- [Exact trace tables](docs/native/tables.md): ordinary point counts and their exact recovery certificate.
 - [Native models](docs/native/models.md): key decoding, both charts and six-cell classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 
