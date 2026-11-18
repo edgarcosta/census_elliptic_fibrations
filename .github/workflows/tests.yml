@@ -118,7 +118,7 @@ jobs:
         if: startsWith(matrix.target, 'tests/native/') || startsWith(matrix.target, 'tests/compare/')
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ make python3 libntl-dev libflint-dev libgmp-dev libzstd-dev zstd
+          sudo apt-get install -y g++ make python3 libntl-dev libflint-dev libgmp-dev libzstd-dev zstd parallel
 
       - name: Run tests
         shell: bash
@@ -127,3 +127,15 @@ jobs:
           export MAGMA="$PWD/artifacts/magma-install/magma/magma"
           export MAGMA_TEMP_DIR="$PWD/artifacts/test-tmp"
           "$MAGMA" -bn filename:=${{matrix.target}} tests/run_tests.m
+
+      - name: Save full F_2 comparison evidence
+        if: failure() && matrix.target == 'tests/compare/native_full_f2.m'
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-full-f2
+          path: |
+            artifacts/full-f2/summary.json
+            artifacts/full-f2/unmatched-*.csv
+            artifacts/full-f2/disagreements.csv
+            artifacts/full-f2/matches.csv
+            artifacts/full-f2/*.log

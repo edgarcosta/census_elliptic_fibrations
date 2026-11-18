@@ -1,6 +1,6 @@
-# Published F_2 census sample
+# Published F_2 census fixtures
 
-This fixture checks 16 rows from the published F_2 census table, which is incomplete.
+The sample fixture checks 16 rows from the published F_2 census table, which is incomplete.
 It compares coordinate-equivalent models and saved invariants, with no network
 request during the test.
 

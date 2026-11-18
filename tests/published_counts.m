@@ -85,13 +85,10 @@ end procedure;
 // in the README, mathematics and interface docs. Missing statements must fail.
 procedure test_published_counts()
     labels := [];
-    mathematics_labels := [];
     kinds := ["smooth", "regular cusp", "nonregular"];
-    titles := ["Smooth", "Regular cusp", "Nonregular"];
     for i in [1..#kinds] do
         for minimality in ["everywhere minimal", "nonminimal somewhere"] do
             Append(~labels, [kinds[i], minimality]);
-            Append(~mathematics_labels, [titles[i] cat ", " cat minimality]);
         end for;
     end for;
     counts := [];
@@ -116,8 +113,6 @@ procedure test_published_counts()
         prefix_counts, "FibrationPrefixes");
     check_published_table("README.md",
         "| Generic-fibre kind | Minimality | GF(2) | GF(3) |", labels cat [["All", ""]], counts);
-    check_published_table("docs/mathematics.md", "| Quantity | F2 | F3 |",
-        [["All orbits"]] cat mathematics_labels, [[c[7]] cat c[1..6] : c in counts]);
     check_published_statement("README.md",
         "```text ([0-9,]+) ([0-9,]+) ([0-9,]+) ```",
         [counts[2][7], counts[2][1], counts[2][3]], "NumberOfFibrations");

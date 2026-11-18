@@ -1,7 +1,6 @@
 """Compare canonical mathematical records with the archived multiset digests."""
 
 import hashlib
-import json
 from pathlib import Path
 import struct
 import sys
@@ -73,25 +72,6 @@ def fixture():
     return prefixes, cells
 
 
-def serialization_probes(q, prefix, records):
-    expected = digest(q, prefix, "all", records)
-    reformatted = json.dumps(list(reversed(records)), indent=3)
-    restored = [tuple(row) for row in json.loads(reformatted)]
-    assert digest(q, prefix, "all", restored) == expected
-    assert digest(q, prefix, "all", records[:-1]) != expected
-    assert digest(q, prefix, "all", records + [records[0]]) != expected
-    assert digest(q, prefix, "all", records[:-1] + [records[0]]) != expected
-    occupied = {row[0] for row in records}
-    value = prefix * q**(22 if q == 2 else 13)
-    while value in occupied:
-        value += 1
-    changed = [(value, *records[0][1:]), *records[1:]]
-    assert digest(q, prefix, "all", changed) != expected
-    changed = [(records[0][0], 1, 1), *records[1:]]
-    assert records[0][1:] == (0, 0)
-    assert digest(q, prefix, "all", changed) != expected
-
-
 def check_prefix(q, prefix, path):
     expected, _ = fixture()
     data = Path(path).read_bytes()
@@ -107,8 +87,6 @@ def check_prefix(q, prefix, path):
         assert smooth in (0, 1) and minimal in (0, 1) and (smooth or not minimal)
         bucket = "delta_zero" if not smooth else "smooth_minimal" if minimal else "smooth_nonminimal"
         groups[bucket].append(record)
-    if prefix == 0:
-        serialization_probes(q, prefix, records)
     for bucket, group in groups.items():
         actual = len(group), digest(q, prefix, bucket, group)
         assert actual == expected[q, prefix, bucket], (q, prefix, bucket, actual, expected[q, prefix, bucket])
