@@ -23,7 +23,7 @@ The root `spec` includes `magma/spec`, whose entries are relative to this
 directory. Run the tests from the repository root:
 
 ```sh
-magma -bn run_tests.m
+magma -bn tests/run_tests.m
 ```
 
 CI runs the tests and examples. See the

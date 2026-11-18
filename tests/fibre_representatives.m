@@ -1,4 +1,4 @@
-import "tests/_support.m": expect_error;
+import "tests/support/_support.m": expect_error;
 
 // Pins listings over the cuspidal prefixes, including empty smooth selections.
 procedure test_selected_representatives()

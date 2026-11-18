@@ -47,8 +47,8 @@ To recreate the sample, use a local checkout of the F_2 census table repository
 containing the pinned revision. Run from this repository's root:
 
 ```sh
-python3 scripts/extract_published_f2.py /path/to/f2-census-table artifacts/sample.csv
-cmp artifacts/sample.csv tests/data/published-f2/sample.csv
+python3 tests/support/extract_published_f2.py /path/to/f2-census-table artifacts/sample.csv
+cmp artifacts/sample.csv tests/fixtures/published-f2/sample.csv
 ```
 
 The extractor reads the pinned Git object, scans the archive once, checks its

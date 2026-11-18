@@ -32,15 +32,15 @@ immediately inside brackets. Spacing changes keep line breaks, indentation
 and comment placement. Fence Magma examples in Markdown as `c++`.
 
 Standalone Magma scripts begin with `SetQuitOnError(true);`, end with `quit;`,
-and run with `magma -bn`. Tests and examples loaded by `run_tests.m` leave
+and run with `magma -bn`. Tests and examples loaded by `tests/run_tests.m` leave
 error handling and process exit to that runner.
 
 ## Tests and data
 
-Tests live in `tests/`; native tests belong in `tests/native/`.
-The runner discovers only top-level `.m` files, so integrate native tests
-with the runner and CI. Shared helpers have names starting with `_`,
-which excludes them from test discovery.
+Tests live in `tests/`, shared helpers in `tests/support/`, and fixtures
+in `tests/fixtures/`. The runner, Make, and CI use `python3 tests/list_tests.py`,
+which lists top-level `.m` tests and examples, excluding the runner and
+underscore-prefixed helpers.
 
 Test census mathematics or real failures. Use independent formulas,
 substitutions, algorithms or published data as oracles. Name each scenario with

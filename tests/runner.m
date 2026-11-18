@@ -1,4 +1,4 @@
-import "tests/_support.m": expect_error, shell_quote;
+import "tests/support/_support.m": expect_error, shell_quote;
 
 procedure test_runner_exit_status()
     magma := GetEnv("MAGMA");
@@ -12,7 +12,7 @@ procedure test_runner_exit_status()
             Remove(fragment);
             Write(fragment, example[1]);
             command := Join([shell_quote(s) : s in [magma, "-bn",
-                "filename:=" cat fragment, "run_tests.m"]], " ");
+                "filename:=" cat fragment, "tests/run_tests.m"]], " ");
             status := System(command cat " > " cat shell_quote(logpath) cat " 2>&1");
             error if (status eq 0) ne example[2], Sprintf(
                 "Runner exit status %o for %o:\n%o", status, example[1], Read(logpath));

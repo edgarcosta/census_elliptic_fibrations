@@ -1,4 +1,4 @@
-import "tests/_weierstrass_change.m": homogeneous_forms;
+import "tests/support/_weierstrass_change.m": homogeneous_forms;
 
 // Checks each raw prefix orbit and translation fibre independently of the engine.
 procedure test_equation_weights(p)

@@ -15,10 +15,10 @@ with independent calculations and data:
   multiset hashes for all 88 F_2 prefixes and two F_3 prefixes. The F_3 sample
   omits smooth nonminimal models and some stabilizer types; archived singular
   flags do not distinguish the four singular cells. See
-  [archive provenance and coverage](data/oldcode-archive/README.md).
+  [archive provenance and coverage](fixtures/oldcode-archive/README.md).
 - `published_f2.m` checks coordinate-orbit matches and independent invariants
   for 16 rows from the incomplete published F_2 table. It does not establish
-  complete-census coverage. See [fixture provenance](data/published-f2/README.md).
+  complete-census coverage. See [fixture provenance](fixtures/published-f2/README.md).
 - `minimality_tate_f2.m` and `minimality_tate_f3.m` compare complete certificates
   with Magma's Tate algorithm in both integral charts on 256 reproducible
   smooth models per field. Explicit fixtures cover translated nonminimal
@@ -33,7 +33,9 @@ The remaining tests check classification fixtures, counts and selections,
 coefficient encodings, coordinate substitutions, affine loci, minimality,
 and saved files. `published_counts.m` checks the printed census numbers;
 `runner.m` checks shell exit status for successful and failing assertions.
-Underscore-prefixed files provide shared helpers. See the
+Shared helpers live in `support/` and fixtures in `fixtures/`.
+The runner, Make, and CI use `python3 tests/list_tests.py` to list test
+entries in `tests/` and `examples/`, excluding the runner and helpers. See the
 [root README](../README.md#tests-and-examples) for test commands and prerequisites.
 
 CI runs each test file as its own job with a 30-minute limit.

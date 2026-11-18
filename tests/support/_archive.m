@@ -5,7 +5,7 @@ import "_support.m": shell_quote;
 procedure test_archive(q)
     R<s, t> := PolynomialRing(GF(q), 2);
     expected := AssociativeArray();
-    lines := Split(Read("tests/data/oldcode-archive/summaries.tsv"), "\n");
+    lines := Split(Read("tests/fixtures/oldcode-archive/summaries.tsv"), "\n");
     for line in lines[2..#lines] do
         if line eq "CELLS" then break; end if;
         row := Split(line, "\t");
@@ -74,12 +74,12 @@ procedure test_archive(q)
             end for;
             Flush(O);
             delete O;
-            result := Pipe(Sprintf("python3 tests/_archive_hash.py prefix %o %o %o",
+            result := Pipe(Sprintf("python3 tests/support/_archive_hash.py prefix %o %o %o",
                 q, label, shell_quote(output)), "");
             assert #Split(result, "\n") eq 4;
             combined cat:= result;
         end for;
-        result := Pipe(Sprintf("python3 tests/_archive_hash.py combined %o", q), combined);
+        result := Pipe(Sprintf("python3 tests/support/_archive_hash.py combined %o", q), combined);
         assert result eq "ARCHIVE_OK\n";
     catch e
         Remove(output);

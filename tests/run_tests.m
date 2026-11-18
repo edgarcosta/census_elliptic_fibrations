@@ -11,7 +11,7 @@ load "config.m";
 if assigned filename then
     tests := [filename];
 else
-    tests := Split(Pipe("find tests examples -maxdepth 1 -type f -name '*.m' ! -name '_*' | sort", ""), "\n");
+    tests := Split(Pipe("python3 tests/list_tests.py", ""), "\n");
 end if;
 if not assigned target then
     target := "";

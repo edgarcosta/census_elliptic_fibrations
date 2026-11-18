@@ -1,4 +1,4 @@
-import "tests/_weierstrass_change.m": equation_change;
+import "tests/support/_weierstrass_change.m": equation_change;
 
 function invariance_form(R, d, n)
     f := R!0;

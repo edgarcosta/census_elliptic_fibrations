@@ -13,7 +13,7 @@ to the repository conventions.
 - [docs/keys.md](docs/keys.md) - coefficient encodings and representative files.
 - [magma/README.md](magma/README.md) and [spec](spec) - package modules and attachment.
 - [tests/README.md](tests/README.md) - independent checks and their limits;
-  fixture READMEs under `tests/data/` record provenance and reproduction.
+  fixture READMEs under `tests/fixtures/` record provenance and reproduction.
 - [.github/workflows/tests.yml](.github/workflows/tests.yml) and
   [Makefile](Makefile) - CI discovery and commands runnable locally.
 

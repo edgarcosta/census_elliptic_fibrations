@@ -1,9 +1,9 @@
 """Extract 16 pinned rows from a local F_2 census table checkout.
 
 From the repository root:
-    python3 scripts/extract_published_f2.py TABLE_CHECKOUT OUTPUT.csv
+    python3 tests/support/extract_published_f2.py TABLE_CHECKOUT OUTPUT.csv
 TABLE_CHECKOUT must contain the pinned revision; OUTPUT.csv is the sample path.
-See tests/data/published-f2/README.md for fixture provenance.
+See tests/fixtures/published-f2/README.md for fixture provenance.
 """
 
 import csv
