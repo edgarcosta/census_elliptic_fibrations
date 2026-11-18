@@ -6,13 +6,10 @@ import json
 import os
 from pathlib import Path
 import shutil
-import signal
-import struct
+import shlex
 import subprocess
 import sys
 import tempfile
-import threading
-import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tests/compare"))
@@ -30,6 +27,12 @@ def call(command, q, output, *extra, ok=True):
     return result
 
 
+def run_prefixes(q, output, indices, *extra):
+    call('prepare', q, output, '--prefixes', indices, *extra)
+    for index in indices.split(','):
+        call('run', q, output, '--prefixes', index, *extra)
+
+
 def compress(path, text, checksum=True):
     with path.open('wb') as output:
         subprocess.run(['zstd', '-q', '--check' if checksum else '--no-check'],
@@ -39,76 +42,6 @@ def compress(path, text, checksum=True):
 def rows(output, prefix):
     return list(csv.DictReader(io.StringIO(decompress(
         (output / 'prefixes' / f'{prefix:04d}' / 'rows.csv.zst').read_bytes()))))
-
-
-def wait_for(predicate, process):
-    deadline = time.monotonic() + 120
-    while not predicate():
-        assert process.poll() is None, process.communicate()
-        assert time.monotonic() < deadline, 'worker did not reach interruption point'
-        time.sleep(.02)
-
-
-def worker_args():
-    physical = {}
-    for cpu in sorted(os.sched_getaffinity(0)):
-        topology = Path(f'/sys/devices/system/cpu/cpu{cpu}/topology')
-        key = tuple((topology / name).read_text().strip()
-                    for name in ('physical_package_id', 'core_id'))
-        physical.setdefault(key, cpu)
-    cpus = list(physical.values())[:2]
-    assert len(cpus) == 2
-    return ['--threads', '2', '--cpus', ','.join(map(str, cpus))]
-
-
-def test_revalidation_stop(base):
-    output = base / 'revalidated'
-    call('run', 3, output, '--prefixes', '2,3')
-    summary = output / 'summary.json'
-    summary.unlink()
-    path = output / 'prefixes/0003/receipt.json'
-    data = json.loads(path.read_text())
-    data['count'] += 1
-    path.write_text(json.dumps(data))
-    path = output / 'prefixes/0002/keys.csv'
-    retained = path.read_bytes()
-    path.unlink()
-    os.mkfifo(path)
-    process = subprocess.Popen([sys.executable, CLI, 'run', '--q', '3', '--output', output,
-                                '--prefixes', '2,3'], cwd=ROOT,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    failures = []
-
-    def slow_storage():
-        try:
-            # Separate FIFOs give the digest and validation readers their own EOF.
-            # Send the stop request while the digest reader is waiting for data.
-            for attempt in range(2):
-                with path.open('wb', buffering=0) as stream:
-                    if attempt == 0:
-                        process.send_signal(signal.SIGTERM)
-                    stream.write(retained)
-                    if attempt == 0:
-                        path.unlink()
-                        os.mkfifo(path)
-        except OSError as error:
-            failures.append(error)
-
-    feeder = threading.Thread(target=slow_storage, daemon=True)
-    feeder.start()
-    try:
-        stdout, stderr = process.communicate(timeout=30)
-        feeder.join(timeout=1)
-        assert not feeder.is_alive() and not failures, failures
-        assert process.returncode != 0, stdout
-        assert b'stage 1 interrupted' in stderr, stderr
-        assert b'revalidating prefix 0002' in stderr, stderr
-        assert b'revalidating prefix 0003' not in stderr, stderr
-        assert not summary.exists()
-    finally:
-        if process.poll() is None:
-            process.kill()
-            process.wait()
 
 
 def test_changed_full_count(base):
@@ -127,34 +60,11 @@ def test_changed_full_count(base):
                        ' with p.open("w") as f: writer=csv.DictWriter(f,fields); writer.writeheader(); writer.writerows(rows)\n'
                        'sys.exit(r.returncode)\n')
     wrapper.chmod(0o755)
-    for command in ('run',):
-        output = base / command
-        result = call(command, 3, output, '--magma', wrapper, ok=False)
-        assert 'full census count differs from pinned expected count' in result.stderr, result.stderr
-        assert not marker.exists(), 'enumeration started with a changed full count'
-        assert not (output / 'manifest.json').exists()
-
-
-def test_worker_error(base):
-    reference = base / 'reference'
-    call('run', 3, reference, *worker_args(), '--prefixes', '3')
-    first = int(rows(reference, 3)[0]['key'])
-    held = base / 'held'
-    wrapper = base / 'fail-second'
-    wrapper.write_text('#!/usr/bin/env python3\nimport pathlib,signal,sys,time\n'
-                       'data=sys.stdin.buffer.read()\n'
-                       f'held=pathlib.Path({str(held)!r})\n'
-                       f'if data.startswith(b"3 {first}\\n"):\n'
-                       ' while not held.exists(): time.sleep(.01)\n'
-                       ' print("prefix three failure", file=sys.stderr)\n sys.exit(7)\n'
-                       'held.touch()\nsignal.pause()\n')
-    wrapper.chmod(0o755)
-    output = base / 'failed'
-    result = call('run', 3, output, *worker_args(), '--prefixes', '2,3',
-                  '--native', wrapper, ok=False)
-    assert 'producer failed (7)' in result.stderr, result.stderr
-    assert 'prefix-0003/native.log' in result.stderr, result.stderr
-    assert not (output / 'summary.json').exists()
+    output = base / 'prepare'
+    result = call('prepare', 3, output, '--magma', wrapper, ok=False)
+    assert 'full census count differs from pinned expected count' in result.stderr, result.stderr
+    assert not marker.exists(), 'enumeration started with a changed full count'
+    assert not (output / 'manifest.json').exists()
 
 
 def test_failed_count_logs(base):
@@ -166,7 +76,7 @@ def test_failed_count_logs(base):
                        'print("count stderr diagnostic", file=sys.stderr)\n'
                        'sys.exit(7)\n')
     wrapper.chmod(0o755)
-    for command in ('run', 'verify'):
+    for command in ('prepare', 'verify'):
         output = base / command
         result = call(command, 3, output, '--prefixes', '1', '--magma', wrapper, ok=False)
         assert 'producer failed (7); see ' in result.stderr, result.stderr
@@ -188,6 +98,7 @@ def test_failed_logs(base):
     wrapper.chmod(0o755)
     output = base / 'retried'
     args = ['--prefixes', '2', '--native', wrapper]
+    call('prepare', 3, output, *args)
     call('run', 3, output, *args, ok=False)
     original = (output / 'scratch/prefix-0002/native.log').read_bytes()
     assert b'retained failure evidence' in original
@@ -198,7 +109,7 @@ def test_failed_logs(base):
 
 def test_publication_recovery(base):
     output = base / 'published'
-    call('run', 3, output, '--prefixes', '1,2')
+    run_prefixes(3, output, '1,2')
     path = output / 'prefixes/0002/receipt.json'
     original = json.loads(path.read_text())
     log = path.with_name('native.log')
@@ -206,8 +117,10 @@ def test_publication_recovery(base):
         stream.write(b'published attempt diagnostic\n')
     original_log = log.read_bytes()
     path.unlink()
-    call('verify', 3, output, '--prefixes', '1,2', ok=False)
-    call('run', 3, output, '--prefixes', '1,2')
+    result = call('verify', 3, output, '--prefixes', '1,2', ok=False)
+    assert 'missing completed prefix receipt' in result.stderr, result.stderr
+    assert 'revalidating prefix' not in result.stderr, result.stderr
+    run_prefixes(3, output, '1,2')
     assert path.exists(), 'resume skipped a published directory without its receipt'
     assert json.loads(path.read_text())['files'] == original['files']
     assert any(p.read_bytes() == original_log for p in (output / 'failed').glob('*/native.log')), \
@@ -225,17 +138,18 @@ def test_magma_version(base):
                        f'os.execv({magma!r}, [{magma!r}, *sys.argv[1:]])\n')
     wrapper.chmod(0o755)
     output = base / 'versioned'
-    call('run', 3, output, '--prefixes', '1', '--magma', wrapper)
+    run_prefixes(3, output, '1', '--magma', wrapper)
     version.write_text('review-version-two')
-    result = call('run', 3, output, '--prefixes', '1', '--magma', wrapper, ok=False)
-    assert 'incompatible manifest' in result.stderr
+    for command in ('prepare', 'run', 'verify'):
+        result = call(command, 3, output, '--prefixes', '1', '--magma', wrapper, ok=False)
+        assert 'incompatible manifest' in result.stderr
 
 
 def test_magma_spec(base):
     shutil.copy2(ROOT / 'spec', base / 'spec')
     for directory in ('magma', 'production'):
         shutil.copytree(ROOT / directory, base / directory)
-    command = [sys.executable, base / 'production/stage1.py', 'run', '--q', '3',
+    command = [sys.executable, base / 'production/stage1.py', 'prepare', '--q', '3',
                '--output', base / 'results', '--prefixes', '1', '--native', BINARY]
     result = subprocess.run(command, cwd=base, capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -247,65 +161,18 @@ def test_magma_spec(base):
 
 
 def test_commands(base):
-    allowed = sorted(os.sched_getaffinity(0))
-    physical = {}
-    for cpu in allowed:
-        topology = Path(f'/sys/devices/system/cpu/cpu{cpu}/topology')
-        key = tuple((topology / name).read_text().strip()
-                    for name in ('physical_package_id', 'core_id'))
-        physical.setdefault(key, cpu)
-    cpus = list(physical.values())[:2]
-    args = ['--threads', str(len(cpus)), '--cpus', ','.join(map(str, cpus))]
     fresh = base / 'fresh'
-    result = call('run', 3, fresh, *args, '--prefixes', '1,2,3')
+    run_prefixes(3, fresh, '1,2,3')
+    result = call('verify', 3, fresh, '--prefixes', '1,2,3')
     summary = json.loads(result.stdout)
     assert summary['partial'] and summary['count'] == 4494
-    assert summary['cpus'] == cpus
-    assert summary['aggregate_peak_rss_bytes'] > 0
+    assert not any('mass' in gap.lower() for gap in summary['gaps']), summary['gaps']
     assert [len(rows(fresh, i)) for i in (1, 2, 3)] == [0, 1122, 3372]
     call('verify', 3, fresh, '--prefixes', '1,2,3', '--expected-count', '4494')
+    assert (fresh / 'verification.json').exists()
     call('verify', 3, fresh, '--expected-count', '4494', ok=False)
+    assert not (fresh / 'verification.json').exists(), 'failed verify retained a successful result'
     call('verify', 3, fresh, '--prefixes', '1,2,3', '--expected-count', '1307723786', ok=False)
-
-    # Hold the real computation before its wrapper exits, so no receipt can race the stop.
-    resumed = base / 'resumed'
-    paused = base / 'pause-native'
-    marker = base / 'native-held'
-    first = int(rows(fresh, 3)[0]['key'])
-    paused.write_text('#!/usr/bin/env python3\nimport pathlib,signal,subprocess,sys\n'
-                      'data=sys.stdin.buffer.read()\n'
-                      f'r=subprocess.run([{str(BINARY)!r}, "invariants"], input=data, stdout=sys.stdout.buffer)\n'
-                      f'm=pathlib.Path({str(marker)!r})\n'
-                      f'if data.startswith(b"3 {first}\\n") and not m.exists():\n'
-                      ' m.touch()\n signal.pause()\n'
-                      'sys.exit(r.returncode)\n')
-    paused.chmod(0o755)
-    recovery_args = [*args, '--native', str(paused)]
-    call('run', 3, resumed, *recovery_args, '--prefixes', '1,2')
-    receipt = resumed / 'prefixes/0002/receipt.json'
-    original = receipt.read_bytes()
-    process = subprocess.Popen([sys.executable, CLI, 'run', '--q', '3', '--output', resumed,
-                                *recovery_args, '--prefixes', '1,2,3'], cwd=ROOT,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        wait_for(marker.exists, process)
-        process.send_signal(signal.SIGTERM)
-        process.communicate(timeout=30)
-        assert process.returncode != 0
-    finally:
-        if process.poll() is None:
-            process.kill()
-            process.wait()
-    assert not (resumed / 'prefixes/0003/receipt.json').exists()
-    call('run', 3, resumed, *recovery_args, '--prefixes', '1,2,3')
-    assert receipt.read_bytes() == original
-    for i in (1, 2, 3):
-        assert rows(resumed, i) == rows(fresh, i)
-        keys = [int(r['key']) for r in rows(resumed, i)]
-        assert len(keys) == len(set(keys))
-    single = base / 'single'
-    call('run', 3, single, '--threads', '1', '--cpus', cpus[0], '--prefixes', '1,2,3')
-    assert all(rows(single, i) == rows(fresh, i) for i in (1, 2, 3))
 
     for fault in ('receipt', 'truncated', 'unchecked', 'key', 'identity', 'row'):
         damaged = base / fault
@@ -343,19 +210,17 @@ def test_commands(base):
         result = call('verify', 3, damaged, '--prefixes', '1,2,3', ok=False)
         if fault == 'truncated':
             assert 'zstd --list: ' in result.stderr, result.stderr
-        call('run', 3, damaged, *args, '--prefixes', '1,2,3', ok=False)
+        call('run', 3, damaged, '--prefixes', '2', ok=False)
         assert json.loads(path.read_text()) == data
 
-    with open(fresh / '.lock', 'a') as lock:
+    with open(fresh / 'locks/0002.lock', 'a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        call('run', 3, fresh, *args, '--prefixes', '1,2,3', ok=False)
-        call('verify', 3, fresh, '--prefixes', '1,2,3', ok=False)
-    call('run', 3, base / 'memory', *args, '--prefixes', '2',
-         '--worker-memory-bytes', str(10**18), ok=False)
-    assert not list((base / 'memory').glob('prefixes/*/receipt.json'))
-    call('run', 3, fresh, *args, '--prefixes', '1,1', ok=False)
-    call('run', 3, fresh, '--threads', '2', '--cpus', f'{cpus[0]},{cpus[0]}',
-         '--prefixes', '1', ok=False)
+        call('run', 3, fresh, '--prefixes', '2', ok=False)
+        call('run', 3, fresh, '--prefixes', '1')
+    for selection in ('1,2', '1,1'):
+        call('run', 3, fresh, '--prefixes', selection, ok=False)
+    call('run', 3, fresh, ok=False)
+    call('run', 3, base / 'unprepared', '--prefixes', '2', ok=False)
 
     # Native failures with valid compressed output must never publish a receipt.
     for fail in ('exit', 'unsupported'):
@@ -366,11 +231,12 @@ def test_commands(base):
                           'stdout=sys.stdout.buffer)\nsys.exit(1 if ' + repr(fail == 'exit') + ' else p.returncode)\n')
         script.chmod(0o755)
         failed = base / f'failed-{fail}'
-        call('run', 3, failed, *args, '--prefixes', '2', '--native', script, ok=False)
+        call('prepare', 3, failed, '--prefixes', '2', '--native', script)
+        call('run', 3, failed, '--prefixes', '2', '--native', script, ok=False)
         assert not list(failed.glob('prefixes/*/receipt.json'))
 
     f2 = base / 'f2'
-    call('run', 2, f2, *args, '--prefixes', '1,2')
+    run_prefixes(2, f2, '1,2')
     assert len(rows(f2, 2)) == 4208
     call('verify', 2, f2, '--prefixes', '1,2', '--expected-count', '4208')
     reference = base / 'reference.m'
@@ -397,12 +263,50 @@ def test_commands(base):
         assert rows(directory, 2)[:4] == [r for r in expected if r['q'] == str(q)]
 
 
+def test_parallel(base):
+    if not shutil.which('parallel'):
+        print('STAGE1_SKIP: GNU parallel is not installed')
+        return
+    output = base / 'parallel'
+    marker = base / 'failed-once'
+    wrapper = base / 'controlled-native'
+    wrapper.write_text('#!/usr/bin/env python3\nimport os,pathlib,subprocess,sys\n'
+                       'scratch=os.environ["MAGMA_TEMP_DIR"]\n'
+                       f'marker=pathlib.Path({str(marker)!r})\n'
+                       'if scratch.endswith("prefix-0003") and not marker.exists():\n'
+                       ' marker.touch(); sys.exit(7)\n'
+                       f'sys.exit(subprocess.run([{str(BINARY)!r}, "invariants"]).returncode)\n')
+    wrapper.chmod(0o755)
+    call('prepare', 3, output, '--prefixes', '1,2,3', '--native', wrapper)
+    command = shlex.join([sys.executable, str(CLI), 'run', '--q', '3', '--output', str(output),
+                          '--native', str(wrapper), '--prefixes']) + ' {}'
+    options = ['parallel', '-j2', '--halt', 'soon,fail=1', '--resume-failed',
+               '--joblog', str(output / 'jobs.tsv'), '--results', str(output / 'logs'), command]
+    result = subprocess.run(options, input='1\n2\n3\n', text=True, capture_output=True)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert (output / 'prefixes/0001/receipt.json').exists()
+    retained = (output / 'prefixes/0001/receipt.json').read_bytes()
+    result = subprocess.run(options, input='1\n2\n3\n', text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (output / 'prefixes/0001/receipt.json').read_bytes() == retained
+    call('verify', 3, output, '--prefixes', '1,2,3', '--native', wrapper, '--expected-count', '4494')
+    serial = base.parent / 'test_commands' / 'fresh'
+    assert all(rows(output, i) == rows(serial, i) for i in (1, 2, 3))
+    path = output / 'prefixes/0002/rows.csv.zst'
+    path.write_bytes(path.read_bytes()[:-4])
+    result = subprocess.run(options, input='1\n2\n3\n', text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    call('verify', 3, output, '--prefixes', '1,2,3', '--native', wrapper, ok=False)
+    wrapper.write_text(wrapper.read_text() + '\n')
+    call('prepare', 3, output, '--prefixes', '1,2,3', '--native', wrapper, ok=False)
+
+
 if __name__ == '__main__':
     with tempfile.TemporaryDirectory(prefix='stage1-', dir=ROOT / 'artifacts') as directory:
         base = Path(directory)
-        for test in (test_failed_count_logs, test_revalidation_stop, test_changed_full_count, test_worker_error,
+        for test in (test_failed_count_logs, test_changed_full_count,
                      test_failed_logs, test_publication_recovery, test_magma_version, test_magma_spec,
-                     test_commands):
+                     test_commands, test_parallel):
             output = base / test.__name__
             output.mkdir()
             test(output)
