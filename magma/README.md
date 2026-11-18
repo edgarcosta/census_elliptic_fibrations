@@ -13,6 +13,7 @@ classification, and file routines.
 - `enumeration/census.m`: public prefix, orbit-count, equation-count and representative intrinsics with selections.
 - `models/local.m`: bad-place records, full conductors and minimized Frobenius twists through `FibrationLocalData`.
 - `lfunction/trace_tables.m`: exact ordinary trace tables through `FibrationTraceTable`.
+- `lfunction/lfun.m`: signed L-polynomials from fibre traces and the functional equation through `FibrationLPolynomial`.
 - `invariants/torsion.m`: complete torsion factors and point sets through `FibrationTorsion`.
 - `records/files.m`: binary representative files, CSV summaries and completion metadata through `WriteFibrationRepresentativeKeys`.
 

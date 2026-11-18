@@ -44,7 +44,8 @@ p is the characteristic. Tate reduction then minimizes at every bad place,
 including infinity. This is the Frobenius twist of the curve over the function
 field: powers of t also change. Its discriminant divisor need not have degree
 24, even when the original curve is a smooth minimal K3 model. This intrinsic
-does not compute a functional-equation sign.
+does not compute a functional-equation sign; `FibrationLPolynomial` does, as
+described in the [L-polynomial guide](lfunction.md).
 
 ## Native local data and sign
 

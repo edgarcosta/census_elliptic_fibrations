@@ -16,13 +16,14 @@ void print_help(std::ostream& output) {
     output << "Usage: census-native <command>\n\n"
               "Commands:\n"
               "  help        Show this help\n"
-              "  invariants  Compute model, local fibre, sign and torsion data from q/key rows\n"
+              "  invariants  Compute model, local, torsion and signed L-polynomial data from q/key rows\n"
               "  count       Count points on the ordinary cubic families\n\n"
               "Options:\n"
               "  -h, --help                Show this help\n"
+              "  --backend auto|scalar|avx2  Counting backend (default auto)\n"
               "  --diagnostic              Emit diagnostic comparison CSV (default)\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels, local fibres, twist sign and torsion.\n"
+              "Output: CSV with both charts, cell labels, local fibres, twist sign, torsion and signed L.\n"
               "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
     output << "\ncount reads p degree parameter rows.\n"
               "Parameter is an exponent 0 <= e < p^degree-1, or zero for parameter 0.\n"
@@ -74,11 +75,21 @@ void write_joined(const std::vector<T>& values, char separator) {
     }
 }
 
-void invariants() {
+template<class Values>
+void write_list(const Values& values, std::size_t first, std::size_t end) {
+    if (first == end) std::cout << "[]";
+    for (std::size_t i = first; i < end; ++i) {
+        if (i != first) std::cout << ' ';
+        std::cout << values[i];
+    }
+}
+
+void invariants(std::string_view backend) {
+    census::LPolynomialCounter counter(backend);
     std::cout << "q,key,kind,minimality,status,a1,a2,a3,a4,a6,"
                  "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6,"
                  "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent,"
-                 "torsion,torsion_points\n";
+                 "torsion,torsion_points,lower_L,L_polynomial,trace_sums\n";
     std::string line;
     std::size_t line_number = 0;
     while (std::getline(std::cin, line)) {
@@ -87,11 +98,9 @@ void invariants() {
             std::istringstream input(line);
             std::string field, key, extra;
             if (!(input >> field)) continue;
-            if (!(input >> key) || input >> extra) {
-                throw std::invalid_argument("expected q key");
-            }
             const auto q = unsigned_integer(field, "q");
             if (q != 2 && q != 3) throw std::invalid_argument("q must be the prime 2 or 3");
+            if (!(input >> key) || input >> extra) throw std::invalid_argument("expected q key");
             const auto model = census::model_from_key(q, unsigned_integer(key, "key"));
             std::cout << model.q << ',' << model.key << ',' << model.kind << ','
                       << model.minimality << ',' << model.status;
@@ -102,6 +111,7 @@ void invariants() {
                 const auto local = census::local_models(model);
                 const auto sign = census::functional_equation_sign(local, model.q);
                 const auto torsion = census::complete_torsion(model, local);
+                const auto lfun = counter.compute(model, local, sign);
                 write_fibres(local.fibres);
                 std::cout << ',';
                 write_fibres(local.twist_fibres);
@@ -112,7 +122,13 @@ void invariants() {
                 write_joined(torsion.factors, ' ');
                 std::cout << ',';
                 write_joined(torsion.points, ';');
-            } else std::cout << std::string(8, ',');
+                std::cout << ',';
+                write_list(lfun.coefficients, 1, 1+sign.degree/2);
+                std::cout << ',';
+                write_list(lfun.coefficients, 0, lfun.coefficients.size());
+                std::cout << ',';
+                write_list(lfun.trace_sums, 0, lfun.trace_sums.size());
+            } else std::cout << std::string(11, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());
@@ -184,12 +200,14 @@ int main(int argc, char* argv[]) {
     }
     if (argc >= 2 && std::string_view(argv[1]) == "invariants") {
         try {
+            std::string_view backend = "auto";
             for (int i = 2; i < argc; ++i) {
                 const std::string_view option(argv[i]);
                 if (option == "--diagnostic") continue;
-                throw std::invalid_argument("invalid invariants option");
+                if (option == "--backend" && i+1 < argc) backend = argv[++i];
+                else throw std::invalid_argument("invalid invariants option");
             }
-            invariants();
+            invariants(backend);
             return 0;
         } catch (const std::exception& error) {
             std::cerr << error.what() << '\n';

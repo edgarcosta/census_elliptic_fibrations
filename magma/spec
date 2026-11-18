@@ -9,6 +9,7 @@
     models/classification.m
     models/local.m
     lfunction/trace_tables.m
+    lfunction/lfun.m
     invariants/torsion.m
     records/files.m
     enumeration/census.m
