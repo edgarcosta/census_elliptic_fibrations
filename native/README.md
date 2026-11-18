@@ -1,8 +1,8 @@
 # Native command
 
 Thanks for helping develop and check the native command. Its entry point is
-`main.cpp`, with key decoding and classification in `models/` and exact
-trace tables in `lfunction/`.
+`main.cpp`. Key decoding, classification, and local reduction are in
+`models/`; exact trace tables and the twist sign are in `lfunction/`.
 The [model guide](../docs/native/models.md) describes its input and output.
 
 From the repository root, build and run it with:
@@ -47,12 +47,26 @@ printf '3 2 0\n3 2 zero\n' | artifacts/native/census-native count
 make check/native_tables_magma.m check/native_tables.m
 ```
 
+## Local fibres and the twist sign
+
+The [local guide](../docs/native/local.md) describes the fibre records,
+wild conductors and minimized Frobenius twists. From the repository root:
+
+```sh
+printf '2 4884480\n3 372699133912\n' | artifacts/native/census-native invariants --diagnostic
+make check/native_local_magma.m check/native_local.m
+```
+
+The CSV appends local and twist fibres, L-polynomial degree, sign, heights
+and the Tamagawa valuation difference to the model columns.
+Unsupported census cells have empty local and sign fields.
+
 ## Compiler and library paths
 
 The Makefile accepts `CXX`, `CPPFLAGS`, `CXXFLAGS`, `LDFLAGS`, `LDLIBS`, and
 `NATIVE_LDLIBS` as command-line overrides. `CXXFLAGS` defaults to
 `-O2 -Wall -Wextra -Wpedantic`; the build adds `-std=c++17`.
-`NATIVE_LDLIBS` defaults to `-lntl -lgmp`.
+`NATIVE_LDLIBS` defaults to `-lntl -lgmpxx -lgmp`.
 
 For headers or libraries installed outside the compiler's default paths,
 pass include and library search paths explicitly:

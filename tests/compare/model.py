@@ -3,6 +3,7 @@ import io
 from pathlib import Path
 import subprocess
 import sys
+from local import LOCAL_FIELDS
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,7 +33,7 @@ def test_magma_comparison(reference):
         assert got["chart"] == CHART, context
         supported = want["kind"] == "smooth" and want["minimality"] == "everywhere minimal"
         assert got["status"] == ("partial" if supported else "unsupported"), context
-        assert set(got) == set(want) | {"chart", "status"}, got
+        assert set(got) == set(want) | LOCAL_FIELDS | {"chart", "status"}, got
     for p in ("2", "3"):
         cells = {(row["kind"], row["minimality"]) for row in actual if row["q"] == p}
         assert len(cells) == 6, cells

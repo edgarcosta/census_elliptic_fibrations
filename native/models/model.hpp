@@ -20,6 +20,24 @@ struct Model {
     std::string status;
 };
 
+struct LocalFibre {
+    std::string place;
+    int degree;
+    std::string type;
+    int index;
+    int discriminant_valuation;
+    int conductor;
+    int tamagawa;
+    int trace;
+    std::vector<int> component_cycles;
+};
+
+struct LocalModels {
+    std::vector<LocalFibre> fibres;
+    std::vector<LocalFibre> twist_fibres;
+};
+
 Model model_from_key(unsigned q, std::uint64_t key);
+LocalModels local_models(const Model& model);
 
 }

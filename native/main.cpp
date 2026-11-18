@@ -15,14 +15,14 @@ void print_help(std::ostream& output) {
     output << "Usage: census-native <command>\n\n"
               "Commands:\n"
               "  help        Show this help\n"
-              "  invariants  Decode and classify q/key rows from standard input\n"
+              "  invariants  Compute model, local fibre and sign data from q/key rows\n"
               "  count       Count points on the ordinary cubic families\n\n"
               "Options:\n"
               "  -h, --help                Show this help\n"
-              "  --diagnostic              Emit model comparison CSV (default)\n"
+              "  --diagnostic              Emit diagnostic comparison CSV (default)\n"
               "  --chart 'a_i(t,1)'        Input chart for invariants (default a_i(t,1))\n\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels and arithmetic status.\n"
+              "Output: CSV with both charts, cell labels, local fibres and twist sign.\n"
               "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
     output << "\ncount reads p degree parameter rows.\n"
               "Parameter is an exponent 0 <= e < p^degree-1, or zero for parameter 0.\n"
@@ -50,9 +50,26 @@ void write_coefficients(const std::array<std::vector<int>, 5>& chart) {
     }
 }
 
+void write_fibres(const std::vector<census::LocalFibre>& fibres) {
+    if (fibres.empty()) std::cout << "[]";
+    for (std::size_t i = 0; i < fibres.size(); ++i) {
+        if (i) std::cout << ';';
+        const auto& f = fibres[i];
+        std::cout << f.place << ':' << f.degree << ':' << f.type << ':' << f.index
+                  << ':' << f.discriminant_valuation << ':' << f.conductor << ':'
+                  << f.tamagawa << ':' << f.trace << ':';
+        if (f.component_cycles.empty()) std::cout << "[]";
+        for (std::size_t j = 0; j < f.component_cycles.size(); ++j) {
+            if (j) std::cout << ' ';
+            std::cout << f.component_cycles[j];
+        }
+    }
+}
+
 void invariants() {
     std::cout << "q,key,kind,minimality,status,chart,a1,a2,a3,a4,a6,"
-                 "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6\n";
+                 "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6,"
+                 "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent\n";
     std::string line;
     std::size_t line_number = 0;
     while (std::getline(std::cin, line)) {
@@ -67,11 +84,25 @@ void invariants() {
             const auto q = unsigned_integer(field, "q");
             if (q != 2 && q != 3) throw std::invalid_argument("q must be the prime 2 or 3");
             const auto model = census::model_from_key(q, unsigned_integer(key, "key"));
+            census::LocalModels local;
+            census::SignData sign{};
+            if (model.status == "partial") {
+                local = census::local_models(model);
+                sign = census::functional_equation_sign(local, model.q);
+            }
             std::cout << model.q << ',' << model.key << ',' << model.kind << ','
                       << model.minimality << ',' << model.status << ",\""
                       << census::model_chart << '\"';
             write_coefficients(model.affine);
             write_coefficients(model.infinity);
+            std::cout << ',';
+            if (model.status == "partial") {
+                write_fibres(local.fibres);
+                std::cout << ',';
+                write_fibres(local.twist_fibres);
+                std::cout << ',' << sign.degree << ',' << sign.sign << ',' << sign.height
+                          << ',' << sign.twist_height << ',' << sign.tamagawa_exponent;
+            } else std::cout << std::string(6, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());

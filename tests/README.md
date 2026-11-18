@@ -44,6 +44,12 @@ fixtures and hashes, with `TraceOfFrobenius` checks through degree 4.
 `compare/native_tables.m` compares all native entries with fresh Magma
 results, using `TraceOfFrobenius` through degree 4. Both checks cover characteristics 2 and 3
 through extension degree 12.
+`native_local_magma.m` checks reciprocal charts, split and nonsplit fibres,
+positive-index `I*` fibres, wild conductors and minimized Frobenius twists.
+`compare/native_local.m` compares native local records and signs with Magma
+in both charts and characteristics, including every Kodaira family.
+Five explicit equations supply literal aggregate controls; the native test
+also checks that no Magma subprocess is started.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
 entries in `tests/`, `tests/native/`, `tests/compare/`, and `examples/`,
