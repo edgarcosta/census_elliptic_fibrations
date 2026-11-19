@@ -123,3 +123,8 @@ these checks. Temporary output stays under `artifacts/` and is removed after
 success or failure. These tests do not simulate low free disk,
 enumerate all F_3 representatives or measure EPYC throughput and memory.
 Counting and listing use the same package mathematics.
+
+`recover_f2.m` checks the public retained-basis import and independent Magma
+audit on the [F_2 recovery control](fixtures/f2-recovery/README.md). It covers
+incomplete and capped work, wrong keys, duplicate output, torsion evidence,
+resume and preservation of exact claims. It does not replay the whole census.

@@ -117,3 +117,53 @@ arithmetic controls. The command checks cover GNU parallel failure, cancellation
 and resume; GNU parallel is required. They do not simulate low free disk space or
 measure EPYC resource peaks. Monitor free space, including failed attempts,
 and use ordinary host tools to measure memory and choose the job count.
+
+## Retained F_2 basis recovery
+
+`recover_f2.py` replays the 3,085 retained deeper-search requests, audits every
+basis with Magma and writes separate [refinement records](../data/refinements-v1.md).
+It leaves source rows and their exact split and Sha[2] claims in place.
+The calibration kernel is an explicit replay input, built from the revision
+named in `data/mw/f2-recovery/source-manifest.json`; it is not imported as a
+production library.
+
+Run from this checkout. `EVIDENCE_ROOT` below is the directory that retained
+the original shard receipts and summary; `KERNEL` is the rebuilt
+`calibration/bin/stages-native` at the pinned calibration revision.
+
+```sh
+python3 production/recover_f2.py prepare --evidence-root EVIDENCE_ROOT --output artifacts/f2-recovery &&
+python3 production/recover_f2.py replay --output artifacts/f2-recovery --kernel KERNEL --jobs 32 &&
+python3 production/recover_f2.py audit --output artifacts/f2-recovery --jobs 32 &&
+python3 production/recover_f2.py import --output artifacts/f2-recovery
+```
+
+Preparation checks every source shard and receipt digest, source identity,
+request association and original completion count. Four-request batches run
+with GNU parallel, one native or Magma process per batch. Choose `--jobs` for
+the host; 32 is a measured local setting. Each process keeps stdout, stderr,
+GNU time measurements and a receipt. Magma uses one thread and seed 20261119.
+Each audit batch has a 300-second limit; a timeout leaves it unresolved.
+
+To resume failed or unfinished jobs, repeat preparation and the same replay
+and audit commands. Keep their joblogs and input order. Successful receipts
+are validated before reuse, and repeat import preserves exact basis values.
+A missing successful receipt causes verification to fail; retain the old
+joblog elsewhere and rerun that stage to submit all batches. Workers validate
+and skip completed receipts. Changed producers or corrupt completed output
+require a separate run directory; they are not silently replaced.
+
+`refinements.jsonl`, `import-producer.json` and `import.json` are the import
+outputs. Import may account for incomplete work, but it promotes only bases
+with matching native and independent audit receipts. Raw replay alone cannot
+increase the certified count. `make check/recover_f2.m` checks this public path
+with the retained regulator-14 control and requires Magma and GNU parallel.
+
+The audit extracts the local Kodaira bound and division enumeration from the
+existing Magma reference, with `HeightPairingMatrix`, `LocalInformation`,
+`TorsionSubgroup` and `DivisionPoints` supplying the independent computations.
+The extraction sources were `mwk3.m` (SHA-256
+`df303efe87f03a8e27b1434e798d97d1311ef1cbfdd7f09397c8b32416468ccf`)
+and `c-stages/reference.m` (SHA-256
+`fe11663e7886648f2464969558cc9949822a608434ce01d11f23a01f14c7d27c`).
+It has no runtime dependency on those scratch files.

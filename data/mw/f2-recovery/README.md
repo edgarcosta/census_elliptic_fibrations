@@ -32,5 +32,20 @@ replays the searches or supplies an independent arithmetic audit.
 The separate refinement records must preserve the existing certified
 bases, split claims and exact Sha[2] claims. If replay and the required
 independent audit agree, the expected certified basis count is 1,045,076,
-up from 1,041,991, with zero new splits credited. The replay wrapper,
-importer, and independent audit remain separate work.
+up from 1,041,991, with zero new splits credited. The recovery command replays and independently audits these requests before
+writing basis-only refinement records.
+
+## Recovered evidence
+
+`recovered-evidence.tar.gz` retains the 3,085 replayed and independently audited
+bases, the separate `refinements.jsonl` records, producer manifests, source
+receipts, native output and Magma transcripts. Extract it into a new directory;
+its internal paths are relative to that directory. `recovery-summary.json`
+records its digest, counts and local measurements. These records add 3,085
+bases to the retained 1,041,991, giving 1,045,076 certified bases and 352,522
+open bases. They credit zero new splits.
+
+[The recovery commands](../../../production/README.md#retained-f_2-basis-recovery)
+and [record contract](../../refinements-v1.md) describe verification and resume.
+This is a retained-run refinement overlay; composing a full release remains
+separate work.
