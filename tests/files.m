@@ -1,4 +1,4 @@
-import "tests/_support.m": expect_error;
+import "tests/support/_support.m": expect_error;
 
 procedure remove_outputs(stem, indices)
     for path in [stem cat ".csv"] cat &cat[[Sprintf("%o_%o.bin", stem, IntegerToString(10000+i)[2..5]),

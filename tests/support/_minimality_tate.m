@@ -8,16 +8,6 @@ function tate_homogeneous_model(R, W)
     return [R | tate_homogenize(R, W[i], degrees[i]) : i in [1..5]];
 end function;
 
-function tate_valuation(f, pi)
-    assert f ne 0;
-    n := 0;
-    while f mod pi eq 0 do
-        f := f div pi;
-        n +:= 1;
-    end while;
-    return n;
-end function;
-
 function tate_place_key(pi)
     R := Parent(pi);
     p := Characteristic(R);
@@ -33,11 +23,11 @@ function tate_nonminimal(E, pi)
     U := Parent(pi);
     a := aInvariants(E);
     assert &and[Denominator(c) eq 1 : c in a];
-    oldv := tate_valuation(U!Discriminant(E), pi);
+    oldv := Valuation(U!Discriminant(E), pi);
     info, Emin := LocalInformation(E, F!pi);
     delta := Discriminant(Emin);
-    newv := tate_valuation(U!Numerator(delta), pi)
-        - tate_valuation(U!Denominator(delta), pi);
+    newv := Valuation(U!Numerator(delta), pi)
+        - Valuation(U!Denominator(delta), pi);
     assert newv eq info[2] and newv ge 0;
     assert oldv ge newv and (oldv-newv) mod 12 eq 0;
     return oldv gt newv, info;
@@ -65,7 +55,7 @@ function tate_bad_places(W)
     end for;
     // The O(2i) trivialization makes every coefficient integral at infinity.
     Einf := EllipticCurve([F | Evaluate(a, [F!1, T]) : a in W]);
-    assert tate_valuation(U!Discriminant(Einf), z) eq 24-Degree(delta);
+    assert Valuation(U!Discriminant(Einf), z) eq 24-Degree(delta);
     nonminimal, info := tate_nonminimal(Einf, z);
     if nonminimal then Append(~bad, R.2); end if;
     Sort(~bad, func<a, b | TotalDegree(a) ne TotalDegree(b)

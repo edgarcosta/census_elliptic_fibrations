@@ -1,0 +1,12 @@
+{
+    enumeration/declarations.m
+    models/forms.m
+    models/models.m
+    enumeration/engine.m
+    enumeration/f2.m
+    enumeration/f3.m
+    models/minimality.m
+    models/classification.m
+    records/files.m
+    enumeration/census.m
+}

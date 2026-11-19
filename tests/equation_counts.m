@@ -1,4 +1,4 @@
-import "tests/_support.m": expect_error;
+import "tests/support/_support.m": expect_error;
 
 // Pins all six equation cells against local-density and singular-locus formulas.
 procedure test_equation_closed_forms(p)

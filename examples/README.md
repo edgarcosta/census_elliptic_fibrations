@@ -9,8 +9,8 @@ over GF(2) and GF(3).
 From the repository root, run the two examples separately:
 
 ```sh
-magma -bn filename:=examples/counts.m run_tests.m
-magma -bn filename:=examples/representatives.m run_tests.m
+magma -bn filename:=examples/counts.m tests/run_tests.m
+magma -bn filename:=examples/representatives.m tests/run_tests.m
 ```
 
 Both examples run in CI and in `make check`. That target also runs the

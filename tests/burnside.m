@@ -1,6 +1,6 @@
 // The action and normalization correspondence are proved in docs/mathematics.md.
 
-import "tests/_weierstrass_change.m": equation_change;
+import "tests/support/_weierstrass_change.m": equation_change;
 
 // Checks the base-action order, the cross term in composition, and normalization.
 procedure test_burnside_changes(p)

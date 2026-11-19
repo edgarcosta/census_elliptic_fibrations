@@ -1,6 +1,6 @@
-import "models.m": valid_ring, prime_field_key, prefix_degrees;
-import "forms.m": coefficients;
-import "census.m": prefixes, selection_error, selections, selected_representative_keys;
+import "../models/models.m": valid_ring, prime_field_key, prefix_degrees;
+import "../models/forms.m": coefficients;
+import "../enumeration/census.m": prefixes, selection_error, selections, selected_representative_keys;
 
 function output_paths(stem, indices)
     return [stem cat ".csv"] cat &cat[[Sprintf("%o_%o.bin", stem, IntegerToString(10000+i)[2..5]),
@@ -33,7 +33,7 @@ See also FibrationRepresentativeKeys, aInvariantsFromKey}
         keys, cells := selected_representative_keys(R, P[i], kinds, minimalities);
         binary := Open(Sprintf("%o_%o.bin", stem, IntegerToString(10000+i)[2..5]), "wb");
         for lo in [1..#keys by 4096] do
-            WriteBytes(binary, &cat[[(key div 256^j) mod 256 : j in [0..7]]
+            WriteBytes(binary, &cat[Intseq(key, 256, 8)
                 : key in keys[lo..Min(lo+4095, #keys)]]);
         end for;
         Flush(binary);

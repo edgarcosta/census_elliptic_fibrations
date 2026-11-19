@@ -15,13 +15,7 @@ end function;
 
 function prime_field_key(v, p)
     assert IsPrime(p);
-    n := 0;
-    for a in Eltseq(v) do
-        digit := Integers()!a;
-        assert digit ge 0 and digit lt p;
-        n := p*n+digit;
-    end for;
-    return n;
+    return Seqint(Reverse([Integers() | a : a in Eltseq(v)]), p);
 end function;
 
 function prime_field_keys(M, p)
@@ -35,7 +29,7 @@ function vector_from_key(V, n)
     assert IsPrime(p);
     d := Dimension(V);
     assert n ge 0 and n lt p^d;
-    return V![(n div p^(d-i)) mod p : i in [1..d]];
+    return V!Reverse(Intseq(n, p, d));
 end function;
 
 function form_from_key(R, d, n)

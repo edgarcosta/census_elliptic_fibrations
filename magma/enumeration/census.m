@@ -1,4 +1,4 @@
-import "models.m": valid_ring, ambient_space;
+import "../models/models.m": valid_ring, ambient_space;
 import "f2.m": f2_prefixes, f2_fibre;
 import "f3.m": f3_prefixes, f3_fibre;
 import "engine.m": fibre_counts, fibre_equation_counts, fibre_representatives;

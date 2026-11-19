@@ -18,11 +18,11 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Guard against duplicate test basenames
-        run: sh scripts/no_dup_test_basenames.sh
+        run: python3 tests/list_tests.py > /dev/null
 
       - id: set-matrix
         run: |
-          matrix=$(find tests examples -maxdepth 1 -type f -name '*.m' ! -name '_*' | sort | jq -R . | jq -sc '{target: .}')
+          matrix=$(python3 tests/list_tests.py | jq -R . | jq -sc '{target: .}')
           echo $matrix
           echo $matrix | jq .
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
@@ -122,4 +122,4 @@ jobs:
           mkdir -p artifacts/test-tmp
           export MAGMA="$PWD/artifacts/magma-install/magma/magma"
           export MAGMA_TEMP_DIR="$PWD/artifacts/test-tmp"
-          "$MAGMA" -bn filename:=${{matrix.target}} run_tests.m
+          "$MAGMA" -bn filename:=${{matrix.target}} tests/run_tests.m
