@@ -34,10 +34,11 @@ while p.poll() is None:
     time.sleep(0.05)
 code = p.wait()
 r = resource.getrusage(resource.RUSAGE_CHILDREN)
-out.write_text(json.dumps(dict(command=sys.argv[2:], exit_status=code,
-    wall_seconds=time.monotonic()-start, user_seconds=r.ru_utime,
-    system_seconds=r.ru_stime, max_process_rss_kib=r.ru_maxrss,
-    sampled_peak_aggregate_rss_bytes=peak, samples=samples,
-    sampling_interval_seconds=0.05,
-    memory_limit='Sampled sum of descendant RSS; shared pages counted per process, peaks between samples may be missed.'), indent=2)+'\n')
+with out.open('a') as stream:
+    stream.write(json.dumps(dict(command=sys.argv[2:], exit_status=code,
+        wall_seconds=time.monotonic()-start, user_seconds=r.ru_utime,
+        system_seconds=r.ru_stime, max_process_rss_kib=r.ru_maxrss,
+        sampled_peak_aggregate_rss_bytes=peak, samples=samples,
+        sampling_interval_seconds=0.05,
+        memory_limit='Sampled sum of descendant RSS; shared pages counted per process, peaks between samples may be missed.'))+'\n')
 sys.exit(code)

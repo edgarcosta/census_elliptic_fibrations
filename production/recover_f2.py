@@ -154,15 +154,19 @@ def native_batch(output, batch):
     return requests, results
 
 
+def check_kernel(kernel, manifest):
+    src = kernel.parent.parent / 'src'
+    for name, expected in manifest['all_kernel_dependencies_compared'].items():
+        require(digest(src / name) == expected, f'kernel dependency: {name}')
+    require(subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=src, text=True).strip() == manifest['calibration_head'], 'kernel revision')
+
+
 def parallel(args, stage):
     metadata = prepared(args.output, args.batch)
     if stage == 'replay':
         kernel = args.kernel.resolve()
         manifest = metadata['source_manifest']
-        src = kernel.parent.parent / 'src'
-        for name, expected in manifest['all_kernel_dependencies_compared'].items():
-            require(digest(src / name) == expected, f'kernel dependency: {name}')
-        require(subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=src, text=True).strip() == manifest['calibration_head'], 'kernel revision')
+        check_kernel(kernel, manifest)
         producer = dict(method='retained-native-bundle-v1', executable=str(kernel),
             executable_sha256=digest(kernel), kernel_revision=manifest['calibration_head'],
             kernel_dependencies=manifest['all_kernel_dependencies_compared'],

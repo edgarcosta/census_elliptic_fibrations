@@ -193,8 +193,9 @@ python3 production/search_f2.py verify --output artifacts/f2-accessible/remainin
 python3 production/search_f2.py summarize --runs artifacts/f2-accessible/pilot512 artifacts/f2-accessible/remaining --output artifacts/f2-accessible/combined
 ```
 
-Eight-key batches run independently through GNU parallel with `--halt
-soon,fail=1`, `--resume-failed`, a joblog and retained stdout/stderr.
+Eight-key batches run independently through GNU parallel with
+`--resume-failed`, a joblog and retained stdout/stderr. A failed batch lets
+other batches finish; the run exits unsuccessfully if any batch fails.
 The pilot has 512 batches. Preparation checks the immutable inputs and
 producer before the joblog can skip work. Repeat preparation and the same
 run command to resume, preserving job order, checkout, kernel, executable
@@ -205,15 +206,18 @@ An audit has the existing 300-second limit. Failure cannot certify a basis.
 
 `verify` validates all selected keys, bounds, receipts and independent audits
 before writing `refinements.jsonl`, `import-producer.json` and
-`verification.json`. An uncertified key retains a rank-short, unresolved
-saturation/covering or failure reason. Exact basis values survive repeated
-import. Existing exact split and Sha[2] claims stay in their source overlay.
+`verification.json`. Failed attempts must be retried before verification
+or summary can succeed. An uncertified key retains a rank-short or unresolved
+saturation/covering reason. Exact basis values survive repeated import.
+Existing exact split and Sha[2] claims stay in their source overlay.
 A newly certified determinant can select one remaining pair and add separate
 regulator and Sha-order claims. No other candidate elimination is credited.
 
 Measure the same pilot separately at 256 and 512 workers. Prefix a run with
-`python3 production/measure.py MEASUREMENT.json` to record process-tree wall
-and CPU time and sample aggregate RSS every 50 ms on Linux. RSS counts shared
+`python3 production/measure.py MEASUREMENT.jsonl` to record process-tree wall
+and CPU time and sample aggregate RSS every 50 ms on Linux. Each invocation
+appends one JSON line. Add wall and CPU times across entries for the total
+cost, including retries; take the maximum RSS across entries. RSS counts shared
 pages per process and can miss peaks between samples. Per-stage GNU time
 records and `verification.json` separate native and audit CPU, evidence bytes,
 basis yield and unresolved counts. Keep preparation cost separate.

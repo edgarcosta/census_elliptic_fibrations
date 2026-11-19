@@ -132,13 +132,29 @@ def test_failed_resume(root):
     wrapper.chmod(0o755)
     args = ('run', '--output', run, '--kernel', kernel, '--magma', wrapper, '--jobs', 1)
     call(*args, ok=False)
+    assert 'failed attempt' in call('verify', '--output', run, ok=False).stderr
+    assert 'failed attempt' in call('summarize', '--runs', run, '--output', root / 'combined', ok=False).stderr
+    (run / 'batches/00000/result.json').unlink()
     marker.unlink()
     call(*args)
     call('verify', '--output', run)
     result = json.loads((run / 'verification.json').read_text())
     assert result['new_bases'] == 1
-    assert list((run / 'batches/00000/failed').glob('*-result.json'))
+    assert list((run / 'batches/00000/failed').glob('*-b7'))
     assert len((run / 'jobs.tsv').read_text().splitlines()) == 3
+
+
+def test_measurements_append(root):
+    output = root / 'measurements.json'
+    for status in (7, 0):
+        result = subprocess.run([sys.executable, str(ROOT / 'production/measure.py'),
+            str(output), sys.executable, '-c', f'raise SystemExit({status})'])
+        assert result.returncode == status
+        if status:
+            failed = output.read_bytes()
+    assert output.read_bytes().startswith(failed)
+    entries = [json.loads(line) for line in output.read_text().splitlines()]
+    assert [entry['exit_status'] for entry in entries] == [7, 0]
 
 
 def test_input_and_status_checks(root):
@@ -148,6 +164,7 @@ def test_input_and_status_checks(root):
     row = json.loads(gzip.decompress(inputs.read_bytes()))
     for field, bad, message in [('key', row['key']+1, 'key'),
                                 ('candidates', [], 'empty'),
+                                ('candidates', [[1, '224']], 'inaccessible'),
                                 ('rank', 0, 'rank')]:
         altered = dict(row, **{field: bad})
         inputs.write_bytes(gzip.compress((json.dumps(altered)+'\n').encode()))
@@ -160,6 +177,6 @@ def test_input_and_status_checks(root):
 
 
 if __name__ == '__main__':
-    for test in (test_unique_split_and_resume, test_candidate_conflict, test_input_and_status_checks, test_failed_resume):
+    for test in (test_unique_split_and_resume, test_candidate_conflict, test_input_and_status_checks, test_failed_resume, test_measurements_append):
         with tempfile.TemporaryDirectory(dir=ROOT / 'artifacts') as directory:
             test(Path(directory))

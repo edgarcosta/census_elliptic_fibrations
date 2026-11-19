@@ -153,7 +153,6 @@ def prepare(args):
         name = f'requests/{i//8:05d}.jsonl'
         immutable(args.output / name, b''.join(encoded(r) for r in selected[i:i+8]))
         files[name] = digest(args.output / name)
-    require(args.sample_size > 0, 'sample size must be positive')
     identity = dict(method='accessible-f2-bases-v1', script_sha256=digest(Path(__file__)),
         recovery_sha256=digest(ROOT / 'production/recover_f2.py'), audit_sha256=digest(AUDITOR))
     immutable(args.output / 'prepared.json', encoded(dict(files=files, manifest=manifest,
@@ -205,14 +204,15 @@ def worker(args, metadata):
         _, old, _ = check_batch(args.output, batch, metadata)
         if not any('retry pending' in o['reason'] for o in old):
             return
-        failed = directory / 'failed'
-        failed.mkdir(exist_ok=True)
-        number = len(list(failed.iterdir()))
+    failed = directory / 'failed'
+    failed.mkdir(exist_ok=True)
+    number = len(list(failed.iterdir()))
+    if result.exists():
         result.rename(failed / f'{number}-result.json')
-        for b in BOUNDS:
-            stage = directory / f'b{b}'
-            if stage.exists():
-                stage.rename(failed / f'{number}-b{b}')
+    for b in BOUNDS:
+        stage = directory / f'b{b}'
+        if stage.exists():
+            stage.rename(failed / f'{number}-b{b}')
     outcomes = {r['key']: dict(key=r['key'], reason='bounds exhausted without certified basis', attempts=[]) for r in rows}
     pending = list(rows)
     for b in BOUNDS:
@@ -323,11 +323,7 @@ def run(args):
     require(args.jobs > 0, 'jobs must be positive')
     kernel = args.kernel.resolve()
     manifest = metadata['manifest']['source_manifest']
-    src = kernel.parent.parent / 'src'
-    for name, expected in manifest['all_kernel_dependencies_compared'].items():
-        require(digest(src / name) == expected, f'kernel dependency: {name}')
-    require(subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=src, text=True).strip() ==
-            manifest['calibration_head'], 'kernel revision')
+    recovery.check_kernel(kernel, manifest)
     magma = Path(shutil.which(args.magma)).resolve()
     immutable(args.output / 'run-producer.json', encoded(dict(kernel_sha256=digest(kernel),
         magma_sha256=digest(magma), prepared_sha256=digest(args.output / 'prepared.json'))))
@@ -335,7 +331,7 @@ def run(args):
         '--kernel', str(args.kernel.resolve()), '--magma', args.magma, '--batch']) + ' {}'
     batches = [Path(name).stem for name in metadata['files']]
     args.output.joinpath('batches').mkdir(exist_ok=True)
-    subprocess.run(['parallel', '-j', str(args.jobs), '--halt', 'soon,fail=1', '--resume-failed',
+    subprocess.run(['parallel', '-j', str(args.jobs), '--resume-failed',
         '--joblog', str(args.output / 'jobs.tsv'), '--results', str(args.output / 'logs'), command],
         input='\n'.join(batches)+'\n', text=True, check=True)
     verify(args)
@@ -351,6 +347,7 @@ def verify(args):
         batch = Path(name).stem
         rows, outcomes, values = check_batch(args.output, batch, metadata)
         for row, outcome in zip(rows, outcomes):
+            require('retry pending' not in outcome['reason'], f'failed attempt in batch {batch}; rerun')
             key = row['key']
             exact = values.get(key)
             strata[json.dumps(row['stratum'])] += 1
