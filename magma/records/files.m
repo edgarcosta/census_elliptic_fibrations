@@ -33,7 +33,7 @@ See also FibrationRepresentativeKeys, aInvariantsFromKey}
         keys, cells := selected_representative_keys(R, P[i], kinds, minimalities);
         binary := Open(Sprintf("%o_%o.bin", stem, IntegerToString(10000+i)[2..5]), "wb");
         for lo in [1..#keys by 4096] do
-            WriteBytes(binary, &cat[[(key div 256^j) mod 256 : j in [0..7]]
+            WriteBytes(binary, &cat[Intseq(key, 256, 8)
                 : key in keys[lo..Min(lo+4095, #keys)]]);
         end for;
         Flush(binary);
