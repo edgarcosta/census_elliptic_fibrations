@@ -2,3 +2,5 @@
 /tests/fixtures/oldcode-archive/*.tsv filter=lfs diff=lfs merge=lfs -text
 /tests/fixtures/trace_tables/*.txt filter=lfs diff=lfs merge=lfs -text
 /tests/fixtures/full_f2/*.zip filter=lfs diff=lfs merge=lfs -text
+/data/mw/f2-recovery/*.json filter=lfs diff=lfs merge=lfs -text
+/data/mw/f2-recovery/*.jsonl filter=lfs diff=lfs merge=lfs -text
