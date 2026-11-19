@@ -265,6 +265,26 @@ def audit_result(output, batch):
     return result
 
 
+def certified_value(row, request, n, checked=None):
+    rank = row['derived']['rank']
+    require(len(n['basis']) == len(n['gram']) == n['rank'] == rank, 'basis rank')
+    det = matrix_determinant(n['gram'])
+    require(row['split']['candidates'] == [[row['split']['sha'], row['split']['regulator']]], 'source split')
+    require(det == Fraction(row['split']['regulator']) == Fraction(n['determinant']), 'determinant/split')
+    require(Fraction(n['sha_reg']) == Fraction(row['generators']['sha_reg']) == det * row['split']['sha'], 'Sha*Reg preservation')
+    require(n['torsion'] == row['generators']['torsion'], 'torsion factors')
+    require(Fraction(n['mu']) < 6 + 2 * request['b'] - Fraction(n['Cmax']) == Fraction(n['missing_height_bound']), 'covering inequality')
+    if checked is None:
+        return None
+    require(Fraction(checked['Cmax']) == Fraction(n['Cmax']) and checked['D'] == n['D'], 'local audit')
+    return dict(
+        basis=[[str(x) for x in point] for point in n['basis']],
+        gram=dict(dimension=rank, upper=[str(Fraction(n['gram'][i][j])) for i in range(rank) for j in range(i, rank)]),
+        torsion_points=[[str(x) for x in point] for point in n['torsion_points']],
+        bound=request['b'], regulator=str(det), covering_mu=str(Fraction(n['mu'])),
+        missing_height_bound=str(Fraction(n['missing_height_bound'])), division_audit=checked)
+
+
 def import_records(args):
     metadata = prepared(args.output)
     sources = read(args.output / 'sources.json')
@@ -292,24 +312,10 @@ def import_records(args):
             if n and not n['certified']:
                 claim['reason'] = 'native search did not certify a basis'
             if n and n['certified']:
-                rank = row['derived']['rank']
-                require(len(n['basis']) == len(n['gram']) == n['rank'] == rank, 'basis rank')
-                det = matrix_determinant(n['gram'])
-                require(row['split']['candidates'] == [[row['split']['sha'], row['split']['regulator']]], 'source split')
-                require(det == Fraction(row['split']['regulator']) == Fraction(n['determinant']), 'determinant/split')
-                require(Fraction(n['sha_reg']) == Fraction(row['generators']['sha_reg']) == det * row['split']['sha'], 'Sha*Reg preservation')
-                require(n['torsion'] == row['generators']['torsion'], 'torsion factors')
-                require(Fraction(n['mu']) < 6 + 2 * request['b'] - Fraction(n['Cmax']) == Fraction(n['missing_height_bound']), 'covering inequality')
-                if audit and key in audit['results']:
-                    checked = audit['results'][key]
-                    require(Fraction(checked['Cmax']) == Fraction(n['Cmax']) and checked['D'] == n['D'], 'local audit')
+                value = certified_value(row, request, n, audit['results'].get(key) if audit else None)
+                if value is not None:
                     exact += 1
-                    claim.update(status='exact', reason='full independent height and division audit', value=dict(
-                        basis=[[str(x) for x in point] for point in n['basis']],
-                        gram=dict(dimension=rank, upper=[str(Fraction(n['gram'][i][j])) for i in range(rank) for j in range(i, rank)]),
-                        torsion_points=[[str(x) for x in point] for point in n['torsion_points']],
-                        bound=request['b'], regulator=str(det), covering_mu=str(Fraction(n['mu'])),
-                        missing_height_bound=str(Fraction(n['missing_height_bound'])), division_audit=checked))
+                    claim.update(status='exact', reason='full independent height and division audit', value=value)
             records.append(dict(schema='census-refinement', schema_version=1, q=2, key=key,
                 key_encoding_version=1, input_ordinal=source['input_ordinal'], stage='bounded',
                 producer_id=producer_id, stage1_receipt_sha256=source['stage1_receipt_sha256'],

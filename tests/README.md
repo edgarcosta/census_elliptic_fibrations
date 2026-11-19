@@ -128,3 +128,10 @@ Counting and listing use the same package mathematics.
 audit on the [F_2 recovery control](fixtures/f2-recovery/README.md). It covers
 incomplete and capped work, wrong keys, duplicate output, torsion evidence,
 resume and preservation of exact claims. It does not replay the whole census.
+
+`search_f2.m` checks a unique-split/open-basis control, exact basis import,
+new split claims, candidate and key rejection, and damaged result receipts.
+It uses retained native output and a fresh independent Magma audit.
+With `SEARCH_F2_KERNEL`, it also executes the pinned native CLI and GNU
+parallel, checks early stopping and resumes a failed audit. A separate local
+stratified pilot covers all three bounds and rank-short outcomes.

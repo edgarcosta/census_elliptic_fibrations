@@ -167,3 +167,61 @@ The extraction sources were `mwk3.m` (SHA-256
 and `c-stages/reference.m` (SHA-256
 `fe11663e7886648f2464969558cc9949822a608434ce01d11f23a01f14c7d27c`).
 It has no runtime dependency on those scratch files.
+
+## Accessible F_2 basis search
+
+`search_f2.py` searches the [accessible queue](../data/mw/f2-accessible/README.md)
+at bounds 5, 6 and 7 even when a split is unique. It skips rank-one bounds
+whose height ceiling `4+2*b` is below every remaining regulator candidate.
+Each key stops after a native certificate and an independent Magma audit.
+Every promoted basis receives the recovery audit, including substitution,
+height pairing, torsion, local bounds, covering and division checks.
+The arithmetic kernel and stage 1 remain unchanged.
+
+From a pinned checkout, set `KERNEL` to the stages executable rebuilt from
+revision `45a0aa6f2fa7a006095da0201f77ced69cc70dfe`. The driver checks all
+nine dependencies and the executable digest on resume. These commands create
+the seeded pilot and its complementary queue:
+
+```sh
+python3 production/search_f2.py prepare --cohort pilot --output artifacts/f2-accessible/pilot512 &&
+python3 production/search_f2.py run --output artifacts/f2-accessible/pilot512 --kernel KERNEL --jobs 512 &&
+python3 production/search_f2.py verify --output artifacts/f2-accessible/pilot512 &&
+python3 production/search_f2.py prepare --cohort remaining --output artifacts/f2-accessible/remaining &&
+python3 production/search_f2.py run --output artifacts/f2-accessible/remaining --kernel KERNEL --jobs 512 &&
+python3 production/search_f2.py verify --output artifacts/f2-accessible/remaining &&
+python3 production/search_f2.py summarize --runs artifacts/f2-accessible/pilot512 artifacts/f2-accessible/remaining --output artifacts/f2-accessible/combined
+```
+
+Eight-key batches run independently through GNU parallel with `--halt
+soon,fail=1`, `--resume-failed`, a joblog and retained stdout/stderr.
+The pilot has 512 batches. Preparation checks the immutable inputs and
+producer before the joblog can skip work. Repeat preparation and the same
+run command to resume, preserving job order, checkout, kernel, executable
+paths and joblog. Missing or corrupt successful receipts fail verification;
+move a lost joblog aside and submit all batches to validate and reuse them.
+Failed batches retain their attempt files under `failed/` before retry.
+An audit has the existing 300-second limit. Failure cannot certify a basis.
+
+`verify` validates all selected keys, bounds, receipts and independent audits
+before writing `refinements.jsonl`, `import-producer.json` and
+`verification.json`. An uncertified key retains a rank-short, unresolved
+saturation/covering or failure reason. Exact basis values survive repeated
+import. Existing exact split and Sha[2] claims stay in their source overlay.
+A newly certified determinant can select one remaining pair and add separate
+regulator and Sha-order claims. No other candidate elimination is credited.
+
+Measure the same pilot separately at 256 and 512 workers. Prefix a run with
+`python3 production/measure.py MEASUREMENT.json` to record process-tree wall
+and CPU time and sample aggregate RSS every 50 ms on Linux. RSS counts shared
+pages per process and can miss peaks between samples. Per-stage GNU time
+records and `verification.json` separate native and audit CPU, evidence bytes,
+basis yield and unresolved counts. Keep preparation cost separate.
+Use only one pilot result with the remaining cohort in `summarize`; duplicate
+keys fail. The local sample is part of the future EPYC queue and earns no
+additional credit when repeated there.
+
+`make check/search_f2.m` checks import and independent audit using retained
+native output. Setting `SEARCH_F2_KERNEL` to the pinned executable also checks
+real execution, early stop and a failed-audit retry through GNU parallel.
+No test uses the EPYC. No target runtime or yield follows from the local sample.

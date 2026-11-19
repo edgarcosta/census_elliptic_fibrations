@@ -35,3 +35,12 @@ claims and never overwrite the retained source rows. Existing exact basis
 values cannot be replaced by an incomplete retry. `import.json` reports counts,
 the records digest and zero new splits credited. Later bounded, structure and
 d2 producers require their own implementations and contracts.
+
+The accessible-basis producer uses the same basis value and independent audit.
+Its producer manifest pins the search scripts and prepared cohort; each batch
+pins replay and Magma producers through the retained recovery receipts.
+For a previously ambiguous split, a certified determinant selects a remaining
+candidate pair. The record then also carries `claims.regulator` and
+`claims.sha_order`, each with exact status, method and decimal-string value.
+The original split and Sha[2] claims remain in their source overlay.
+`verification.json` counts these new splits separately from basis gains.
