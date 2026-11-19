@@ -6,7 +6,7 @@ on:
 
 env:
   # Increase this value to reset cache when MAGMA_URL changes.
-  MAGMA_CACHE_NUMBER: 2.30-1
+  MAGMA_CACHE_NUMBER: 2.30-1-native-layout
 
 jobs:
 
@@ -50,7 +50,7 @@ jobs:
         id: magmacache
         with:
           path: |
-            ./magma
+            ./artifacts/magma-install/magma
           key:
             ${{ env.MAGMA_CACHE_NUMBER }}
 
@@ -60,19 +60,18 @@ jobs:
         shell: bash
         if: steps.magmacache.outputs.cache-hit != 'true'
         run: |
-          for i in 1 2 3; do
-            wget "$MAGMA_URL" -O magma.tar.gz --quiet && break
-            echo "download attempt $i failed; retrying"; sleep 15
-          done
-          tar xf magma.tar.gz
-          test -x ./magma/magma   # Reject an incomplete download before caching it.
+          wget --tries=3 --wait=15 --waitretry=0 --retry-connrefused --retry-on-host-error \
+            --retry-on-http-error=429,500,502,503 "$MAGMA_URL" -O magma.tar.gz --quiet
+          mkdir -p artifacts/magma-install
+          tar xf magma.tar.gz -C artifacts/magma-install
+          test -x ./artifacts/magma-install/magma/magma   # Reject an incomplete download before caching it.
 
       - name: Create dummy network device
         shell: bash
         run: |
           sudo ip link add dumdum type dummy
-          sudo ifconfig dumdum hw ether `./magma/magma -bn -d | grep "Valid MAC addresses" -A1 | tail -n1`
-          echo 'SetQuitOnError(true); quit;' | ./magma/magma -bn
+          sudo ifconfig dumdum hw ether `./artifacts/magma-install/magma/magma -bn -d | grep "Valid MAC addresses" -A1 | tail -n1`
+          echo 'SetQuitOnError(true); quit;' | ./artifacts/magma-install/magma/magma -bn
 
   test:
     runs-on: ubuntu-latest
@@ -96,7 +95,7 @@ jobs:
         id: magmacache
         with:
           path: |
-            ./magma
+            ./artifacts/magma-install/magma
           key:
             ${{ env.MAGMA_CACHE_NUMBER }}
 
@@ -107,19 +106,20 @@ jobs:
         if: steps.magmacache.outputs.cache-hit != 'true'
         run: |
           wget "$MAGMA_URL" -O magma.tar.gz --quiet
-          tar xf magma.tar.gz
+          mkdir -p artifacts/magma-install
+          tar xf magma.tar.gz -C artifacts/magma-install
 
       - name: Create dummy network device
         shell: bash
         run: |
           sudo ip link add dumdum type dummy
-          sudo ifconfig dumdum hw ether `./magma/magma -bn -d | grep "Valid MAC addresses" -A1 | tail -n1`
-          echo 'SetQuitOnError(true); quit;' | ./magma/magma -bn
+          sudo ifconfig dumdum hw ether `./artifacts/magma-install/magma/magma -bn -d | grep "Valid MAC addresses" -A1 | tail -n1`
+          echo 'SetQuitOnError(true); quit;' | ./artifacts/magma-install/magma/magma -bn
 
       - name: Run tests
         shell: bash
         run: |
           mkdir -p artifacts/test-tmp
-          export MAGMA="$PWD/magma/magma"
+          export MAGMA="$PWD/artifacts/magma-install/magma/magma"
           export MAGMA_TEMP_DIR="$PWD/artifacts/test-tmp"
           "$MAGMA" -bn filename:=${{matrix.target}} run_tests.m
