@@ -221,6 +221,9 @@ cost, including retries; take the maximum RSS across entries. RSS counts shared
 pages per process and can miss peaks between samples. Per-stage GNU time
 records and `verification.json` separate native and audit CPU, evidence bytes,
 basis yield and unresolved counts. Keep preparation cost separate.
+Run or resume the search inside tmux or screen. Compare the two pilot
+refinement files after searching the remaining cohort and running `summarize`,
+before packaging the results. A mismatch then leaves the search complete.
 Use only one pilot result with the remaining cohort in `summarize`; duplicate
 keys fail. The local sample is part of the future EPYC queue and earns no
 additional credit when repeated there.
