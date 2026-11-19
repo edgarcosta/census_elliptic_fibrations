@@ -60,10 +60,8 @@ jobs:
         shell: bash
         if: steps.magmacache.outputs.cache-hit != 'true'
         run: |
-          for i in 1 2 3; do
-            wget "$MAGMA_URL" -O magma.tar.gz --quiet && break
-            echo "download attempt $i failed; retrying"; sleep 15
-          done
+          wget --tries=3 --wait=15 --waitretry=0 --retry-connrefused --retry-on-host-error \
+            --retry-on-http-error=429,500,502,503 "$MAGMA_URL" -O magma.tar.gz --quiet
           mkdir -p artifacts/magma-install
           tar xf magma.tar.gz -C artifacts/magma-install
           test -x ./artifacts/magma-install/magma/magma   # Reject an incomplete download before caching it.
