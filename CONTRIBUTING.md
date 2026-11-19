@@ -10,6 +10,10 @@ Keep details in their owning documents and update them with the implementation.
 
 ## Implementations
 
+Before writing a routine, use what exists: a Magma intrinsic, a library the build already links (NTL, FLINT, GMP, zstd), the Python standard library or a standard command-line tool. Write new code only to extend one, for example where the census needs it measurably faster, and say what the extension adds.
+The Magma comparison for a native routine may be the intrinsic itself.
+Run independent jobs with GNU parallel; use OpenMP only when memory must be shared, and build no scheduling around either.
+
 Implement the mathematics in Magma first. Native implementations need a
 Magma implementation for comparison. Keep the equivalence relation and the
 separate generic-fibre and minimality classifications in `docs/mathematics.md`
