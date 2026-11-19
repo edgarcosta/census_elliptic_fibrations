@@ -8,7 +8,7 @@ import sys
 
 
 BUCKETS = ("all", "smooth_minimal", "smooth_nonminimal", "delta_zero")
-FIXTURE = Path(__file__).parent / "data/oldcode-archive/summaries.tsv"
+FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/oldcode-archive/summaries.tsv"
 
 
 def coefficients(value, q):

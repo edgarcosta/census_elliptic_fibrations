@@ -1,4 +1,4 @@
-import "tests/_weierstrass_change.m": homogeneous_forms, equation_change;
+import "tests/support/_weierstrass_change.m": homogeneous_forms, equation_change;
 
 function fibre_coordinates(W)
     R := Universe(W);

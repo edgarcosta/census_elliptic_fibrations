@@ -1,5 +1,5 @@
-import "tests/_archive.m": test_archive;
-import "tests/_archive_oracle.m": test_archive_canonicalization;
+import "tests/support/_archive.m": test_archive;
+import "tests/support/_archive_oracle.m": test_archive_canonicalization;
 
 // Two complete F_3 prefixes exercise both canonicalization branches.
 procedure test_archive_invariants_f3()

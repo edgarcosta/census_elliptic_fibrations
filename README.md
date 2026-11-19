@@ -126,23 +126,25 @@ Thanks for helping check the census. From the repository root, run either
 test command:
 
 ```sh
-magma -bn run_tests.m
+magma -bn tests/run_tests.m
 make check
 ```
 
-Both run `tests/*.m` and `examples/*.m` and return a nonzero status on failure.
+Both use `python3 tests/list_tests.py` to list tests and examples, excluding
+the runner and helpers, and return a nonzero status on failure.
 The examples include counts over both fields and a bounded representative
 calculation. The CI matrix runs these same files.
 CI also checks the printed census numbers in this README, `docs/interface.md`
 and `docs/mathematics.md`; it does not execute Markdown code blocks.
 The tests need Magma, Python 3 (`python3`), Git LFS, a POSIX shell,
-and standard shell utilities. If Git LFS was installed after cloning, run
+and standard shell utilities. The Makefile needs GNU Make 4.2 or later.
+If Git LFS was installed after cloning, run
 `git lfs pull` to download the fixtures before testing.
 
 To run one file with the runner's `filename` parameter:
 
 ```sh
-magma -bn filename:=tests/keys_f3.m run_tests.m
+magma -bn filename:=tests/keys_f3.m tests/run_tests.m
 ```
 
 Use `target` to select paths containing a string. The `debug` parameter opens

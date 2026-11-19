@@ -1,4 +1,4 @@
-import "tests/_support.m": expect_error;
+import "tests/support/_support.m": expect_error;
 
 // Pins coefficient order, block boundaries and normalization before encoding.
 procedure test_key_encoding_f2()

@@ -1,4 +1,4 @@
-import "src/forms.m": form_action, form_from_vector, base_change;
+import "magma/models/forms.m": form_action, form_from_vector, base_change;
 
 // Direct comparison isolates row-action conventions that aggregate census counts cannot diagnose.
 procedure test_form_action()

@@ -1,4 +1,4 @@
-import "tests/_weierstrass_change.m": equation_change;
+import "tests/support/_weierstrass_change.m": equation_change;
 
 function sample_form(R, mask, degree)
     return &+[R | ((mask div 2^j) mod 2)*R.1^j*R.2^(degree-j)
@@ -61,7 +61,7 @@ end procedure;
 // The published F_2 census table is incomplete; this sample cannot check whole-census cell counts.
 procedure test_published_f2()
     R<s, t> := PolynomialRing(GF(2), 2);
-    lines := Split(Read("tests/data/published-f2/sample.csv"), "\n");
+    lines := Split(Read("tests/fixtures/published-f2/sample.csv"), "\n");
     assert lines[1] eq "source_row,key,a1,mw_torsion,singular_fibres,L_function,L_sign,analytic_rank";
     assert #lines eq 17;
     prefixes := FibrationPrefixes(R);
