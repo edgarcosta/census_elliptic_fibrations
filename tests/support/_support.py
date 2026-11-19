@@ -3,7 +3,7 @@ import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[2]
-BINARY = ROOT / "artifacts/native/census-native"
+BINARY = ROOT / "build/native/census-native"
 
 
 def invoke(text, *options, diagnostic=True):

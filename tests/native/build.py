@@ -8,8 +8,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_native_test_dependencies():
-    (ROOT / "artifacts").mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=ROOT / "artifacts") as directory:
+    (ROOT / "build").mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
         root = Path(directory)
         shutil.copyfile(ROOT / "Makefile", root / "Makefile")
         (root / "native").mkdir()
@@ -25,15 +25,15 @@ def test_native_test_dependencies():
             )
             assert result.returncode == 0, result.stdout + result.stderr
             commands = result.stdout
-            build = "-o artifacts/native/census-native"
+            build = "-o build/native/census-native"
             assert commands.count(build) == 1, commands
             invocation = "filename:=tests/native/native_probe.m"
             assert commands.index(build) < commands.index(invocation), commands
 
 
 def test_duplicate_test_names():
-    (ROOT / "artifacts").mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=ROOT / "artifacts") as directory:
+    (ROOT / "build").mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
         root = Path(directory)
         shutil.copyfile(ROOT / "Makefile", root / "Makefile")
         (root / "tests").mkdir()
@@ -57,7 +57,7 @@ def test_build_and_usage():
         ["make", "census-native"], cwd=ROOT, capture_output=True, text=True
     )
     assert build.returncode == 0, build.stdout + build.stderr
-    binary = ROOT / "artifacts/native/census-native"
+    binary = ROOT / "build/native/census-native"
     for option in ("--help", "-h", "help"):
         result = subprocess.run([binary, option], capture_output=True, text=True)
         assert result.returncode == 0, result.stderr

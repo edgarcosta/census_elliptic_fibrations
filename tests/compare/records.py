@@ -9,7 +9,7 @@ from _support import BINARY, ROOT, invoke
 
 
 def decompress(data):
-    with tempfile.NamedTemporaryFile(dir=ROOT / "artifacts", suffix=".zst") as frame:
+    with tempfile.NamedTemporaryFile(dir=ROOT / "build", suffix=".zst") as frame:
         frame.write(data)
         frame.flush()
         listing = subprocess.run(["zstd", "--list", frame.name], check=True,

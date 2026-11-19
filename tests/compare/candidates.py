@@ -48,7 +48,7 @@ def test_equations(reference):
 
 # Constant extensions and large supplied integers have no prime-field census key.
 def test_supplied(reference):
-    result = subprocess.run([ROOT / "artifacts/native/candidates-exact"],
+    result = subprocess.run([ROOT / "build/tests/native/candidates-exact"],
                             input=Path(reference).read_text(), text=True,
                             capture_output=True)
     assert result.returncode == 0, result.stderr

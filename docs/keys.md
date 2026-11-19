@@ -86,17 +86,17 @@ sidecar, or summary files cause an error. Concurrent calls need distinct stems.
 There is no resume operation.
 
 This bounded example writes only the nonregular equation in the zero prefix
-over GF(3). Create the ignored `artifacts/` directory first, then run from
+over GF(3). Create the ignored `results/` directory first, then run from
 the repository root with a fresh stem:
 
 ```c++
 AttachSpec("spec");
 R<s, t> := PolynomialRing(GF(3), 2);
 i := Index(FibrationPrefixes(R), <R!0, R!0>);
-n := WriteFibrationRepresentativeKeys(R, "artifacts/documented-zero" :
+n := WriteFibrationRepresentativeKeys(R, "results/documented-zero" :
     PrefixIndices := [i], GenericFibreKinds := ["nonregular"]);
 print n;
-prefix_stem := Sprintf("artifacts/documented-zero_%o", IntegerToString(10000+i)[2..5]);
+prefix_stem := Sprintf("results/documented-zero_%o", IntegerToString(10000+i)[2..5]);
 F := Open(prefix_stem cat ".bin", "rb");
 print ReadBytes(F);
 delete F;

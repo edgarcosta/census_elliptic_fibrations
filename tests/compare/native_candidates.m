@@ -34,4 +34,4 @@ procedure write_reference(path)
 end procedure;
 
 compare_native(write_reference, "tests/compare/candidates.py" :
-    Targets := "artifacts/native/candidates-exact", Suffixes := [".supplied"]);
+    Targets := "build/tests/native/candidates-exact", Suffixes := [".supplied"]);

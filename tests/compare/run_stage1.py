@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "tests/compare"))
 from records import decompress
 
 CLI = ROOT / "production/stage1.py"
-BINARY = ROOT / "artifacts/native/census-native"
+BINARY = ROOT / "build/native/census-native"
 
 
 def call(command, q, output, *extra, ok=True):
@@ -299,7 +299,7 @@ def test_parallel(base):
 
 
 if __name__ == '__main__':
-    with tempfile.TemporaryDirectory(prefix='stage1-', dir=ROOT / 'artifacts') as directory:
+    with tempfile.TemporaryDirectory(prefix='stage1-', dir=ROOT / 'build') as directory:
         base = Path(directory)
         for test in (test_failed_count_logs, test_changed_full_count,
                      test_failed_logs, test_publication_recovery, test_magma_version, test_magma_spec,
