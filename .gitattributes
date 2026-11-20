@@ -1,2 +1,4 @@
 /tests/fixtures/published-f2/*.csv filter=lfs diff=lfs merge=lfs -text
 /tests/fixtures/oldcode-archive/*.tsv filter=lfs diff=lfs merge=lfs -text
+/data/sha2/f2-ordinary-refinements/*.tar.gz filter=lfs diff=lfs merge=lfs -text
+/data/sha2/f2-ordinary-refinements/*.json filter=lfs diff=lfs merge=lfs -text

@@ -8,5 +8,6 @@
     models/minimality.m
     models/classification.m
     records/files.m
+    arithmetic/sha2.m
     enumeration/census.m
 }
