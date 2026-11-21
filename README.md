@@ -136,7 +136,7 @@ CI also checks the printed census numbers in this README, `docs/interface.md`
 and `docs/mathematics.md`; it does not execute Markdown code blocks.
 The tests need Magma, Python 3 (`python3`), a POSIX shell,
 and standard shell utilities. The Makefile needs GNU Make 4.2 or later.
-Native tests also need a C++17 compiler and NTL and GMP development
+Native tests also need a C++17 compiler and the NTL, FLINT, and GMP development
 packages. See the [native build guide](native/README.md) for package names,
 commands and compiler settings.
 
@@ -159,6 +159,8 @@ the debugger on an error.
 - [Complete torsion](docs/native/torsion.md): bounded torsion search, point orders and the K3 height proof.
 - [Native local records](docs/native/local.md): minimized Tate data, wild conductors, Frobenius twists, component cycles and the twist sign.
 - [Signed L-polynomials](docs/native/lfunction.md): exact coefficients, lower-half encoding, scalar and AVX2 counting, and independent Magma comparisons.
+- [Derived K3 invariants](docs/native/invariants.md): ranks, cohomology, exact point counts, and BSD and Artin-Tate products.
+- [Sha and regulator candidates](docs/native/candidates.md): necessary lattice and height constraints, including unresolved splits.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 
 Author: Edgar Costa

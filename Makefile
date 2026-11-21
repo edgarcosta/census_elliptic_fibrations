@@ -2,7 +2,7 @@ MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
-NATIVE_LDLIBS = -lntl -lgmpxx -lgmp
+NATIVE_LDLIBS = -lntl -lflint -lgmpxx -lgmp
 NATIVE_BINARY := artifacts/native/census-native
 
 TEST_PATHS := $(shell python3 tests/list_tests.py)
@@ -40,3 +40,7 @@ $(foreach file,$(TEST_PATHS),$(eval $(call test_rule,$(file))))
 check: $(CHECK_FILES)
 
 .PHONY: all check census-native
+
+artifacts/native/candidates-exact: tests/native/candidates_exact.cpp native/invariants/invariants.cpp $(NATIVE_HEADERS)
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ tests/native/candidates_exact.cpp native/invariants/invariants.cpp $(NATIVE_LDLIBS) $(LDLIBS)

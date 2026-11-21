@@ -1,6 +1,7 @@
 #include "models/model.hpp"
 #include "lfunction/lfun.hpp"
 #include "invariants/invariants.hpp"
+#include "records/format.hpp"
 
 #include <charconv>
 #include <cstdint>
@@ -16,14 +17,14 @@ void print_help(std::ostream& output) {
     output << "Usage: census-native <command>\n\n"
               "Commands:\n"
               "  help        Show this help\n"
-              "  invariants  Compute model, local, torsion and signed L-polynomial data from q/key rows\n"
+              "  invariants  Compute exact K3 invariants and Sha/regulator candidates\n"
               "  count       Count points on the ordinary cubic families\n\n"
               "Options:\n"
               "  -h, --help                Show this help\n"
               "  --backend auto|scalar|avx2  Counting backend (default auto)\n"
               "  --diagnostic              Emit diagnostic comparison CSV (default)\n"
               "Input: one q key pair per line, q=2 or 3, decimal uint64 key.\n"
-              "Output: CSV with both charts, cell labels, local fibres, twist sign, torsion and signed L.\n"
+              "Output: diagnostic CSV with exact K3 invariants and candidate lists.\n"
               "Smooth everywhere minimal rows are partial; other cells are unsupported.\n";
     output << "\ncount reads p degree parameter rows.\n"
               "Parameter is an exponent 0 <= e < p^degree-1, or zero for parameter 0.\n"
@@ -51,45 +52,16 @@ void write_coefficients(const std::array<std::vector<int>, 5>& chart) {
     }
 }
 
-void write_fibres(const std::vector<census::LocalFibre>& fibres) {
-    if (fibres.empty()) std::cout << "[]";
-    for (std::size_t i = 0; i < fibres.size(); ++i) {
-        if (i) std::cout << ';';
-        const auto& f = fibres[i];
-        std::cout << f.place << ':' << f.degree << ':' << f.type << ':' << f.index
-                  << ':' << f.discriminant_valuation << ':' << f.conductor << ':'
-                  << f.tamagawa << ':' << f.trace << ':';
-        if (f.component_cycles.empty()) std::cout << "[]";
-        for (std::size_t j = 0; j < f.component_cycles.size(); ++j) {
-            if (j) std::cout << ' ';
-            std::cout << f.component_cycles[j];
-        }
-    }
-}
-
-template<typename T>
-void write_joined(const std::vector<T>& values, char separator) {
-    for (std::size_t i = 0; i < values.size(); ++i) {
-        if (i) std::cout << separator;
-        std::cout << values[i];
-    }
-}
-
-template<class Values>
-void write_list(const Values& values, std::size_t first, std::size_t end) {
-    if (first == end) std::cout << "[]";
-    for (std::size_t i = first; i < end; ++i) {
-        if (i != first) std::cout << ' ';
-        std::cout << values[i];
-    }
-}
-
 void invariants(std::string_view backend) {
     census::LPolynomialCounter counter(backend);
     std::cout << "q,key,kind,minimality,status,a1,a2,a3,a4,a6,"
                  "infinity_a1,infinity_a2,infinity_a3,infinity_a4,infinity_a6,"
                  "fibres,twist_fibres,degree,sign,height,twist_height,tamagawa_exponent,"
-                 "torsion,torsion_points,lower_L,L_polynomial,trace_sums\n";
+                 "torsion,torsion_points,lower_L,L_polynomial,trace_sums,"
+                 "rank,geometric_rank,picard_number,geometric_picard_number,"
+                 "P2,zeta_sign,point_counts,brauer_height,artin_tate_product,ns_splitting_degree,"
+                 "j_degree,j_inseparability_exponent,sha_reg,"
+                 "admissible_sha,admissible_regulators\n";
     std::string line;
     std::size_t line_number = 0;
     while (std::getline(std::cin, line)) {
@@ -112,23 +84,29 @@ void invariants(std::string_view backend) {
                 const auto sign = census::functional_equation_sign(local, model.q);
                 const auto torsion = census::complete_torsion(model, local);
                 const auto lfun = counter.compute(model, local, sign);
-                write_fibres(local.fibres);
+                const auto derived = census::derived_invariants(model, local, torsion, lfun);
+                const auto candidates = census::admissible_candidates(derived, local.fibres);
+                census::write_fibres(std::cout, local.fibres, true);
                 std::cout << ',';
-                write_fibres(local.twist_fibres);
+                census::write_fibres(std::cout, local.twist_fibres, true);
                 std::cout << ',' << sign.degree << ',' << sign.sign << ',' << sign.height
                           << ',' << sign.twist_height << ',' << sign.tamagawa_exponent;
                 std::cout << ',';
                 if (torsion.factors.empty()) std::cout << "[]";
-                write_joined(torsion.factors, ' ');
+                census::write_joined(std::cout, torsion.factors, ' ');
                 std::cout << ',';
-                write_joined(torsion.points, ';');
+                census::write_joined(std::cout, torsion.points, ';');
                 std::cout << ',';
-                write_list(lfun.coefficients, 1, 1+sign.degree/2);
+                census::write_list(std::cout, lfun.coefficients, 1, 1+sign.degree/2);
                 std::cout << ',';
-                write_list(lfun.coefficients, 0, lfun.coefficients.size());
+                census::write_list(std::cout, lfun.coefficients, 0, lfun.coefficients.size());
                 std::cout << ',';
-                write_list(lfun.trace_sums, 0, lfun.trace_sums.size());
-            } else std::cout << std::string(11, ',');
+                census::write_list(std::cout, lfun.trace_sums, 0, lfun.trace_sums.size());
+                std::cout << ',';
+                census::write_derived_invariants(std::cout, derived);
+                std::cout << ',';
+                census::write_candidate_invariants(std::cout, candidates);
+            } else std::cout << std::string(26, ',');
             std::cout << '\n';
         } catch (const std::exception& error) {
             throw std::runtime_error("line " + std::to_string(line_number) + ": " + error.what());

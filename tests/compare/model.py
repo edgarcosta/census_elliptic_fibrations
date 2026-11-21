@@ -5,6 +5,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "support"))
 from _support import invoke
 from local import fibres
+from derived import FIELDS as DERIVED_FIELDS
+from candidates import FIELDS as CANDIDATE_FIELDS
 
 
 def test_magma_comparison(reference):
@@ -21,10 +23,10 @@ def test_magma_comparison(reference):
             assert got[field] == value, (context, field, got[field], value)
         supported = want["kind"] == "smooth" and want["minimality"] == "everywhere minimal"
         assert got["status"] == ("partial" if supported else "unsupported"), context
-        assert set(got) == set(want) | {"torsion", "torsion_points", "lower_L", "L_polynomial", "trace_sums", "status"}, got
+        assert set(got) == set(want) | set(DERIVED_FIELDS) | set(CANDIDATE_FIELDS) | {"torsion", "torsion_points", "lower_L", "L_polynomial", "trace_sums", "status"}, got
         if not supported:
             assert all(got[field] == "" for field in ("torsion", "torsion_points",
-                       "lower_L", "L_polynomial", "trace_sums")), context
+                       "lower_L", "L_polynomial", "trace_sums", *DERIVED_FIELDS, *CANDIDATE_FIELDS)), context
     for p in ("2", "3"):
         cells = {(row["kind"], row["minimality"]) for row in actual if row["q"] == p}
         assert len(cells) == 6, cells

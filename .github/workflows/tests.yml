@@ -118,7 +118,7 @@ jobs:
         if: startsWith(matrix.target, 'tests/native/') || startsWith(matrix.target, 'tests/compare/')
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ make python3 libntl-dev libgmp-dev
+          sudo apt-get install -y g++ make python3 libntl-dev libflint-dev libgmp-dev
 
       - name: Run tests
         shell: bash
