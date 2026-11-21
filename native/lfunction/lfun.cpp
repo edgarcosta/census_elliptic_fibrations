@@ -5,6 +5,33 @@
 #include <string>
 
 namespace census {
+
+SignData functional_equation_sign(const LocalModels& local, unsigned q) {
+    auto summarize = [q](const std::vector<LocalFibre>& fibres) {
+        std::array<int, 3> values{};
+        for (const auto& fibre : fibres) {
+            values[0] += fibre.degree*fibre.discriminant_valuation;
+            values[1] += fibre.degree*fibre.conductor;
+            // Each closed place contributes once to C, without a degree exponent.
+            for (int c = fibre.tamagawa; c % q == 0; c /= q) ++values[2];
+        }
+        if (values[0] % 12) throw std::runtime_error("nonintegral elliptic surface height");
+        return values;
+    };
+    const auto original = summarize(local.fibres);
+    const auto twist = summarize(local.twist_fibres);
+    SignData result;
+    result.degree = original[1] - 4;
+    if (result.degree < 0 || result.degree > 20) {
+        throw std::runtime_error("L-polynomial degree outside K3 range");
+    }
+    result.height = original[0]/12;
+    result.twist_height = twist[0]/12;
+    result.tamagawa_exponent = twist[2] - original[2];
+    const int exponent = result.twist_height - result.height + result.tamagawa_exponent;
+    result.sign = exponent % 2 ? -1 : 1;
+    return result;
+}
 namespace {
 constexpr std::int64_t modulus = 1062907;
 constexpr std::int64_t omega = 662797;

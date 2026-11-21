@@ -1,19 +1,10 @@
 import csv
 import io
 from pathlib import Path
-import subprocess
 import sys
-
-
-ROOT = Path(__file__).resolve().parents[2]
-BINARY = ROOT / "artifacts/native/census-native"
-
-
-def invoke(text, *options):
-    return subprocess.run(
-        [BINARY, "invariants", "--diagnostic", *options], input=text,
-        capture_output=True, text=True, cwd=ROOT,
-    )
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "support"))
+from _support import invoke
+from local import fibres
 
 
 def test_magma_comparison(reference):
@@ -34,6 +25,14 @@ def test_magma_comparison(reference):
     for p in ("2", "3"):
         cells = {(row["kind"], row["minimality"]) for row in actual if row["q"] == p}
         assert len(cells) == 6, cells
+    supported_rows = [row for row in actual if row["status"] == "partial"]
+    assert {row["sign"] for row in supported_rows} == {"1", "-1"}
+    assert {row["twist_height"] for row in supported_rows} >= {"1", "2", "4"}
+    for p in ("2", "3"):
+        reductions = [f for row in supported_rows if row["q"] == p
+                      for field in ("fibres", "twist_fibres") for f in fibres(row[field])]
+        assert {f[2] for f in reductions} == {"I", "I*", "II", "III", "IV", "IV*", "III*", "II*"}
+        assert any(f[2] == "I*" and f[3] > 0 for f in reductions)
 
 
 def test_invalid_input():
