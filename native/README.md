@@ -27,7 +27,7 @@ make check/native_model.m
 The Makefile accepts `CXX`, `CPPFLAGS`, `CXXFLAGS`, `LDFLAGS`, `LDLIBS`, and
 `NATIVE_LDLIBS` as command-line overrides. `CXXFLAGS` defaults to
 `-O2 -Wall -Wextra -Wpedantic`; the build adds `-std=c++17`.
-`NATIVE_LDLIBS` defaults to `-lntl -lgmp`.
+`NATIVE_LDLIBS` defaults to `-lntl -lgmpxx -lgmp`.
 
 For headers or libraries installed outside the compiler's default paths,
 pass include and library search paths explicitly:

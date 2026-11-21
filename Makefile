@@ -2,7 +2,7 @@ MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
-NATIVE_LDLIBS = -lntl -lgmp
+NATIVE_LDLIBS = -lntl -lgmpxx -lgmp
 NATIVE_BINARY := artifacts/native/census-native
 
 TEST_PATHS := $(shell python3 tests/list_tests.py)
