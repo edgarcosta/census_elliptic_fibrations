@@ -1,7 +1,6 @@
 # Archived coordinate-orbit multisets
 
 These fixtures compare the package with a completed run of the old census.
-Thanks for helping preserve an independent check of the census data.
 Only per-prefix counts and mathematical digests are stored here, in Git LFS.
 The sorted orbit lists stay on the compute host for diagnosing mismatches.
 

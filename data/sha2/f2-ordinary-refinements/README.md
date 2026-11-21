@@ -1,9 +1,9 @@
 # Ordinary-F_2 Sha[2] refinement evidence
 
-Thanks for preserving these completed computations. `evidence.tar.gz` contains
-the 2026-11-17 exact-refinement inputs and results, with a byte inventory in
-`manifest.json`. Both files use Git LFS. The archive preserves original bytes;
-its timestamps and ownership are normalized for reproducible packaging.
+`evidence.tar.gz` contains the 2026-11-17 exact-refinement inputs and results,
+with a byte inventory in `manifest.json`. Both files use Git LFS. The archive
+preserves original bytes; its timestamps and ownership are normalized for
+reproducible packaging.
 
 The source revisions recorded in `inputs/effect_summary.json` are calibration
 `45a0aa6f2fa7a006095da0201f77ced69cc70dfe` and note `3a9579d`.

@@ -1,7 +1,6 @@
 # Independent census checks
 
-Thanks for helping check the census. These tests compare the public interface
-with independent calculations and data:
+These tests compare the public interface with independent calculations and data:
 
 - `burnside.m` derives the whole-space affine action by direct substitution
   over both fields. It checks the total orbit count, including singular and

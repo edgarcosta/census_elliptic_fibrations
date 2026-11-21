@@ -1,7 +1,7 @@
 # Saved F_2 Sha[2] import
 
-Thanks for helping preserve the census proofs. The public command imports the
-completed ordinary-F_2 refinement and verifies its saved evidence:
+The public command imports the completed ordinary-F_2 refinement and verifies
+its saved evidence:
 
 ```sh
 python3 production/refine.py import-sha2 --output artifacts/f2-sha2 &&

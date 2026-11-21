@@ -1,7 +1,7 @@
 # Package source
 
-Thanks for helping develop the census. This directory implements the Magma
-intrinsics and private orbit, classification, file and arithmetic routines.
+This directory implements the Magma intrinsics and private orbit,
+classification, file and arithmetic routines.
 
 - `enumeration/declarations.m`: the `FibrationCensus` verbosity levels.
 - `models/forms.m`: binary-form bases, coefficient vectors, symmetric-power actions and power tests.

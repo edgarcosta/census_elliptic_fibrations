@@ -1,6 +1,5 @@
 # Separate refinement records
 
-Thanks for helping keep mathematical claims and their evidence together.
 The saved Sha[2] importer writes `census-refinement` version 1 records beside
 the original census data. Stage 1 CSV v1 is unchanged.
 
