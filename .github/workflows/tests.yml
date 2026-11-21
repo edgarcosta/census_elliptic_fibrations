@@ -116,6 +116,12 @@ jobs:
           sudo ifconfig dumdum hw ether `./artifacts/magma-install/magma/magma -bn -d | grep "Valid MAC addresses" -A1 | tail -n1`
           echo 'SetQuitOnError(true); quit;' | ./artifacts/magma-install/magma/magma -bn
 
+      - name: Install native build dependencies
+        if: startsWith(matrix.target, 'tests/native/')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make python3
+
       - name: Run tests
         shell: bash
         run: |

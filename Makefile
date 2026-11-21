@@ -1,6 +1,10 @@
 MAGMA ?= magma
 MAGMA_PATH := $(shell command -v "$(MAGMA)")
 
+CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
+NATIVE_LDLIBS =
+NATIVE_BINARY := artifacts/native/census-native
+
 TEST_PATHS := $(shell python3 tests/list_tests.py)
 ifneq ($(.SHELLSTATUS),0)
 $(error tests/list_tests.py failed)
@@ -10,6 +14,15 @@ CHECK_FILES := $(addprefix check/,$(notdir $(TEST_PATHS)))
 MAKEFLAGS += -j$(shell nproc 2>/dev/null || printf 1)
 
 all: check
+
+census-native: $(NATIVE_BINARY)
+
+$(NATIVE_BINARY): native/main.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++17 $(LDFLAGS) -o $@ $< $(NATIVE_LDLIBS) $(LDLIBS)
+
+NATIVE_CHECKS := $(filter check/native_%,$(CHECK_FILES))
+$(NATIVE_CHECKS) $(NATIVE_CHECKS:check/%=debug/%): census-native
 
 define test_rule
 check/$(notdir $(1)): $(1)
@@ -26,4 +39,4 @@ check: $(CHECK_FILES)
 check-no-dups:
 	@python3 tests/list_tests.py > /dev/null
 
-.PHONY: all check check-no-dups
+.PHONY: all check check-no-dups census-native
