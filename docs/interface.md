@@ -206,6 +206,13 @@ false
 The [mathematics](mathematics.md#local-minimality) gives the divisibility
 criterion and explains why finitely many candidate places suffice.
 
+## Signed L-polynomials
+
+`FibrationLPolynomial(E)` returns the signed L-polynomial record of an
+everywhere minimal elliptic K3 model over `GF(2)(t)` or `GF(3)(t)`.
+The record includes the polynomial, degree, sign, lower coefficients and trace
+sums.
+
 ## Progress messages
 
 `SetVerbose("FibrationCensus", 1)` reports completed or written prefixes.

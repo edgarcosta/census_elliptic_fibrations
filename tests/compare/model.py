@@ -21,9 +21,10 @@ def test_magma_comparison(reference):
             assert got[field] == value, (context, field, got[field], value)
         supported = want["kind"] == "smooth" and want["minimality"] == "everywhere minimal"
         assert got["status"] == ("partial" if supported else "unsupported"), context
-        assert set(got) == set(want) | {"torsion", "torsion_points", "status"}, got
+        assert set(got) == set(want) | {"torsion", "torsion_points", "lower_L", "L_polynomial", "trace_sums", "status"}, got
         if not supported:
-            assert got["torsion"] == got["torsion_points"] == "", context
+            assert all(got[field] == "" for field in ("torsion", "torsion_points",
+                       "lower_L", "L_polynomial", "trace_sums")), context
     for p in ("2", "3"):
         cells = {(row["kind"], row["minimality"]) for row in actual if row["q"] == p}
         assert len(cells) == 6, cells
@@ -47,8 +48,9 @@ def test_invalid_input():
         result = invoke(text)
         assert result.returncode != 0 and result.stderr, (text, result)
         assert not list(csv.DictReader(io.StringIO(result.stdout))), result.stdout
-    result = invoke("2 0\n", "--unknown")
-    assert result.returncode != 0 and result.stderr, result
+    for options in (("--unknown",), ("--backend",)):
+        result = invoke("2 0\n", *options)
+        assert result.returncode != 0 and result.stderr, (options, result)
 
 
 
