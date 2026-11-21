@@ -7,9 +7,10 @@ make census-native
 artifacts/native/census-native --help
 ```
 
-The build needs GNU Make 4.2 or later, a C++17 compiler, NTL, FLINT, and GMP.
+The build needs GNU Make 4.2 or later, a C++17 compiler, NTL, FLINT, GMP, and zstd.
 On Debian or Ubuntu, install `g++`, `make`, `python3`, `libntl-dev`,
-`libflint-dev`, and `libgmp-dev` for the build and its checks.
+`libflint-dev`, `libgmp-dev`, `libzstd-dev`, and `zstd` for the build
+and its checks. The `zstd` package also provides `zstdcat` for inspecting output.
 
 `help`, `--help`, and `-h` print help to standard output and exit with status
 0. Missing commands, unknown commands, and extra help arguments print usage
@@ -27,7 +28,7 @@ make check/native_model.m
 The Makefile accepts `CXX`, `CPPFLAGS`, `CXXFLAGS`, `LDFLAGS`, `LDLIBS`, and
 `NATIVE_LDLIBS` as command-line overrides. `CXXFLAGS` defaults to
 `-O2 -Wall -Wextra -Wpedantic`; the build adds `-std=c++17`.
-`NATIVE_LDLIBS` defaults to `-lntl -lflint -lgmpxx -lgmp`.
+`NATIVE_LDLIBS` defaults to `-lntl -lflint -lgmpxx -lgmp -lzstd`.
 
 For headers or libraries installed outside the compiler's default paths,
 pass include and library search paths explicitly:

@@ -136,9 +136,10 @@ CI also checks the printed census numbers in this README, `docs/interface.md`
 and `docs/mathematics.md`; it does not execute Markdown code blocks.
 The tests need Magma, Python 3 (`python3`), a POSIX shell,
 and standard shell utilities. The Makefile needs GNU Make 4.2 or later.
-Native tests also need a C++17 compiler and the NTL, FLINT, and GMP development
-packages. See the [native build guide](native/README.md) for package names,
-commands and compiler settings.
+Native tests also need a C++17 compiler and the NTL, FLINT, GMP, and zstd development
+packages, plus the `zstd` command-line tool. See the
+[native build guide](native/README.md) for package names, commands and compiler
+settings.
 
 To run one file with the runner's `filename` parameter:
 
@@ -161,6 +162,7 @@ the debugger on an error.
 - [Signed L-polynomials](docs/native/lfunction.md): exact coefficients, lower-half encoding, scalar and AVX2 counting, and independent Magma comparisons.
 - [Derived K3 invariants](docs/native/invariants.md): ranks, cohomology, exact point counts, and BSD and Artin-Tate products.
 - [Sha and regulator candidates](docs/native/candidates.md): necessary lattice and height constraints, including unresolved splits.
+- [Compressed invariant records](docs/native/records.md): exact CSV, status meanings, and the Magma reference codec.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 
 Author: Edgar Costa

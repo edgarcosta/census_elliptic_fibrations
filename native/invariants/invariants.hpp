@@ -3,6 +3,7 @@
 #include "../lfunction/lfun.hpp"
 
 #include <iosfwd>
+#include <optional>
 
 namespace census {
 
@@ -39,5 +40,14 @@ CandidateInvariants admissible_candidates(const DerivedInvariants& data,
     const std::vector<LocalFibre>& fibres);
 
 void write_candidate_invariants(std::ostream& output, const CandidateInvariants& candidates);
+
+struct InvariantData {
+    std::optional<LocalModels> local;
+    std::optional<SignData> sign;
+    std::optional<TorsionData> torsion;
+    std::optional<LPolynomial> lfun;
+    std::optional<DerivedInvariants> derived;
+    std::optional<CandidateInvariants> candidates;
+};
 
 }
