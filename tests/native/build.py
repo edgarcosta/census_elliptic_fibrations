@@ -42,8 +42,7 @@ def test_duplicate_test_names():
         (root / "tests/native/native_probe.m").touch()
         (root / "native").mkdir()
         (root / "native/main.cpp").touch()
-        (root / "examples").mkdir()
-        (root / "examples/native_probe.m").touch()
+        (root / "tests/native_probe.m").touch()
         result = subprocess.run(
             ["make", "--dry-run", "check"],
             cwd=root, capture_output=True, text=True,

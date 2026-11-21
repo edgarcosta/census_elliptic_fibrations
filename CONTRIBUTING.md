@@ -36,15 +36,16 @@ immediately inside brackets. Spacing changes keep line breaks, indentation
 and comment placement. Fence Magma examples in Markdown as `c++`.
 
 Standalone Magma scripts begin with `SetQuitOnError(true);`, end with `quit;`,
-and run with `magma -bn`. Tests and examples loaded by `tests/run_tests.m` leave
+and run with `magma -bn`. Tests loaded by `tests/run_tests.m` leave
 error handling and process exit to that runner.
 
 ## Tests and data
 
-Tests live in `tests/`, native tests in `tests/native/`, shared helpers in
-`tests/support/`, and fixtures in `tests/fixtures/`.
+Tests live in `tests/`, native-only tests in `tests/native/`, comparisons
+with Magma in `tests/compare/`, shared helpers in `tests/support/`, and
+fixtures in `tests/fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py`,
-which lists `.m` entries in `tests/`, `tests/native/`, and `examples/`,
+which lists `.m` entries in `tests/`, `tests/native/`, and `tests/compare/`,
 excluding the runner and underscore-prefixed helpers.
 
 Test census mathematics or real failures. Use independent formulas,
@@ -53,8 +54,8 @@ a procedure, assert on its results and keep successful scenarios silent. Run the
 test commands in `README.md` from the root of the checkout under test, with
 that checkout's `spec` as the only copy of the package attached.
 
-Store census data and fixtures with Git LFS, including the matching paths in
-`.gitattributes`. Record the source revision, extraction procedure and
+Store small fixtures as ordinary Git files. Record the source revision,
+extraction procedure, and
 comparison limits beside each fixture. A file checksum establishes byte
 integrity; a mathematical comparison establishes what the data represents.
 

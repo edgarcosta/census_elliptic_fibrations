@@ -1,7 +1,7 @@
 # Package source
 
-Thanks for helping develop the census. This directory implements the Magma
-intrinsics and their private orbit, classification, and file routines.
+This directory implements the Magma intrinsics and their private orbit,
+classification, and file routines.
 
 - `enumeration/declarations.m`: the `FibrationCensus` verbosity levels.
 - `models/forms.m`: binary-form bases, coefficient vectors, symmetric-power actions and power tests.
@@ -11,22 +11,9 @@ intrinsics and their private orbit, classification, and file routines.
 - `models/minimality.m`: local congruences, nonminimal loci, bad-place certificates and `IsEverywhereMinimal`.
 - `models/classification.m`: generic-fibre kinds, singular/nonregular loci and `FibrationProperties`.
 - `enumeration/census.m`: public prefix, orbit-count, equation-count and representative intrinsics with selections.
+- `lfunction/trace_tables.m`: exact ordinary trace tables through `FibrationTraceTable`.
 - `records/files.m`: binary representative files, CSV summaries and completion metadata through `WriteFibrationRepresentativeKeys`.
 
-From Magma in the repository root, attach the package:
-
-```c++
-AttachSpec("spec");
-```
-
-The root `spec` includes `magma/spec`, whose entries are relative to this
-directory. Run the tests from the repository root:
-
-```sh
-magma -bn tests/run_tests.m
-```
-
-CI runs the tests and examples. See the
-[interface](../docs/interface.md) for calls and return values, the
-[mathematics](../docs/mathematics.md) for the loci and quotient construction,
-and the [parent README](../README.md) for installation.
+See the [root README](../README.md) for installation and test commands,
+the [interface](../docs/interface.md) for calls and return values, and the
+[mathematics](../docs/mathematics.md) for the loci and quotient construction.

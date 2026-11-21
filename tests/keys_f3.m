@@ -5,6 +5,19 @@ procedure test_key_encoding_f3()
     R<s, t> := PolynomialRing(GF(3), 2);
     assert aInvariantsFromKey(R, 3^26+3^21+3^12) eq [R | 0, s^4, 0, s^8, s^12];
     assert aInvariantsFromKey(R, 3^22+3^13+1) eq [R | 0, t^4, 0, t^8, t^12];
+    P<z> := PolynomialRing(GF(3));
+    degrees := [2, 4, 6, 8, 12];
+    indices := [2, 4, 5];
+    for i in indices do
+        for j in [0..degrees[i]] do
+            W := [R | 0, 0, 0, 0, 0];
+            W[i] := (3-1)*s^(degrees[i]-j)*t^j;
+            key := (3-1)*3^(&+([0] cat [degrees[k]+1 : k in indices | k gt i])+degrees[i]-j);
+            assert aInvariantsFromKey(R, key) eq W;
+            assert Evaluate(W[i], [z, P!1]) eq (3-1)*z^(degrees[i]-j);
+            assert Evaluate(W[i], [P!1, z]) eq (3-1)*z^j;
+        end for;
+    end for;
     keys := [0, 1] cat &cat[[3^d-1, 3^d] : d in [13, 22, 27]];
     Prune(~keys);
     assert #keys gt 0;

@@ -120,28 +120,25 @@ These counts are reproduced by `NumberOfFibrations` over both fields.
 The [mathematics](docs/mathematics.md#counts-and-independent-checks) describes
 the independent checks and their scope.
 
-## Tests and examples
+## Tests
 
-Thanks for helping check the census. From the repository root, run either
-test command:
+From the repository root, run either test command:
 
 ```sh
 magma -bn tests/run_tests.m
 make check
 ```
 
-Both use `python3 tests/list_tests.py` to list tests and examples, excluding
+Both use `python3 tests/list_tests.py` to list tests, excluding
 the runner and helpers, and return a nonzero status on failure.
-The examples include counts over both fields and a bounded representative
-calculation. The CI matrix runs these same files.
+The CI matrix runs these same files.
 CI also checks the printed census numbers in this README, `docs/interface.md`
 and `docs/mathematics.md`; it does not execute Markdown code blocks.
-The tests need Magma, Python 3 (`python3`), Git LFS, a POSIX shell,
+The tests need Magma, Python 3 (`python3`), a POSIX shell,
 and standard shell utilities. The Makefile needs GNU Make 4.2 or later.
-Native tests also need a C++17 compiler; see the
-[native build guide](native/README.md) for commands and compiler settings.
-If Git LFS was installed after cloning, run
-`git lfs pull` to download the fixtures before testing.
+Native tests also need a C++17 compiler and NTL and GMP development
+packages. See the [native build guide](native/README.md) for package names,
+commands and compiler settings.
 
 To run one file with the runner's `filename` parameter:
 
@@ -157,6 +154,8 @@ the debugger on an error.
 - [Contributing](CONTRIBUTING.md): implementation, test, data and writing conventions.
 - [Interface](docs/interface.md): intrinsics, selections, and certificates.
 - [Mathematics](docs/mathematics.md): normal forms, group actions, counting, and classification.
+- [Exact trace tables](docs/native/tables.md): ordinary point counts and their exact recovery certificate.
+- [Native models](docs/native/models.md): key decoding, both charts and six-cell classification.
 - [Keys and files](docs/keys.md): normalization, coefficient encodings and saved representatives.
 
 Author: Edgar Costa
