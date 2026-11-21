@@ -24,7 +24,7 @@ from lfun import check_identities as check_lfun
 
 
 DATA = ROOT / "tests/fixtures/published-f2"
-OUT = ROOT / "artifacts/full-f2"
+OUT = ROOT / "build/full-f2"
 ARCHIVE = OUT / "census.csv.zip"
 A1_CLASS = {0: "zero", 1: "square", 4: "square", 5: "square",
             2: "split", 3: "split", 6: "split", 7: "irreducible"}
@@ -186,7 +186,7 @@ def main():
             count += 1
     assert count == manifest["published_rows"]
     with (OUT / "orbit.log").open("w") as log:
-        subprocess.run([ROOT / "artifacts/native/f2-orbit-match", keypath,
+        subprocess.run([ROOT / "build/tests/native/f2-orbit-match", keypath,
                         OUT / "published-keys.txt", OUT / "matches.csv"],
                        stdout=log, stderr=subprocess.STDOUT, check=True)
     correspondence = {}

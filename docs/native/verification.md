@@ -50,7 +50,7 @@ The published a1 text is also checked against its packed key. Fibre
 positions can move under the base transformation, so comparison uses degree,
 conductor, Tamagawa number and Kodaira symbol.
 
-Evidence is written under `artifacts/full-f2/`. `summary.json` records
+Evidence is written under `build/full-f2/`. `summary.json` records
 coverage and agreement counts.
 `matches.csv` records every orbit search;
 `unmatched-published.csv` and `unmatched-native.csv` record every unmatched

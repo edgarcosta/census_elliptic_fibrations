@@ -1,5 +1,6 @@
 *.sig
 *.lck
-artifacts/
+build/
+results/
 __pycache__/
 AGENTS.local.md

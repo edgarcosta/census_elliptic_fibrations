@@ -376,7 +376,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--prefixes')
     parser.add_argument('--expected-count', type=int)
-    parser.add_argument('--native', type=Path, default=ROOT / 'artifacts/native/census-native')
+    parser.add_argument('--native', type=Path, default=ROOT / 'build/native/census-native')
     parser.add_argument('--magma', default=os.environ.get('MAGMA', 'magma'))
     args = parser.parse_args()
     args.output = args.output.resolve()

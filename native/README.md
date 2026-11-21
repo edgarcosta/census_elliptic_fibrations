@@ -4,7 +4,7 @@ From the repository root, build and run the native command with:
 
 ```sh
 make census-native
-artifacts/native/census-native --help
+build/native/census-native --help
 ```
 
 The build needs GNU Make 4.2 or later, a C++17 compiler, NTL, FLINT, GMP, and zstd.
@@ -19,7 +19,7 @@ to standard error and exit with status 2.
 Decode keys and compare the native and Magma model computations with:
 
 ```sh
-printf '2 1346371584\n3 951893735796\n' | artifacts/native/census-native invariants --diagnostic
+printf '2 1346371584\n3 951893735796\n' | build/native/census-native invariants --diagnostic
 make check/native_model.m
 ```
 
@@ -37,5 +37,7 @@ pass include and library search paths explicitly:
 make census-native CXX=g++ CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
 ```
 
-After changing build flags or paths, remove `artifacts/native/census-native`
-or use `make -B census-native` to force a rebuild.
+Executables are built under `build/`: commands in `build/native/` and test
+programs in `build/tests/native/`. Test scratch and comparison output also
+use `build/`. After changing build flags or paths, run `make clean` to remove
+`build/`, or `make -B census-native` to force a rebuild.

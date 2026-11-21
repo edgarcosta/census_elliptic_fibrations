@@ -47,13 +47,13 @@ To recreate the sample, use a local checkout of the F_2 census table repository
 containing the pinned revision. Run from this repository's root:
 
 ```sh
-python3 tests/support/extract_published_f2.py /path/to/f2-census-table artifacts/sample.csv
-cmp artifacts/sample.csv tests/fixtures/published-f2/sample.csv
+mkdir -p build/tests/fixtures/published-f2
+python3 tests/support/extract_published_f2.py /path/to/f2-census-table build/tests/fixtures/published-f2/sample.csv
+cmp build/tests/fixtures/published-f2/sample.csv tests/fixtures/published-f2/sample.csv
 ```
 
 The extractor reads the pinned Git object, scans the archive once, checks its
 observed class sizes and writes exactly 16 rows. It uses Python's standard
-library and does not fetch anything. Store its output under an ignored scratch
-directory when comparing it locally.
+library and does not fetch anything.
 
 Run `make check/published_f2.m` to compare it with the package.
