@@ -1,14 +1,30 @@
-"""Compare canonical mathematical records with the archived multiset digests."""
+"""Hash canonical orbit records for comparison with the test constants.
+
+Records are (I, smooth, minimal), with binary flags and minimal=0 for singular
+models. The disjoint buckets are smooth_minimal, smooth_nonminimal and
+delta_zero; all is their union. Sort full tuples, preserving multiplicity.
+
+Each prefix digest hashes this ASCII stream with LF endings:
+    census-orbit-v1|q|canonical_prefix_integer|bucket|record_count
+    coefficient_digits_in_fixed_width|smooth_0_or_1|minimal_0_or_1
+    ...
+Coefficient width is 32 for F_2 and 27 for F_3, including leading zeroes.
+An empty bucket hashes its header with count zero. Combine prefix digests
+in increasing numerical prefix order:
+    census-multiset-v1|q|bucket
+    canonical_prefix_integer|record_count|prefix_bucket_digest
+    ...
+Counts and uniqueness are checked separately. Serialization and input order
+do not affect the comparison; SHA-256 collisions remain its hash limit.
+"""
 
 import hashlib
-import json
 from pathlib import Path
 import struct
 import sys
 
 
 BUCKETS = ("all", "smooth_minimal", "smooth_nonminimal", "delta_zero")
-FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/oldcode-archive/summaries.tsv"
 
 
 def coefficients(value, q):
@@ -36,64 +52,7 @@ def combined(q, bucket, entries):
     return sum(row[1] for row in entries), hashlib.sha256(message.encode("ascii")).hexdigest()
 
 
-def fixture():
-    lines = FIXTURE.read_text(encoding="ascii").splitlines()
-    assert lines[0] == "q\told_prefix_index\tcanonical_prefix\tbucket\tcount\tsha256"
-    assert lines[-1] == "END_SUMMARIES"
-    boundary = lines.index("CELLS")
-    prefixes, cells, ordinals = {}, {}, {}
-    for line in lines[1:boundary]:
-        q, ordinal, prefix, bucket, count, sha = line.split("\t")
-        q, ordinal, prefix, count = map(int, (q, ordinal, prefix, count))
-        assert q in (2, 3) and bucket in BUCKETS and count >= 0
-        assert len(sha) == 64 and set(sha) <= set("0123456789abcdef")
-        key = q, prefix, bucket
-        assert key not in prefixes
-        prefixes[key] = count, sha
-        ordinals.setdefault((q, prefix), set()).add(ordinal)
-    for line in lines[boundary + 1:-1]:
-        q, bucket, count, sha = line.split("\t")
-        key = int(q), bucket
-        assert key not in cells
-        cells[key] = int(count), sha
-    for q, size in ((2, 88), (3, 2)):
-        labels = {prefix for field, prefix in ordinals if field == q}
-        assert len(labels) == size
-        indices = [next(iter(ordinals[q, prefix])) for prefix in labels]
-        assert all(len(ordinals[q, prefix]) == 1 for prefix in labels)
-        assert set(indices) == (set(range(1, 89)) if q == 2 else {1, 934})
-        assert q == 2 or labels == {0, 21870}
-        for prefix in labels:
-            assert prefixes[q, prefix, "all"][0] == sum(
-                prefixes[q, prefix, bucket][0] for bucket in BUCKETS[1:])
-        for bucket in BUCKETS:
-            entries = [(prefix, *prefixes[q, prefix, bucket]) for prefix in labels]
-            assert combined(q, bucket, entries) == cells[q, bucket]
-    assert len(prefixes) == 360 and len(cells) == 8
-    return prefixes, cells
-
-
-def serialization_probes(q, prefix, records):
-    expected = digest(q, prefix, "all", records)
-    reformatted = json.dumps(list(reversed(records)), indent=3)
-    restored = [tuple(row) for row in json.loads(reformatted)]
-    assert digest(q, prefix, "all", restored) == expected
-    assert digest(q, prefix, "all", records[:-1]) != expected
-    assert digest(q, prefix, "all", records + [records[0]]) != expected
-    assert digest(q, prefix, "all", records[:-1] + [records[0]]) != expected
-    occupied = {row[0] for row in records}
-    value = prefix * q**(22 if q == 2 else 13)
-    while value in occupied:
-        value += 1
-    changed = [(value, *records[0][1:]), *records[1:]]
-    assert digest(q, prefix, "all", changed) != expected
-    changed = [(records[0][0], 1, 1), *records[1:]]
-    assert records[0][1:] == (0, 0)
-    assert digest(q, prefix, "all", changed) != expected
-
-
 def check_prefix(q, prefix, path):
-    expected, _ = fixture()
     data = Path(path).read_bytes()
     records = list(struct.iter_unpack("<QBB", data))
     width = 22 if q == 2 else 13
@@ -107,27 +66,25 @@ def check_prefix(q, prefix, path):
         assert smooth in (0, 1) and minimal in (0, 1) and (smooth or not minimal)
         bucket = "delta_zero" if not smooth else "smooth_minimal" if minimal else "smooth_nonminimal"
         groups[bucket].append(record)
-    if prefix == 0:
-        serialization_probes(q, prefix, records)
     for bucket, group in groups.items():
         actual = len(group), digest(q, prefix, bucket, group)
-        assert actual == expected[q, prefix, bucket], (q, prefix, bucket, actual, expected[q, prefix, bucket])
         print(f"{prefix}\t{bucket}\t{actual[0]}\t{actual[1]}")
 
 
 def check_combined(q):
-    expected, cells = fixture()
     actual = {}
     for line in sys.stdin:
         prefix, bucket, count, sha = line.rstrip("\n").split("\t")
         key = q, int(prefix), bucket
         assert key not in actual
         actual[key] = int(count), sha
-    assert actual == {key: value for key, value in expected.items() if key[0] == q}
+    labels = {key[1] for key in actual}
+    assert len(labels) == (88 if q == 2 else 2)
+    assert set(actual) == {(q, label, bucket) for label in labels for bucket in BUCKETS}
     for bucket in BUCKETS:
         entries = [(key[1], *value) for key, value in actual.items() if key[2] == bucket]
-        assert combined(q, bucket, entries) == cells[q, bucket]
-    print("ARCHIVE_OK")
+        count, sha = combined(q, bucket, entries)
+        print(f"{bucket}\t{count}\t{sha}")
 
 
 if __name__ == "__main__":

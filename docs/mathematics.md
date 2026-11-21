@@ -317,18 +317,6 @@ for the elliptic Weierstrass construction and local reduction.
 ## Counts and independent checks
 
 The [README table](../README.md#results) records the six cells.
-Running NumberOfFibrations over each field gives:
-
-| Quantity | F2 | F3 |
-| --- | ---: | ---: |
-| All orbits | 1,402,468 | 1,307,814,237 |
-| Smooth, everywhere minimal | 1,397,598 | 1,307,723,786 |
-| Smooth, nonminimal somewhere | 4,134 | 90,113 |
-| Regular cusp, everywhere minimal | 680 | 294 |
-| Regular cusp, nonminimal somewhere | 38 | 20 |
-| Nonregular, everywhere minimal | 7 | 12 |
-| Nonregular, nonminimal somewhere | 11 | 12 |
-
 The [package tests](../tests/README.md) check these counts and explicit
 equations through the public interface. That guide records the independent
 checks and their scope, including archived coordinate-orbit multisets

@@ -48,3 +48,11 @@ artifacts/native/candidates-exact: tests/native/candidates_exact.cpp native/inva
 check-native-invariants: $(NATIVE_CHECKS)
 
 .PHONY: check-native-invariants
+
+artifacts/native/f2-orbit-match: tests/native/f2_orbit_match.c
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) -O2 -Wall -Wextra -Wpedantic $(LDFLAGS) -o $@ $<
+
+check-native-invariants-f2: check/native_full_f2.m
+
+.PHONY: check-native-invariants-f2
