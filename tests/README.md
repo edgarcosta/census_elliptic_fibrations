@@ -1,7 +1,6 @@
 # Independent census checks
 
-Thanks for helping check the census. These tests compare the public interface
-with independent calculations and data:
+These tests compare the public interface with independent calculations and data:
 
 - `burnside.m` derives the whole-space affine action by direct substitution
   over both fields. It checks the total orbit count, including singular and
@@ -45,3 +44,19 @@ commands and prerequisites.
 Native tests also need the [native build prerequisites](../native/README.md).
 
 CI runs each test file as its own job with a 30-minute limit.
+
+`sha2_import.m` runs the standard-library Python checks through the public
+saved Sha[2] import and verification commands. Every saved row round-trips,
+including all settlements, shortened unresolved lists and non-applicable rows.
+Hand-substituted ordinary controls check the roles of f, v and MW rank,
+feasible defects, and the order-16 dimension ambiguity. Supersingular controls
+preserve the candidates. Composition checks reject wrong identities, empty
+intersections and conflicting exact claims, while retaining generators and
+prior exact dimensions. Changed output and evidence fail verification.
+These checks reuse the saved arithmetic and its reviews; they perform no
+new residue computation.
+The Python formula is compared with the private Magma routine on all
+6,008 saved source rows. Rows with saved exact defects are compared both
+with and without them. The comparison checks dimension status, feasible
+dimensions and defects, and surviving Sha orders. It covers supersingular
+and missing-descent rows as well as successful ordinary descents.

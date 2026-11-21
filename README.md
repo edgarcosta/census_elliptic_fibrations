@@ -122,8 +122,7 @@ the independent checks and their scope.
 
 ## Tests and examples
 
-Thanks for helping check the census. From the repository root, run either
-test command:
+From the repository root, run either test command:
 
 ```sh
 magma -bn tests/run_tests.m

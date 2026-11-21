@@ -3,6 +3,8 @@
 The public intrinsics count model orbits and normalized equations, list
 representatives, and test individual equations. Attach `spec` before calling them.
 The [README](../README.md) gives installation and initial examples.
+The Python production commands and their record formats are documented in
+[production/README.md](../production/README.md) and [data/refinements-v1.md](../data/refinements-v1.md).
 
 ## Rings and models
 

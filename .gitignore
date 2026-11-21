@@ -2,3 +2,4 @@
 *.lck
 artifacts/
 AGENTS.local.md
+__pycache__/

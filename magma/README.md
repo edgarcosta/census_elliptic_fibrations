@@ -1,7 +1,7 @@
 # Package source
 
-Thanks for helping develop the census. This directory implements the Magma
-intrinsics and their private orbit, classification, and file routines.
+This directory implements the Magma intrinsics and private orbit,
+classification, file and arithmetic routines.
 
 - `enumeration/declarations.m`: the `FibrationCensus` verbosity levels.
 - `models/forms.m`: binary-form bases, coefficient vectors, symmetric-power actions and power tests.
@@ -12,6 +12,7 @@ intrinsics and their private orbit, classification, and file routines.
 - `models/classification.m`: generic-fibre kinds, singular/nonregular loci and `FibrationProperties`.
 - `enumeration/census.m`: public prefix, orbit-count, equation-count and representative intrinsics with selections.
 - `records/files.m`: binary representative files, CSV summaries and completion metadata through `WriteFibrationRepresentativeKeys`.
+- `arithmetic/sha2.m`: private ordinary-F_2 Sha[2] dimensions, feasible defects and candidate Sha orders from saved descent data.
 
 From Magma in the repository root, attach the package:
 
