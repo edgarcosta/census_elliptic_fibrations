@@ -56,6 +56,4 @@ observed class sizes and writes exactly 16 rows. It uses Python's standard
 library and does not fetch anything. Store its output under an ignored scratch
 directory when comparing it locally.
 
-The CSV fixture uses Git LFS. Download its data before running
-`make check/published_f2.m`. CI checks out LFS data and discovers this test
-as its own matrix job with a 30-minute budget.
+Run `make check/published_f2.m` to compare it with the package.

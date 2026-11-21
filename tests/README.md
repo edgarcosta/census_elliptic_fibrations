@@ -1,7 +1,6 @@
 # Independent census checks
 
-Thanks for helping check the census. These tests compare the public interface
-with independent calculations and data:
+These tests compare the public interface with independent calculations and data:
 
 - `burnside.m` derives the whole-space affine action by direct substitution
   over both fields. It checks the total orbit count, including singular and
@@ -38,8 +37,8 @@ invocations, build ordering before native tests, and the guard against duplicate
 test basenames.
 Shared helpers live in `support/` and fixtures in `fixtures/`.
 The runner, Make, and CI use `python3 tests/list_tests.py` to list test
-entries in `tests/`, `tests/native/`, and `examples/`, excluding the runner
-and helpers. See the [root README](../README.md#tests-and-examples) for test
+entries in `tests/` and `tests/native/`, excluding the runner
+and helpers. See the [root README](../README.md#tests) for test
 commands and prerequisites.
 
 Native tests also need the [native build prerequisites](../native/README.md).

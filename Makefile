@@ -36,7 +36,4 @@ $(foreach file,$(TEST_PATHS),$(eval $(call test_rule,$(file))))
 
 check: $(CHECK_FILES)
 
-check-no-dups:
-	@python3 tests/list_tests.py > /dev/null
-
-.PHONY: all check check-no-dups census-native
+.PHONY: all check census-native

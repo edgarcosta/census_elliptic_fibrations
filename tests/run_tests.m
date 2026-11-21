@@ -6,7 +6,8 @@ if assigned debug then
     SetDebugOnError(true);
 end if;
 
-load "config.m";
+AttachSpec("spec");
+SetColumns(0);
 
 if assigned filename then
     tests := [filename];
