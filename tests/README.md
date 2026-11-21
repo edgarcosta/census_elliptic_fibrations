@@ -55,3 +55,9 @@ commands and prerequisites.
 Native tests also need the [native build prerequisites](../native/README.md).
 
 CI runs each test file as its own job with a 30-minute limit.
+
+## Production driver
+
+`compare/run_stage1.m` compares bounded public-command output with Magma
+and checks receipts, failed jobs and resume. GNU parallel is required.
+There is no complete independent F_3 arithmetic comparison.

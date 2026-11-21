@@ -140,6 +140,7 @@ Native tests also need a C++17 compiler and the NTL, FLINT, GMP, and zstd develo
 packages, plus the `zstd` command-line tool and GNU parallel (`parallel`). See the
 [native build guide](native/README.md) for package names, commands and compiler
 settings.
+The stage 1 test also needs Linux.
 
 To run one file with the runner's `filename` parameter:
 
