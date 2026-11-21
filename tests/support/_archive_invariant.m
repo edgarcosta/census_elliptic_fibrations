@@ -1,3 +1,40 @@
+/*
+For each equation, I denotes the lexicographically least normalized coefficient
+tuple in its allowed degree-bounded coordinate orbit. Coefficients of a
+degree-d form are ordered s^d, s^(d-1)t, ..., t^d, including zero coefficients.
+Over F_2 the tuple concatenates a1,a3,a4,a6, with lengths 3,7,9,13.
+Over F_3 it concatenates C,A,B, with lengths 5,9,13.
+An integer packs this tuple in base q, most significant digit first.
+This integer encodes the canonical form independently of the input representative key.
+The prefix label packs its first 10 or 14 digits in the same way.
+
+Over F_2, enumerate GL(2,2) base changes and degree-2 forms h.
+After the base change, use x_old=x+r, y_old=y+h*x+z, where
+r=h^2+a1*h and z has degree 6. The condition on r preserves a2=0.
+Retain every transport attaining the least prefix (a1,a3).
+At that target, the z action adds (a1*z,z^2+a3*z) to (a4,a6).
+Reduce suffixes modulo this linear subspace and take their least value.
+
+Over F_3, use the 24 projective base matrices whose first nonzero entry is 1.
+Scalar base matrices and Weierstrass unit changes act trivially on these forms.
+A quartic translation h sends
+(C,A,B) to (C,A-C*h,B+A*h+C*h^2+h^3).
+For C!=0, reduce A modulo C times the quartics; polynomial division recovers
+the unique h attaining that reduced prefix. Retain all base transports
+attaining the least prefix. For C=0, reduce B modulo {A*h+h^3} instead.
+Row-echelon reduction zeros the earliest pivot coordinates, giving the
+lexicographically least suffix in each coset.
+
+These steps minimize over all 6,144 F_2 or 5,832 F_3 coordinate changes.
+The helper precomputes their affine suffix maps once per prefix.
+Allowed changes are invertible and preserve the equation class, smoothness,
+and smooth-model minimality. Equivalent equations have identical coordinate
+orbits and hence equal I. Conversely, equal I supplies invertible changes
+from both equations to the same normalized model. Thus I separates the
+coordinate orbits counted here, including singular and nonminimal equations.
+It does not classify abstract surfaces under arbitrary rational changes.
+*/
+
 function form_vector(f, d)
     R := Parent(f);
     return [BaseRing(R) | MonomialCoefficient(f, R.1^(d-j)*R.2^j) : j in [0..d]];

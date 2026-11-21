@@ -13,8 +13,8 @@ These tests compare the public interface with independent calculations and data:
 - `archive_fixtures.m` and `archive_invariants.m` compare coordinate-orbit
   multiset hashes for all 88 F_2 prefixes and two F_3 prefixes. The F_3 sample
   omits smooth nonminimal models and some stabilizer types; archived singular
-  flags do not distinguish the four singular cells. See
-  [archive provenance and coverage](fixtures/oldcode-archive/README.md).
+  flags do not distinguish the four singular cells. The canonical invariant
+  and hash definitions are beside their implementations in `support/`.
 - `published_f2.m` checks coordinate-orbit matches and independent invariants
   for 16 rows from the incomplete published F_2 table. It does not establish
   complete-census coverage. See [fixture provenance](fixtures/published-f2/README.md).

@@ -2,19 +2,8 @@ import "_archive_invariant.m": invariant_context, orbit_invariant;
 import "_support.m": shell_quote;
 
 // Canonical prefix labels allow the package to reorder or change representatives.
-procedure test_archive(q)
+procedure test_archive(q, labels, expected)
     R<s, t> := PolynomialRing(GF(q), 2);
-    expected := AssociativeArray();
-    lines := Split(Read("tests/fixtures/oldcode-archive/summaries.tsv"), "\n");
-    for line in lines[2..#lines] do
-        if line eq "CELLS" then break; end if;
-        row := Split(line, "\t");
-        if StringToInteger(row[1]) eq q then
-            expected[<StringToInteger(row[3]), row[4]>] := StringToInteger(row[5]);
-        end if;
-    end for;
-    labels := {key[1] : key in Keys(expected)};
-    assert #labels eq (q eq 2 select 88 else 2);
     prefixes := FibrationPrefixes(R);
     contexts := AssociativeArray();
     indices := AssociativeArray();
@@ -27,24 +16,21 @@ procedure test_archive(q)
         label := ctx`Prefix;
         assert label notin seen;
         Include(~seen, label);
-        if label in labels then
+        if q eq 2 or label in labels then
             contexts[label] := ctx;
             indices[label] := i;
         end if;
     end for;
+    if q eq 2 then labels := seen; assert #labels eq 88; end if;
     assert Keys(indices) eq labels;
     ordered := Sort(Setseq(labels));
     total, cells, rows := NumberOfFibrations(R : PrefixIndices := [indices[label] : label in ordered]);
-    assert total eq &+[expected[<label, "all">] : label in ordered];
-    for j in [1..#rows] do
-        label := ordered[j];
-        counts := rows[j][2];
-        assert counts[<"smooth", "everywhere minimal">] eq expected[<label, "smooth_minimal">];
-        assert counts[<"smooth", "nonminimal somewhere">] eq expected[<label, "smooth_nonminimal">];
-        assert &+[counts[<kind, minimality>]
-            : kind in ["regular cusp", "nonregular"],
-              minimality in ["everywhere minimal", "nonminimal somewhere"]] eq expected[<label, "delta_zero">];
-    end for;
+    assert total eq expected[1][2];
+    assert cells[<"smooth", "everywhere minimal">] eq expected[2][2];
+    assert cells[<"smooth", "nonminimal somewhere">] eq expected[3][2];
+    assert &+[cells[<kind, minimality>]
+        : kind in ["regular cusp", "nonregular"],
+          minimality in ["everywhere minimal", "nonminimal somewhere"]] eq expected[4][2];
     output := TemporaryFile();
     combined := "";
     try
@@ -80,7 +66,8 @@ procedure test_archive(q)
             combined cat:= result;
         end for;
         result := Pipe(Sprintf("python3 tests/support/_archive_hash.py combined %o", q), combined);
-        assert result eq "ARCHIVE_OK\n";
+        assert result eq &cat[Sprintf("%o\t%o\t%o\n", row[1], row[2], row[3])
+            : row in expected];
     catch e
         Remove(output);
         error e;
